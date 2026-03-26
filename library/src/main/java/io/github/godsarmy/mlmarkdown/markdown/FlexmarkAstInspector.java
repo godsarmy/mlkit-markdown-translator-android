@@ -44,45 +44,49 @@ public final class FlexmarkAstInspector {
     }
 
     private static String mapCategory(Node node) {
-        if (node instanceof Paragraph) {
+        if (node instanceof Paragraph || hasSimpleName(node, "Paragraph")) {
             return "paragraph";
         }
-        if (node instanceof Heading) {
+        if (node instanceof Heading || hasSimpleName(node, "Heading")) {
             return "heading";
         }
-        if (node instanceof Text) {
+        if (node instanceof Text || hasSimpleName(node, "Text")) {
             return "text";
         }
-        if (node instanceof Emphasis) {
+        if (node instanceof Emphasis || hasSimpleName(node, "Emphasis")) {
             return "emphasis";
         }
-        if (node instanceof StrongEmphasis) {
+        if (node instanceof StrongEmphasis || hasSimpleName(node, "StrongEmphasis")) {
             return "strong_emphasis";
         }
-        if (node instanceof BulletList) {
+        if (node instanceof BulletList || hasSimpleName(node, "BulletList")) {
             return "bullet_list";
         }
-        if (node instanceof OrderedList) {
+        if (node instanceof OrderedList || hasSimpleName(node, "OrderedList")) {
             return "ordered_list";
         }
-        if (node instanceof ListItem) {
+        if (node instanceof ListItem || hasSimpleName(node, "ListItem")) {
             return "list_item";
         }
-        if (node instanceof BlockQuote) {
+        if (node instanceof BlockQuote || hasSimpleName(node, "BlockQuote")) {
             return "blockquote";
         }
-        if (node instanceof FencedCodeBlock) {
+        if (node instanceof FencedCodeBlock || hasSimpleName(node, "FencedCodeBlock")) {
             return "fenced_code_block";
         }
-        if (node instanceof Code) {
+        if (node instanceof Code || hasSimpleName(node, "Code")) {
             return "code_span";
         }
-        if (node instanceof Link) {
+        if (node instanceof Link || hasSimpleName(node, "Link")) {
             return "link";
         }
-        if (node instanceof Image) {
+        if (node instanceof Image || hasSimpleName(node, "Image")) {
             return "image";
         }
         return "other:" + node.getClass().getSimpleName();
+    }
+
+    private static boolean hasSimpleName(Node node, String simpleName) {
+        return simpleName.equals(node.getClass().getSimpleName());
     }
 }
