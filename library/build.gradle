@@ -28,6 +28,7 @@ android {
 dependencies {
     implementation 'androidx.annotation:annotation:1.8.2'
     implementation 'com.vladsch.flexmark:flexmark:0.64.8'
+    implementation 'com.google.mlkit:translate:17.0.3'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
