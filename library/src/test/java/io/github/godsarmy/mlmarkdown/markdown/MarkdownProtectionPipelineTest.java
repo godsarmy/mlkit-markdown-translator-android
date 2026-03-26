@@ -43,4 +43,26 @@ public class MarkdownProtectionPipelineTest {
         assertTrue(restored.contains("![image](https://example.com/i.png)"));
         assertTrue(restored.contains("<https://example.com>"));
     }
+
+    @Test
+    public void protect_preservesWholeTableBlockInFallbackMode() {
+        MarkdownProtectionPipeline pipeline = new MarkdownProtectionPipeline();
+        MarkdownRestorer restorer = new MarkdownRestorer();
+        MarkdownTokenStore tokenStore = new MarkdownTokenStore();
+
+        String input = "| Name | Notes |\n"
+                + "| --- | --- |\n"
+                + "| Alice | value |\n"
+                + "| Bob | value |\n";
+
+        String protectedMarkdown = pipeline.protect(input, tokenStore);
+
+        assertFalse(protectedMarkdown.contains("| Name | Notes |"));
+        assertEquals(1, tokenStore.getAll().size());
+
+        String restored = restorer.restore("TR(" + protectedMarkdown + ")", tokenStore);
+        assertTrue(restored.contains("| --- | --- |"));
+        assertTrue(restored.contains("| Alice | value |"));
+        assertTrue(restored.contains("| Bob | value |"));
+    }
 }

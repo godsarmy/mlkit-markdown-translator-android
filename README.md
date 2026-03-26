@@ -191,7 +191,7 @@ This library is designed to preserve Markdown structure during translation, but 
 
 - advanced nested Markdown edge cases may not be perfectly preserved
 - raw HTML blocks beyond currently supported patterns may not round-trip cleanly
-- tables are not guaranteed unless explicitly handled by the active pipeline path
+- GFM-style pipe tables are supported in AST path; regex fallback may preserve full table blocks without translating each cell
 - reference-style link definitions may be imperfect if tokenization does not fully cover a case
 - translator-driven punctuation drift can still occur in plain text regions
 

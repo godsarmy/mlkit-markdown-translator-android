@@ -6,8 +6,11 @@ import com.vladsch.flexmark.ast.FencedCodeBlock;
 import com.vladsch.flexmark.ast.HtmlBlock;
 import com.vladsch.flexmark.ast.HtmlInline;
 import com.vladsch.flexmark.ast.Text;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
+import com.vladsch.flexmark.ext.tables.TableSeparator;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
+import com.vladsch.flexmark.util.data.MutableDataSet;
 import com.vladsch.flexmark.util.sequence.BasedSequence;
 
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
@@ -29,7 +32,9 @@ public final class AstTokenModelBuilder {
     }
 
     public AstTokenModelBuilder(boolean protectAutolinks) {
-        this.parser = Parser.builder().build();
+        MutableDataSet options = new MutableDataSet();
+        options.set(Parser.EXTENSIONS, List.of(TablesExtension.create()));
+        this.parser = Parser.builder(options).build();
         this.protectAutolinks = protectAutolinks;
     }
 
@@ -58,7 +63,8 @@ public final class AstTokenModelBuilder {
             if (node instanceof FencedCodeBlock
                     || node instanceof Code
                     || node instanceof HtmlBlock
-                    || node instanceof HtmlInline) {
+                    || node instanceof HtmlInline
+                    || node instanceof TableSeparator) {
                 protectedSpans.add(new Span(start, end));
             } else if (protectAutolinks && node instanceof AutoLink) {
                 protectedSpans.add(new Span(start, end));

@@ -38,6 +38,24 @@ public class MarkdownGoldenFixtureTest {
     }
 
     @Test
+    public void fixture_tableAstSource_preservesTableDelimitersAfterMockTranslation() {
+        String input = readFixture("fixtures/table-ast-preservation/input.md");
+        String expected = readFixture("fixtures/table-ast-preservation/expected-after-mock-translation.md");
+
+        AstTokenModelBuilder builder = new AstTokenModelBuilder();
+        TokenizedMarkdownDocument document = builder.build(input);
+
+        Map<String, String> translatedByToken = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : document.translatableTokenMap().entrySet()) {
+            translatedByToken.put(entry.getKey(), "[[TR:" + entry.getValue() + "]]");
+        }
+
+        String reconstructed = document.reconstructWithTranslations(translatedByToken);
+        assertEquals(expected, reconstructed);
+        assertTrue(reconstructed.contains("| :--- | ---: |"));
+    }
+
+    @Test
     public void fixture_fallbackProtection_roundTripsProtectedSegmentsAfterMockTranslation() {
         String input = readFixture("fixtures/fallback-protection/input.md");
         String expected = readFixture("fixtures/fallback-protection/expected-restored-after-mock-translation.md");

@@ -5,6 +5,7 @@ import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -70,5 +71,34 @@ public class AstTokenModelBuilderTest {
                 token -> token.getType() == MarkdownTokenType.PROTECTED
                         && token.getValue().contains("https://example.com")
         ));
+    }
+
+    @Test
+    public void build_preservesTableStructureWhileAllowingCellTextTranslation() {
+        AstTokenModelBuilder builder = new AstTokenModelBuilder();
+        String markdown = "| Name | Notes |\n"
+                + "| :--- | ---: |\n"
+                + "| Alice | `code` and [link](https://example.com) |\n"
+                + "| Bob | plain text |\n";
+
+        TokenizedMarkdownDocument document = builder.build(markdown);
+        Map<String, String> translations = document.translatableTokenMap()
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> "TR(" + entry.getValue() + ")",
+                        (a, b) -> a,
+                        java.util.LinkedHashMap::new
+                ));
+
+        String reconstructed = document.reconstructWithTranslations(translations);
+
+        assertTrue(reconstructed.contains("| :--- | ---: |"));
+        assertTrue(reconstructed.contains("| TR(Name) | TR(Notes) |"));
+        assertTrue(reconstructed.contains("| TR(Alice) |"));
+        assertTrue(reconstructed.contains("`code`"));
+        assertTrue(reconstructed.contains("[TR(link)](https://example.com)"));
+        assertTrue(reconstructed.contains("| TR(Bob) | TR(plain text) |"));
     }
 }

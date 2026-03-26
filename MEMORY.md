@@ -7,3 +7,4 @@
 - Step 12 added fixture-based golden tests under `library/src/test/resources/fixtures` for AST reconstruction and fallback roundtrip behavior.
 - README now includes v1 limitations and Android integration/migration instructions for `android-nixpkgs`.
 - README now also includes Java quickstart snippets, a repository-style Java example path, JitPack setup notes, and integration guardrails (SDK/permission/threading/lifecycle/R8).
+- AST parsing now enables Flexmark table extension; GFM-style table delimiters/alignment are preserved in AST translation flow, and regex fallback protects whole table blocks.
