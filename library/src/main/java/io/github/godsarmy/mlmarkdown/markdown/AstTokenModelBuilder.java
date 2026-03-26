@@ -35,6 +35,7 @@ public final class AstTokenModelBuilder {
         collectSpans(document, translatableSpans, protectedSpans);
 
         List<MarkdownToken> tokens = toTokenStream(markdown, translatableSpans, protectedSpans);
+        assignTranslatableTokenIds(tokens);
         return new TokenizedMarkdownDocument(markdown, tokens);
     }
 
@@ -129,6 +130,7 @@ public final class AstTokenModelBuilder {
         if (previous.getType() == next.getType() && previous.getEndOffset() == next.getStartOffset()) {
             MarkdownToken merged = new MarkdownToken(
                     previous.getType(),
+                    previous.getTokenId(),
                     previous.getValue() + next.getValue(),
                     previous.getStartOffset(),
                     next.getEndOffset()
@@ -138,6 +140,17 @@ public final class AstTokenModelBuilder {
         }
 
         tokens.add(next);
+    }
+
+    private static void assignTranslatableTokenIds(List<MarkdownToken> tokens) {
+        int index = 1;
+        for (int i = 0; i < tokens.size(); i++) {
+            MarkdownToken token = tokens.get(i);
+            if (token.getType() == MarkdownTokenType.TRANSLATABLE) {
+                tokens.set(i, token.withTokenId("T" + index));
+                index++;
+            }
+        }
     }
 
     private static final class Span {

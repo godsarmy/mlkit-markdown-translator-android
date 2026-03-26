@@ -5,6 +5,7 @@ import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -47,5 +48,14 @@ public class AstTokenModelBuilderTest {
                 && token.getValue().contains("`code`")));
         assertTrue(tokens.stream().anyMatch(token -> token.getType() == MarkdownTokenType.PROTECTED
                 && token.getValue().contains("```kotlin")));
+
+        List<String> translatableTokenIds = tokens.stream()
+                .filter(token -> token.getType() == MarkdownTokenType.TRANSLATABLE)
+                .map(MarkdownToken::getTokenId)
+                .collect(Collectors.toList());
+        assertTrue(!translatableTokenIds.isEmpty());
+        for (int i = 0; i < translatableTokenIds.size(); i++) {
+            assertEquals("T" + (i + 1), translatableTokenIds.get(i));
+        }
     }
 }
