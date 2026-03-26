@@ -79,3 +79,22 @@ These define markdown layout and delimiters and are never translated directly:
 - Prefer AST-driven tokenization over regex-only logic.
 - Regex is allowed only for pre-normalization (for example `<block>...</block>` conversion) and targeted fallback edge cases.
 - Reconstruction fidelity is prioritized over aggressive text transformations.
+
+## Hybrid fallback mode (Step 6E)
+
+v1 uses a practical hybrid path:
+
+1. Normalize line endings and custom `<block>...</block>` tags.
+2. Try AST/token-stream preparation first.
+3. If AST preparation fails, fallback to regex protection mode.
+
+Operational behavior:
+
+- Preferred mode: `AST_TOKEN_STREAM`
+  - Source is tokenized by Flexmark-based model builder.
+  - Reconstruction is driven by ordered tokens.
+- Fallback mode: `REGEX_FALLBACK`
+  - Legacy protection/restoration pipeline is used.
+  - Ensures translation still completes without dropping content.
+
+This keeps the parser-first architecture while still providing safe operational fallback for edge cases.

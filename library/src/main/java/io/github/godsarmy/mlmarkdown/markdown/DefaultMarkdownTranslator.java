@@ -5,14 +5,12 @@ import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 
 public class DefaultMarkdownTranslator implements MarkdownTranslator {
-    private final MarkdownPreprocessor preprocessor;
-    private final MarkdownProtectionPipeline protectionPipeline;
+    private final HybridMarkdownPreparationService preparationService;
     private final MarkdownStructureTranslator structureTranslator;
     private final MarkdownRestorer restorer;
 
     public DefaultMarkdownTranslator(TranslationEngine translationEngine) {
-        this.preprocessor = new MarkdownPreprocessor();
-        this.protectionPipeline = new MarkdownProtectionPipeline();
+        this.preparationService = new HybridMarkdownPreparationService();
         this.structureTranslator = new MarkdownStructureTranslator(translationEngine);
         this.restorer = new MarkdownRestorer();
     }
@@ -24,17 +22,19 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             String targetLanguage,
             TranslationCallback callback
     ) {
-        String normalized = preprocessor.normalizeLineEndings(markdown);
-        MarkdownTokenStore tokenStore = new MarkdownTokenStore();
-        String protectedMarkdown = protectionPipeline.protect(normalized, tokenStore);
+        MarkdownPreparationResult preparationResult = preparationService.prepare(markdown);
         structureTranslator.translate(
-                protectedMarkdown,
+                preparationResult.getMarkdownForTranslation(),
                 sourceLanguage,
                 targetLanguage,
                 new TranslationCallback() {
                     @Override
                     public void onSuccess(String translatedText) {
-                        callback.onSuccess(restorer.restore(translatedText, tokenStore));
+                        if (preparationResult.getMode() == ProcessingMode.REGEX_FALLBACK) {
+                            callback.onSuccess(restorer.restore(translatedText, preparationResult.getTokenStore()));
+                            return;
+                        }
+                        callback.onSuccess(translatedText);
                     }
 
                     @Override
