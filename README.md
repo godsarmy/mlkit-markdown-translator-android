@@ -154,6 +154,20 @@ Current recommendation follows the roadmap:
 
 In short: start with local/submodule, then move to JitPack once the API is stable enough for broader reuse.
 
+### JitPack usage (when tags are published)
+
+```gradle
+repositories {
+    maven { url "https://jitpack.io" }
+}
+
+dependencies {
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:<tag>"
+}
+```
+
+Project includes `jitpack.yml` for a library-focused JitPack build path.
+
 ## Limitations (v1)
 
 This library is designed to preserve Markdown structure during translation, but v1 still has known limits:
