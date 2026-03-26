@@ -82,6 +82,22 @@ Target migration shape:
 - keep screen/state/UI logic in `android-nixpkgs`
 - move markdown translation and model concerns to this library API
 
+## Distribution strategy
+
+Current recommendation follows the roadmap:
+
+1. **Local included build** (now)
+   - fastest iteration while API and behavior are still stabilizing
+   - easiest debugging across app + library changes
+2. **Git submodule** (optional intermediate)
+   - useful when you want explicit repo linkage without publishing
+3. **JitPack** (next external distribution step)
+   - practical for simple dependency consumption from Android projects
+4. **Maven Central** (later)
+   - only after API maturity, stricter compatibility expectations, and release process hardening
+
+In short: start with local/submodule, then move to JitPack once the API is stable enough for broader reuse.
+
 ## Limitations (v1)
 
 This library is designed to preserve Markdown structure during translation, but v1 still has known limits:
