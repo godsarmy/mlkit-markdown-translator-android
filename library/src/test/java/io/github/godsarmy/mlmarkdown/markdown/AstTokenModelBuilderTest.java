@@ -58,4 +58,17 @@ public class AstTokenModelBuilderTest {
             assertEquals("T" + (i + 1), translatableTokenIds.get(i));
         }
     }
+
+    @Test
+    public void build_allowsAutolinksToBeTranslatable_whenProtectionDisabled() {
+        AstTokenModelBuilder builder = new AstTokenModelBuilder(false);
+        String markdown = "Visit <https://example.com> now";
+
+        TokenizedMarkdownDocument document = builder.build(markdown);
+
+        assertTrue(document.getTokens().stream().noneMatch(
+                token -> token.getType() == MarkdownTokenType.PROTECTED
+                        && token.getValue().contains("https://example.com")
+        ));
+    }
 }

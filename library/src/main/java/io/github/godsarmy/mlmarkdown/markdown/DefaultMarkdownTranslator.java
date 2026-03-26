@@ -1,5 +1,6 @@
 package io.github.godsarmy.mlmarkdown.markdown;
 
+import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.api.MarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
@@ -10,7 +11,14 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
     private final MarkdownRestorer restorer;
 
     public DefaultMarkdownTranslator(TranslationEngine translationEngine) {
-        this.preparationService = new HybridMarkdownPreparationService();
+        this(translationEngine, MarkdownTranslationOptions.defaults());
+    }
+
+    public DefaultMarkdownTranslator(
+            TranslationEngine translationEngine,
+            MarkdownTranslationOptions options
+    ) {
+        this.preparationService = new HybridMarkdownPreparationService(options);
         this.structureTranslator = new MarkdownStructureTranslator(translationEngine);
         this.restorer = new MarkdownRestorer();
     }

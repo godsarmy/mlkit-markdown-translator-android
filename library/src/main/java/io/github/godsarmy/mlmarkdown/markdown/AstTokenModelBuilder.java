@@ -22,9 +22,15 @@ import java.util.TreeSet;
  */
 public final class AstTokenModelBuilder {
     private final Parser parser;
+    private final boolean protectAutolinks;
 
     public AstTokenModelBuilder() {
+        this(true);
+    }
+
+    public AstTokenModelBuilder(boolean protectAutolinks) {
         this.parser = Parser.builder().build();
+        this.protectAutolinks = protectAutolinks;
     }
 
     public TokenizedMarkdownDocument build(String markdown) {
@@ -32,23 +38,29 @@ public final class AstTokenModelBuilder {
 
         List<Span> translatableSpans = new ArrayList<>();
         List<Span> protectedSpans = new ArrayList<>();
-        collectSpans(document, translatableSpans, protectedSpans);
+        collectSpans(document, translatableSpans, protectedSpans, protectAutolinks);
 
         List<MarkdownToken> tokens = toTokenStream(markdown, translatableSpans, protectedSpans);
         assignTranslatableTokenIds(tokens);
         return new TokenizedMarkdownDocument(markdown, tokens);
     }
 
-    private static void collectSpans(Node node, List<Span> translatableSpans, List<Span> protectedSpans) {
+    private static void collectSpans(
+            Node node,
+            List<Span> translatableSpans,
+            List<Span> protectedSpans,
+            boolean protectAutolinks
+    ) {
         BasedSequence chars = node.getChars();
         int start = chars.getStartOffset();
         int end = chars.getEndOffset();
         if (start >= 0 && end > start) {
             if (node instanceof FencedCodeBlock
                     || node instanceof Code
-                    || node instanceof AutoLink
                     || node instanceof HtmlBlock
                     || node instanceof HtmlInline) {
+                protectedSpans.add(new Span(start, end));
+            } else if (protectAutolinks && node instanceof AutoLink) {
                 protectedSpans.add(new Span(start, end));
             } else if (node instanceof Text) {
                 translatableSpans.add(new Span(start, end));
@@ -56,7 +68,7 @@ public final class AstTokenModelBuilder {
         }
 
         for (Node child = node.getFirstChild(); child != null; child = child.getNext()) {
-            collectSpans(child, translatableSpans, protectedSpans);
+            collectSpans(child, translatableSpans, protectedSpans, protectAutolinks);
         }
     }
 

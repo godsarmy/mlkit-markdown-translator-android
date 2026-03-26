@@ -1,5 +1,6 @@
 package io.github.godsarmy.mlmarkdown.markdown;
 
+import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 
 /**
@@ -11,24 +12,38 @@ public class HybridMarkdownPreparationService {
     private final MarkdownPreprocessor preprocessor;
     private final AstTokenModelBuilder tokenModelBuilder;
     private final MarkdownProtectionPipeline protectionPipeline;
+    private final MarkdownTranslationOptions options;
 
     public HybridMarkdownPreparationService() {
-        this(new MarkdownPreprocessor(), new AstTokenModelBuilder(), new MarkdownProtectionPipeline());
+        this(MarkdownTranslationOptions.defaults());
+    }
+
+    public HybridMarkdownPreparationService(MarkdownTranslationOptions options) {
+        this(
+                new MarkdownPreprocessor(),
+                new AstTokenModelBuilder(options.protectAutolinks()),
+                new MarkdownProtectionPipeline(),
+                options
+        );
     }
 
     public HybridMarkdownPreparationService(
             MarkdownPreprocessor preprocessor,
             AstTokenModelBuilder tokenModelBuilder,
-            MarkdownProtectionPipeline protectionPipeline
+            MarkdownProtectionPipeline protectionPipeline,
+            MarkdownTranslationOptions options
     ) {
         this.preprocessor = preprocessor;
         this.tokenModelBuilder = tokenModelBuilder;
         this.protectionPipeline = protectionPipeline;
+        this.options = options;
     }
 
     public MarkdownPreparationResult prepare(String markdown) {
         String normalized = preprocessor.normalizeLineEndings(markdown);
-        String normalizedBlocks = preprocessor.normalizeCustomBlockTags(normalized);
+        String normalizedBlocks = options.normalizeCustomBlockTags()
+                ? preprocessor.normalizeCustomBlockTags(normalized)
+                : normalized;
 
         try {
             TokenizedMarkdownDocument tokenizedDocument = buildTokenModel(normalizedBlocks);
