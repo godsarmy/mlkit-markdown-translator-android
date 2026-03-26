@@ -110,6 +110,10 @@ Common failure handling recommendations:
 - translation failure: preserve original markdown + show error UI state
 - unsupported language code: validate language selection before triggering translation
 
+Additional Java repository-style example:
+
+- `docs/examples/JavaMarkdownTranslationRepositoryExample.java`
+
 ### 3) ViewModel/Repository split (recommended)
 
 - **Activity/Fragment**: owns UI state and triggers user actions.
