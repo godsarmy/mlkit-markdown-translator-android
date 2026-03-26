@@ -6,3 +6,4 @@
 - Regex fallback now has real token protection (`MarkdownProtectionPipeline`) and can be disabled via `MarkdownTranslationOptions.setEnableRegexFallbackProtection(false)`.
 - Step 12 added fixture-based golden tests under `library/src/test/resources/fixtures` for AST reconstruction and fallback roundtrip behavior.
 - README now includes v1 limitations and Android integration/migration instructions for `android-nixpkgs`.
+- README now also includes Java quickstart snippets, a repository-style Java example path, JitPack setup notes, and integration guardrails (SDK/permission/threading/lifecycle/R8).

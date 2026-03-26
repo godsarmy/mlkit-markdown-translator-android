@@ -138,6 +138,23 @@ Target migration shape:
 - keep screen/state/UI logic in `android-nixpkgs`
 - move markdown translation and model concerns to this library API
 
+### 5) Integration guardrails
+
+- **Android SDK**: current library module targets `minSdk 24`, `compileSdk 34`.
+- **Permissions**: host app should include network permission when model downloads are expected:
+
+  ```xml
+  <uses-permission android:name="android.permission.INTERNET" />
+  ```
+
+- **Threading**: callbacks can arrive asynchronously; marshal UI updates to main thread in Java apps.
+- **Model lifecycle**:
+  - call `ensureLanguageModelDownloaded(...)` before first translation for a target language
+  - use `getDownloadedLanguagePacks(...)` and `deleteLanguagePack(...)` for storage control
+- **Resource lifecycle**: call `translator.close()` from owner teardown (`onDestroy()` or equivalent).
+- **R8/ProGuard**: no custom keep rules are currently required for the public API surface; re-check if
+  reflection-based integrations are added later.
+
 ## Distribution strategy
 
 Current recommendation follows the roadmap:
