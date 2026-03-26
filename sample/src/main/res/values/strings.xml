@@ -7,10 +7,13 @@
     <string name="source_language_label">Source language</string>
     <string name="target_language_label">Target language</string>
     <string name="download_model">Download model</string>
+    <string name="model_downloaded">Model downloaded</string>
+    <string name="model_downloaded_dialog_title">Model downloaded</string>
+    <string name="model_downloaded_dialog_message">Language model for %1$s is ready.</string>
     <string name="translate_markdown">Translate</string>
-    <string name="original_markdown_label">Original markdown preview</string>
-    <string name="translated_markdown_label">Translated markdown preview</string>
-    <string name="rendered_markdown_label">Rendered translated markdown (Markwon)</string>
+    <string name="original_markdown_label">Original text</string>
+    <string name="translated_markdown_label">Translated text</string>
+    <string name="render_mode_switch">Render markdown (Markwon)</string>
     <string name="default_markdown"># Welcome
 
 - Translate this markdown
@@ -29,5 +32,7 @@ echo hello
         <item>de</item>
         <item>pt</item>
         <item>it</item>
+        <item>zh</item>
+        <item>ja</item>
     </string-array>
 </resources>

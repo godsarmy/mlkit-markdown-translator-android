@@ -1,6 +1,10 @@
 package io.github.godsarmy.mlmarkdown.sample;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -9,6 +13,12 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
+
+import com.google.android.material.switchmaterial.SwitchMaterial;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
 
@@ -18,15 +28,20 @@ public final class MainActivity extends AppCompatActivity {
     private MlKitMarkdownTranslator translator;
     private Markwon markwon;
 
-    private EditText sourceMarkdownInput;
+    private EditText originalMarkdownInput;
+    private EditText translatedMarkdownRaw;
+    private TextView originalMarkdownRendered;
+    private TextView translatedMarkdownRendered;
+    private SwitchMaterial renderModeSwitch;
     private Spinner sourceLanguageSpinner;
     private Spinner targetLanguageSpinner;
     private TextView statusText;
-    private TextView originalMarkdownPreview;
-    private TextView translatedMarkdownPreview;
-    private TextView renderedMarkdownPreview;
     private Button downloadModelButton;
     private Button translateButton;
+
+    private boolean isBusy;
+    private boolean isRenderMode;
+    private final Set<String> downloadedTargetModels = new HashSet<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -39,17 +54,17 @@ public final class MainActivity extends AppCompatActivity {
         bindViews();
         setupLanguageSpinners();
         setupActions();
-        updateOriginalPreview();
     }
 
     private void bindViews() {
-        sourceMarkdownInput = findViewById(R.id.sourceMarkdownInput);
+        originalMarkdownInput = findViewById(R.id.originalMarkdownInput);
+        translatedMarkdownRaw = findViewById(R.id.translatedMarkdownRaw);
+        originalMarkdownRendered = findViewById(R.id.originalMarkdownRendered);
+        translatedMarkdownRendered = findViewById(R.id.translatedMarkdownRendered);
+        renderModeSwitch = findViewById(R.id.renderModeSwitch);
         sourceLanguageSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetLanguageSpinner = findViewById(R.id.targetLanguageSpinner);
         statusText = findViewById(R.id.statusText);
-        originalMarkdownPreview = findViewById(R.id.originalMarkdownPreview);
-        translatedMarkdownPreview = findViewById(R.id.translatedMarkdownPreview);
-        renderedMarkdownPreview = findViewById(R.id.renderedMarkdownPreview);
         downloadModelButton = findViewById(R.id.downloadModelButton);
         translateButton = findViewById(R.id.translateButton);
     }
@@ -71,15 +86,84 @@ public final class MainActivity extends AppCompatActivity {
     private void setupActions() {
         downloadModelButton.setOnClickListener(v -> downloadTargetModel());
         translateButton.setOnClickListener(v -> translateMarkdown());
+
+        targetLanguageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateDownloadButtonState();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                updateDownloadButtonState();
+            }
+        });
+
+        renderModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            isRenderMode = isChecked;
+            applyRenderMode();
+        });
+
+        originalMarkdownInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (isRenderMode) {
+                    markwon.setMarkdown(originalMarkdownRendered, s.toString());
+                }
+            }
+        });
+
+        updateDownloadButtonState();
+        applyRenderMode();
     }
 
-    private void updateOriginalPreview() {
-        originalMarkdownPreview.setText(sourceMarkdownInput.getText().toString());
+    private void applyRenderMode() {
+        String original = originalMarkdownInput.getText().toString();
+        String translated = translatedMarkdownRaw.getText().toString();
+
+        if (isRenderMode) {
+            originalMarkdownInput.setEnabled(false);
+            originalMarkdownInput.setFocusable(false);
+            originalMarkdownInput.setFocusableInTouchMode(false);
+            originalMarkdownInput.setVisibility(View.GONE);
+            originalMarkdownRendered.setVisibility(View.VISIBLE);
+
+            translatedMarkdownRaw.setVisibility(View.GONE);
+            translatedMarkdownRendered.setVisibility(View.VISIBLE);
+
+            markwon.setMarkdown(originalMarkdownRendered, original);
+            markwon.setMarkdown(translatedMarkdownRendered, translated);
+            return;
+        }
+
+        originalMarkdownInput.setEnabled(true);
+        originalMarkdownInput.setFocusable(true);
+        originalMarkdownInput.setFocusableInTouchMode(true);
+        originalMarkdownInput.setVisibility(View.VISIBLE);
+        originalMarkdownRendered.setVisibility(View.GONE);
+
+        translatedMarkdownRaw.setVisibility(View.VISIBLE);
+        translatedMarkdownRendered.setVisibility(View.GONE);
     }
 
     private void setBusy(boolean busy) {
-        downloadModelButton.setEnabled(!busy);
+        isBusy = busy;
         translateButton.setEnabled(!busy);
+        updateDownloadButtonState();
+    }
+
+    private void updateDownloadButtonState() {
+        boolean downloaded = downloadedTargetModels.contains(targetLanguage());
+        downloadModelButton.setEnabled(!isBusy && !downloaded);
+        downloadModelButton.setText(downloaded ? R.string.model_downloaded : R.string.download_model);
     }
 
     private String sourceLanguage() {
@@ -91,6 +175,11 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void downloadTargetModel() {
+        if (downloadedTargetModels.contains(targetLanguage())) {
+            updateDownloadButtonState();
+            return;
+        }
+
         setBusy(true);
         statusText.setText("Status: downloading model for " + targetLanguage() + "...");
 
@@ -98,7 +187,9 @@ public final class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> {
+                    downloadedTargetModels.add(targetLanguage());
                     statusText.setText("Status: model ready for " + targetLanguage());
+                    showModelDownloadedDialog(targetLanguage());
                     setBusy(false);
                 });
             }
@@ -113,9 +204,17 @@ public final class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void showModelDownloadedDialog(String languageCode) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.model_downloaded_dialog_title)
+                .setMessage(getString(R.string.model_downloaded_dialog_message, languageCode))
+                .setCancelable(true)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
     private void translateMarkdown() {
-        String markdown = sourceMarkdownInput.getText().toString();
-        updateOriginalPreview();
+        String markdown = originalMarkdownInput.getText().toString();
         setBusy(true);
         statusText.setText("Status: translating " + sourceLanguage() + " → " + targetLanguage() + "...");
 
@@ -127,8 +226,10 @@ public final class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(String translatedText) {
                         runOnUiThread(() -> {
-                            translatedMarkdownPreview.setText(translatedText);
-                            markwon.setMarkdown(renderedMarkdownPreview, translatedText);
+                            translatedMarkdownRaw.setText(translatedText);
+                            if (isRenderMode) {
+                                markwon.setMarkdown(translatedMarkdownRendered, translatedText);
+                            }
                             statusText.setText("Status: translation complete");
                             setBusy(false);
                         });

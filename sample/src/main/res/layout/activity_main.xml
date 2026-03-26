@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
@@ -15,29 +16,90 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/sample_title"
-            android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/statusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/status_idle" />
+            android:text="@string/status_idle"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/source_markdown_label"
+            android:text="@string/original_markdown_label"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/sourceMarkdownInput"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:gravity="top|start"
-            android:inputType="textMultiLine"
-            android:text="@string/default_markdown" />
+            android:layout_height="190dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/preview_box_background"
+            android:padding="12dp">
+
+            <EditText
+                android:id="@+id/originalMarkdownInput"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:gravity="top|start"
+                android:inputType="textMultiLine"
+                android:padding="0dp"
+                android:text="@string/default_markdown"
+                android:textColor="@android:color/black"
+                android:textColorHint="#77000000" />
+
+            <TextView
+                android:id="@+id/originalMarkdownRendered"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/translated_markdown_label"
+            android:textStyle="bold" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="190dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/preview_box_background"
+            android:padding="12dp">
+
+            <EditText
+                android:id="@+id/translatedMarkdownRaw"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:gravity="top|start"
+                android:inputType="none"
+                android:padding="0dp"
+                android:textColor="@android:color/black" />
+
+            <TextView
+                android:id="@+id/translatedMarkdownRendered"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/renderModeSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="@string/render_mode_switch"
+            app:useMaterialThemeColors="true" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -89,71 +151,34 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:orientation="horizontal">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/downloadModelButton"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="52dp"
                 android:layout_weight="1"
-                android:text="@string/download_model" />
+                android:text="@string/download_model"
+                android:textAllCaps="false"
+                app:cornerRadius="14dp"
+                app:strokeColor="@color/purple_500"
+                app:strokeWidth="1dp" />
 
             <Space
                 android:layout_width="12dp"
                 android:layout_height="1dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/translateButton"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="52dp"
                 android:layout_weight="1"
-                android:text="@string/translate_markdown" />
+                android:text="@string/translate_markdown"
+                android:textAllCaps="false"
+                app:backgroundTint="@color/purple_500"
+                app:cornerRadius="14dp" />
         </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/original_markdown_label"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/originalMarkdownPreview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#10000000"
-            android:padding="8dp"
-            android:textIsSelectable="true" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/translated_markdown_label"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/translatedMarkdownPreview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#10000000"
-            android:padding="8dp"
-            android:textIsSelectable="true" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/rendered_markdown_label"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/renderedMarkdownPreview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#10000000"
-            android:padding="8dp" />
 
     </LinearLayout>
 </ScrollView>
