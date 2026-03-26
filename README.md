@@ -58,6 +58,58 @@ translator.ensureLanguageModelDownloaded("es", new OperationCallback() {
 });
 ```
 
+### Java quickstart (copy/paste)
+
+```java
+import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
+import io.github.godsarmy.mlmarkdown.api.OperationCallback;
+import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
+
+public final class MarkdownTranslationController {
+    private final MlKitMarkdownTranslator translator = new MlKitMarkdownTranslator();
+
+    public void translate(String markdown) {
+        translator.ensureLanguageModelDownloaded("es", new OperationCallback() {
+            @Override
+            public void onSuccess() {
+                translator.translateMarkdown(markdown, "en", "es", new TranslationCallback() {
+                    @Override
+                    public void onSuccess(String translatedText) {
+                        // update your Java UI layer
+                    }
+
+                    @Override
+                    public void onFailure(Exception error) {
+                        // show translation error state
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Exception error) {
+                // show model-download error state
+            }
+        });
+    }
+
+    public void close() {
+        translator.close();
+    }
+}
+```
+
+Lifecycle reminder for Java Activities/Fragments:
+
+- create one translator instance per screen/controller scope
+- call `close()` from `onDestroy()` (or equivalent owner teardown)
+- avoid creating a new translator per button click
+
+Common failure handling recommendations:
+
+- model download failure: show retry action and keep source markdown intact
+- translation failure: preserve original markdown + show error UI state
+- unsupported language code: validate language selection before triggering translation
+
 ### 3) ViewModel/Repository split (recommended)
 
 - **Activity/Fragment**: owns UI state and triggers user actions.
