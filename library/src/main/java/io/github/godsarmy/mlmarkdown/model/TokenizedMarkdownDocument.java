@@ -4,7 +4,7 @@ import io.github.godsarmy.mlmarkdown.markdown.MarkdownToken;
 import io.github.godsarmy.mlmarkdown.markdown.MarkdownTokenType;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +47,7 @@ public final class TokenizedMarkdownDocument {
     }
 
     public Map<String, String> translatableTokenMap() {
-        Map<String, String> map = new HashMap<>();
+        Map<String, String> map = new LinkedHashMap<>();
         for (MarkdownToken token : tokens) {
             if (token.getType() == MarkdownTokenType.TRANSLATABLE && token.getTokenId() != null) {
                 map.put(token.getTokenId(), token.getValue());

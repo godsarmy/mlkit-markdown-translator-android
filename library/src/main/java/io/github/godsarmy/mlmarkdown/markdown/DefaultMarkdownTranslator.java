@@ -23,6 +23,17 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             TranslationCallback callback
     ) {
         MarkdownPreparationResult preparationResult = preparationService.prepare(markdown);
+        if (preparationResult.getMode() == ProcessingMode.AST_TOKEN_STREAM
+                && preparationResult.getTokenizedDocument() != null) {
+            structureTranslator.translate(
+                    preparationResult.getTokenizedDocument(),
+                    sourceLanguage,
+                    targetLanguage,
+                    callback
+            );
+            return;
+        }
+
         structureTranslator.translate(
                 preparationResult.getMarkdownForTranslation(),
                 sourceLanguage,
