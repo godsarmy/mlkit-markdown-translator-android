@@ -23,6 +23,11 @@ misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
 
+# Eclipse/Buildship
+.project
+.classpath
+.settings/
+
 # Keystore files
 *.jks
 *.keystore
