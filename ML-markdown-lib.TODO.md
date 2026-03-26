@@ -274,7 +274,226 @@ Example:
 - less fragile than large chained regexes
 - easier to support new markdown constructs later
 
+### Preferred parser choice
+
+Use **`flexmark-java`** as the primary Markdown parser.
+
+Why:
+
+- strong Java support
+- AST-based parsing
+- source span/source sequence support
+- visitor APIs for traversal
+- formatter/rendering support
+- better long-term fit than regex-only preservation
+
+### Library decision
+
+Add `flexmark-java` to the new library project and treat it as the default parsing layer.
+
+Recommended role split:
+
+- `flexmark-java` handles Markdown parsing and structure understanding
+- your own code decides which nodes are translatable
+- your own code reconstructs translated Markdown safely
+
+### Important note
+
+Do not rely only on regex protection once `flexmark-java` is introduced.
+
+Regex may still be useful for:
+
+- quick normalization of custom tags like `<block>...</block>`
+- fallback protection for edge cases
+
+But the core preservation strategy should move toward **AST-aware processing**.
+
 ---
+
+## Step 6A - Add flexmark-java and build AST-based prototype
+
+### Goal
+
+Prove that markdown can be parsed into structured nodes and reconstructed after selective translation.
+
+### Tasks
+
+- Add `flexmark-java` dependency to the library module.
+- Create a small prototype parser service.
+- Parse markdown into AST.
+- Traverse nodes and print/debug node types for a sample markdown fixture.
+- Confirm you can identify these node classes reliably:
+  - paragraph
+  - heading
+  - text
+  - emphasis/strong emphasis
+  - bullet list / ordered list
+  - list item
+  - blockquote
+  - fenced code block
+  - code span
+  - link
+  - image
+
+### Deliverable
+
+- a prototype class, e.g. `FlexmarkAstInspector`
+- a test or sample output proving AST traversal works
+
+### Why this matters
+
+This de-risks the project before you invest heavily in translation logic.
+
+---
+
+## Step 6B - Define AST translation strategy
+
+### Goal
+
+Translate only text-bearing markdown nodes while preserving syntax and structure.
+
+### Strategy
+
+Use AST categories:
+
+#### Non-translatable nodes
+
+- fenced code blocks
+- code spans
+- link destinations
+- image destinations
+- raw URLs/autolinks
+- HTML/code-like raw blocks if you choose to preserve them untouched
+
+#### Partially translatable nodes
+
+- link text
+- image alt text
+- heading content
+- blockquote content
+- list item text
+- paragraph text
+
+#### Structural-only nodes
+
+- list containers
+- blockquote markers
+- heading markers
+- emphasis delimiters
+
+These should never be translated directly.
+
+### Tasks
+
+- Write a document in `docs/translation-strategy.md`.
+- Define which node types are:
+  - translatable
+  - protected
+  - structural
+- Define how translated text is mapped back into nodes.
+
+---
+
+## Step 6C - Build node-to-token intermediate model
+
+### Goal
+
+Avoid translating the AST directly node-by-node in a fragile way.
+
+Instead, build an intermediate representation that captures:
+
+- markdown structure
+- protected syntax regions
+- translatable text regions
+
+### Recommended design
+
+Create an internal model like:
+
+```java
+class MarkdownDocumentModel {
+  List<BlockModel> blocks;
+}
+
+class TextRun {
+  String text;
+  boolean translatable;
+  String tokenId;
+}
+```
+
+or a flatter token stream like:
+
+```java
+interface MarkdownToken {}
+
+class LiteralMarkdownToken implements MarkdownToken {}
+class TranslatableTextToken implements MarkdownToken {}
+class StructuralMarkdownToken implements MarkdownToken {}
+```
+
+### Tasks
+
+- Convert Flexmark AST into internal token stream/model.
+- Keep exact ordering.
+- Mark each token as:
+  - structural
+  - literal/protected
+  - translatable
+
+### Why
+
+- easier to unit test than mutating AST directly
+- easier to preserve newlines and delimiters
+- easier to re-render back to markdown
+
+---
+
+## Step 6D - Reconstruct markdown from tokenized structure
+
+### Goal
+
+After translation, reconstruct markdown text with maximum fidelity.
+
+### Tasks
+
+- Reassemble final markdown from token stream/model.
+- Preserve original spacing/newlines exactly where possible.
+- Preserve delimiters for headings/lists/quotes exactly.
+- Ensure reconstructed markdown still renders correctly in markdown engine.
+
+### Verification examples
+
+Confirm reconstruction works for:
+
+- `# Title`
+- `- item`
+- `> quote`
+- `` `code` ``
+- fenced blocks
+- `[label](url)`
+- `![alt](url)`
+
+---
+
+## Step 6E - Fallback hybrid mode
+
+### Goal
+
+Not every edge case needs full AST mutation in v1.
+
+### Recommendation
+
+Use a hybrid design:
+
+- AST parsing via `flexmark-java`
+- token stream produced from AST
+- limited regex preprocessing only for custom syntax normalization
+
+This gives a practical path:
+
+- robust structure preservation
+- lower complexity than full markdown serializer design on day one
 
 ## Step 7 - Implement structure-preserving translation
 
@@ -304,6 +523,17 @@ For each line, detect and preserve prefixes such as:
 - nested combinations like `> - ` or `  - `
 
 Translate only the content after the prefix.
+
+### With flexmark-java
+
+Once AST/token model exists, this step should primarily operate on parsed structure, not raw line regexes.
+
+Line-aware fallback logic is still useful, but the preferred implementation should be:
+
+- parse markdown
+- derive structured token stream from AST
+- translate only text tokens
+- reconstruct markdown
 
 Example:
 
@@ -435,6 +665,9 @@ This is one of the main reasons to extract the library.
 
 ### Add tests for
 
+- flexmark parse of sample markdown fixtures
+- AST to token-model conversion
+- token-model reconstruction back to markdown
 - line ending normalization
 - `<block>` to fenced code normalization
 - fenced code preservation
@@ -466,6 +699,15 @@ Example mock behavior:
 - return `[[TRANSLATED:<input>]]`
 
 This makes formatting breakage easy to detect.
+
+### Additional parser-based golden tests
+
+Add fixtures where you verify:
+
+1. source markdown parses correctly
+2. tokenized structure matches expectations
+3. translated token replacement reconstructs valid markdown
+4. final markdown renders correctly in sample app
 
 ---
 
