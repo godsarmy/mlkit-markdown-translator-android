@@ -112,8 +112,82 @@ public class MarkdownStructureTranslator {
                                     callback
                             );
                         } catch (IllegalStateException parseError) {
-                            callback.onFailure(parseError);
+                            translateChunkIndividually(
+                                    tokenizedDocument,
+                                    chunk,
+                                    iterator,
+                                    translations,
+                                    sourceLanguage,
+                                    targetLanguage,
+                                    callback
+                            );
                         }
+                    }
+
+                    @Override
+                    public void onFailure(Exception error) {
+                        callback.onFailure(error);
+                    }
+                }
+        );
+    }
+
+    private void translateChunkIndividually(
+            TokenizedMarkdownDocument tokenizedDocument,
+            TranslationChunk chunk,
+            Iterator<TranslationChunk> iterator,
+            Map<String, String> translations,
+            String sourceLanguage,
+            String targetLanguage,
+            TranslationCallback callback
+    ) {
+        translateChunkTokenAt(
+                tokenizedDocument,
+                chunk,
+                iterator,
+                translations,
+                sourceLanguage,
+                targetLanguage,
+                callback,
+                0
+        );
+    }
+
+    private void translateChunkTokenAt(
+            TokenizedMarkdownDocument tokenizedDocument,
+            TranslationChunk chunk,
+            Iterator<TranslationChunk> iterator,
+            Map<String, String> translations,
+            String sourceLanguage,
+            String targetLanguage,
+            TranslationCallback callback,
+            int index
+    ) {
+        if (index >= chunk.getTokenIds().size()) {
+            translateChunks(tokenizedDocument, iterator, translations, sourceLanguage, targetLanguage, callback);
+            return;
+        }
+
+        String tokenId = chunk.getTokenIds().get(index);
+        String tokenValue = chunk.getTokenValues().get(index);
+        translationEngine.translate(
+                tokenValue,
+                sourceLanguage,
+                targetLanguage,
+                new TranslationCallback() {
+                    @Override
+                    public void onSuccess(String translatedText) {
+                        translations.put(tokenId, translatedText);
+                        translateChunkTokenAt(
+                                tokenizedDocument,
+                                chunk,
+                                iterator,
+                                translations,
+                                sourceLanguage,
+                                targetLanguage,
+                                callback,
+                                index + 1
+                        );
                     }
 
                     @Override
@@ -165,10 +239,12 @@ public class MarkdownStructureTranslator {
 
     static final class TranslationChunk {
         private final List<String> tokenIds;
+        private final List<String> tokenValues;
         private final String text;
 
-        private TranslationChunk(List<String> tokenIds, String text) {
+        private TranslationChunk(List<String> tokenIds, List<String> tokenValues, String text) {
             this.tokenIds = List.copyOf(tokenIds);
+            this.tokenValues = List.copyOf(tokenValues);
             this.text = text;
         }
 
@@ -179,10 +255,15 @@ public class MarkdownStructureTranslator {
         String getText() {
             return text;
         }
+
+        List<String> getTokenValues() {
+            return tokenValues;
+        }
     }
 
     private static final class TranslationChunkBuilder {
         private final List<String> tokenIds = new ArrayList<>();
+        private final List<String> tokenValues = new ArrayList<>();
         private final StringBuilder text = new StringBuilder();
         private int plainTextLength;
 
@@ -196,13 +277,14 @@ public class MarkdownStructureTranslator {
 
         private void append(MarkdownToken token) {
             tokenIds.add(token.getTokenId());
+            tokenValues.add(token.getValue());
             text.append(markerFor(token.getTokenId()));
             text.append(token.getValue());
             plainTextLength += token.getValue().length();
         }
 
         private TranslationChunk build() {
-            return new TranslationChunk(tokenIds, text.toString());
+            return new TranslationChunk(tokenIds, tokenValues, text.toString());
         }
     }
 }

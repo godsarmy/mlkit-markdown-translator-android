@@ -72,6 +72,25 @@ public class DefaultMarkdownTranslatorTest {
         assertEquals("boom", callback.error.getMessage());
     }
 
+    @Test
+    public void translateMarkdown_fallsBackWhenMarkersAreMissingFromChunkResponse() {
+        DefaultMarkdownTranslator translator = new DefaultMarkdownTranslator(new MarkerStrippingTranslationEngine());
+
+        String source = "# Title\n\n"
+                + "- install package\n"
+                + "> quote text\n\n"
+                + "Paragraph with [label](https://example.com).\n";
+
+        TestTranslationCallback callback = new TestTranslationCallback();
+        translator.translateMarkdown(source, "en", "es", callback);
+
+        assertEquals("# TR(Title)\n\n"
+                + "- TR(install package)\n"
+                + "> TR(quote text)\n\n"
+                + "TR(Paragraph with )[TR(label)](https://example.com)TR(.)\n", callback.translatedText);
+        assertEquals(null, callback.error);
+    }
+
     private static class RecordingTranslationEngine implements TranslationEngine {
         private static final Pattern MARKER_PATTERN = Pattern.compile("@@MLMD_TOKEN_[^@]+@@");
         private final java.util.ArrayList<String> inputs = new java.util.ArrayList<>();
@@ -114,6 +133,21 @@ public class DefaultMarkdownTranslatorTest {
         @Override
         public void translate(String text, String sourceLanguage, String targetLanguage, TranslationCallback callback) {
             callback.onFailure(new IllegalStateException("boom"));
+        }
+    }
+
+    private static final class MarkerStrippingTranslationEngine implements TranslationEngine {
+        private static final Pattern MARKER_PATTERN = Pattern.compile("@@MLMD_TOKEN_[^@]+@@");
+
+        @Override
+        public void translate(String text, String sourceLanguage, String targetLanguage, TranslationCallback callback) {
+            if (text.contains("@@MLMD_TOKEN_")) {
+                // Simulates real translator behavior that mutates or removes markers.
+                String withoutMarkers = MARKER_PATTERN.matcher(text).replaceAll("");
+                callback.onSuccess("TR(" + withoutMarkers + ")");
+                return;
+            }
+            callback.onSuccess("TR(" + text + ")");
         }
     }
 
