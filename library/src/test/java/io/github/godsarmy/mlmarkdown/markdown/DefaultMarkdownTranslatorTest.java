@@ -5,8 +5,9 @@ import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -40,13 +41,24 @@ public class DefaultMarkdownTranslatorTest {
                 "Title",
                 "install package",
                 "quote text",
-                "Paragraph with ",
-                " and ",
-                "label",
-                " and ",
-                "alt",
-                "."
+                "Paragraph with | and |label| and |alt|."
         ), engine.inputs);
+    }
+
+    @Test
+    public void translateMarkdown_splitsLargeParagraphsIntoMultipleChunks() {
+        MarkdownStructureTranslator structureTranslator = new MarkdownStructureTranslator(new RecordingTranslationEngine(), 20);
+        AstTokenModelBuilder builder = new AstTokenModelBuilder();
+        TestTranslationCallback callback = new TestTranslationCallback();
+
+        structureTranslator.translate(
+                builder.build("alpha *beta* gamma **delta** epsilon zeta"),
+                "en",
+                "es",
+                callback
+        );
+
+        assertEquals("TR(alpha )*TR(beta)*TR( gamma )**TR(delta)**TR( epsilon zeta)", callback.translatedText);
     }
 
     @Test
@@ -60,13 +72,41 @@ public class DefaultMarkdownTranslatorTest {
         assertEquals("boom", callback.error.getMessage());
     }
 
-    private static final class RecordingTranslationEngine implements TranslationEngine {
-        private final List<String> inputs = new ArrayList<>();
+    private static class RecordingTranslationEngine implements TranslationEngine {
+        private static final Pattern MARKER_PATTERN = Pattern.compile("@@MLMD_TOKEN_[^@]+@@");
+        private final java.util.ArrayList<String> inputs = new java.util.ArrayList<>();
 
         @Override
         public void translate(String text, String sourceLanguage, String targetLanguage, TranslationCallback callback) {
-            inputs.add(text);
-            callback.onSuccess("TR(" + text + ")");
+            Matcher matcher = MARKER_PATTERN.matcher(text);
+            StringBuilder normalizedInput = new StringBuilder();
+            StringBuilder translated = new StringBuilder();
+            int lastEnd = 0;
+
+            while (matcher.find()) {
+                String segment = text.substring(lastEnd, matcher.start());
+                if (!segment.isEmpty()) {
+                    if (normalizedInput.length() > 0) {
+                        normalizedInput.append('|');
+                    }
+                    normalizedInput.append(segment);
+                    translated.append("TR(").append(segment).append(")");
+                }
+                translated.append(matcher.group());
+                lastEnd = matcher.end();
+            }
+
+            String trailingSegment = text.substring(lastEnd);
+            if (!trailingSegment.isEmpty()) {
+                if (normalizedInput.length() > 0) {
+                    normalizedInput.append('|');
+                }
+                normalizedInput.append(trailingSegment);
+                translated.append("TR(").append(trailingSegment).append(")");
+            }
+
+            inputs.add(normalizedInput.toString());
+            callback.onSuccess(translated.toString());
         }
     }
 
