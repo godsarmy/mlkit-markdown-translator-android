@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "mlkit-markdown-translator-android"
 include ':library'
+include ':sample'
