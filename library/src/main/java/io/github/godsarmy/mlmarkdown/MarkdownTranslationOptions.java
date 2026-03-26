@@ -6,6 +6,7 @@ public final class MarkdownTranslationOptions {
     private final boolean preserveBlockquotes;
     private final boolean normalizeCustomBlockTags;
     private final boolean protectAutolinks;
+    private final boolean enableRegexFallbackProtection;
 
     private MarkdownTranslationOptions(Builder builder) {
         this.preserveNewlines = builder.preserveNewlines;
@@ -13,6 +14,7 @@ public final class MarkdownTranslationOptions {
         this.preserveBlockquotes = builder.preserveBlockquotes;
         this.normalizeCustomBlockTags = builder.normalizeCustomBlockTags;
         this.protectAutolinks = builder.protectAutolinks;
+        this.enableRegexFallbackProtection = builder.enableRegexFallbackProtection;
     }
 
     public static MarkdownTranslationOptions defaults() {
@@ -39,12 +41,17 @@ public final class MarkdownTranslationOptions {
         return protectAutolinks;
     }
 
+    public boolean enableRegexFallbackProtection() {
+        return enableRegexFallbackProtection;
+    }
+
     public static final class Builder {
         private boolean preserveNewlines = true;
         private boolean preserveListPrefixes = true;
         private boolean preserveBlockquotes = true;
         private boolean normalizeCustomBlockTags = true;
         private boolean protectAutolinks = true;
+        private boolean enableRegexFallbackProtection = true;
 
         public Builder setPreserveNewlines(boolean preserveNewlines) {
             this.preserveNewlines = preserveNewlines;
@@ -68,6 +75,11 @@ public final class MarkdownTranslationOptions {
 
         public Builder setProtectAutolinks(boolean protectAutolinks) {
             this.protectAutolinks = protectAutolinks;
+            return this;
+        }
+
+        public Builder setEnableRegexFallbackProtection(boolean enableRegexFallbackProtection) {
+            this.enableRegexFallbackProtection = enableRegexFallbackProtection;
             return this;
         }
 

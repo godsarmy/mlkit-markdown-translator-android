@@ -1,0 +1,46 @@
+package io.github.godsarmy.mlmarkdown.markdown;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class MarkdownProtectionPipelineTest {
+    @Test
+    public void protect_replacesMarkdownSensitiveSegmentsWithTokens() {
+        MarkdownProtectionPipeline pipeline = new MarkdownProtectionPipeline();
+        MarkdownTokenStore tokenStore = new MarkdownTokenStore();
+
+        String input = "Here is `inline` code and [label](https://example.com) with ![img](https://example.com/x.png) "
+                + "and <https://example.com>.\n\n```kotlin\nprintln(\"hi\")\n```";
+
+        String protectedMarkdown = pipeline.protect(input, tokenStore);
+
+        assertFalse(protectedMarkdown.contains("`inline`"));
+        assertFalse(protectedMarkdown.contains("[label](https://example.com)"));
+        assertFalse(protectedMarkdown.contains("![img](https://example.com/x.png)"));
+        assertFalse(protectedMarkdown.contains("<https://example.com>"));
+        assertFalse(protectedMarkdown.contains("```kotlin"));
+        assertEquals(5, tokenStore.getAll().size());
+    }
+
+    @Test
+    public void protectThenRestore_roundTripsOriginalMarkdown() {
+        MarkdownProtectionPipeline pipeline = new MarkdownProtectionPipeline();
+        MarkdownRestorer restorer = new MarkdownRestorer();
+        MarkdownTokenStore tokenStore = new MarkdownTokenStore();
+
+        String input = "before\n```bash\necho hi\n```\n`code` [link](https://example.com) ![image](https://example.com/i.png) <https://example.com>\nafter";
+
+        String protectedMarkdown = pipeline.protect(input, tokenStore);
+        String translated = "TR(" + protectedMarkdown + ")";
+        String restored = restorer.restore(translated, tokenStore);
+
+        assertTrue(restored.contains("```bash\necho hi\n```"));
+        assertTrue(restored.contains("`code`"));
+        assertTrue(restored.contains("[link](https://example.com)"));
+        assertTrue(restored.contains("![image](https://example.com/i.png)"));
+        assertTrue(restored.contains("<https://example.com>"));
+    }
+}

@@ -55,7 +55,9 @@ public class HybridMarkdownPreparationService {
             );
         } catch (RuntimeException parseError) {
             MarkdownTokenStore tokenStore = new MarkdownTokenStore();
-            String protectedMarkdown = protectionPipeline.protect(normalizedBlocks, tokenStore);
+            String protectedMarkdown = options.enableRegexFallbackProtection()
+                    ? protectionPipeline.protect(normalizedBlocks, tokenStore)
+                    : normalizedBlocks;
             return new MarkdownPreparationResult(
                     ProcessingMode.REGEX_FALLBACK,
                     protectedMarkdown,
