@@ -12,6 +12,10 @@ This repository is being built incrementally from the TODO roadmap in `ML-markdo
 - `sample/` — Android sample app for manual verification
 - `docs/` — design notes and API documentation
 
+## API draft
+
+See `docs/api.md` for the initial public API definition.
+
 ## License
 
 Apache License 2.0. See `LICENSE`.
