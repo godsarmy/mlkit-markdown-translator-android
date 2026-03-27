@@ -80,6 +80,16 @@ Add an opt-in benchmark test path (manual/local) for deeper profiling:
 
 Do not make this required for every PR.
 
+Implemented:
+
+- `MarkdownPerformanceRegressionTest` supports system-property tuning:
+  - `mlmd.perf.warmupIterations`
+  - `mlmd.perf.measuredIterations`
+  - `mlmd.perf.hugeRepeat`
+  - `mlmd.perf.chunkLength`
+  - `mlmd.perf.thresholdMultiplier`
+  - `mlmd.perf.verbose`
+
 ---
 
 ## Step 6 - Wire CI for regression guard
@@ -93,6 +103,11 @@ Policy recommendation:
 - fail on clear regression (e.g., >25-30% over baseline threshold)
 - keep thresholds stable per runner type
 
+Implemented:
+
+- `.github/workflows/performance-regression.yml`
+- Runs `*MarkdownPerformanceRegressionTest` on push, schedule, and manual dispatch.
+
 ---
 
 ## Step 7 - Define baseline and update policy
@@ -103,6 +118,10 @@ Store baseline numbers in docs (or test constants) and update only when:
 - improvement/regression is reviewed and accepted
 
 Document baseline update rationale in PR description.
+
+Implemented:
+
+- `docs/performance-baseline.md`
 
 ---
 

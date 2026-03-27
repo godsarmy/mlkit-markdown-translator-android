@@ -16,8 +16,15 @@ import java.util.regex.Pattern;
 import org.junit.Test;
 
 public class MarkdownPerformanceRegressionTest {
-    private static final int WARMUP_ITERATIONS = 1;
-    private static final int MEASURED_ITERATIONS = 3;
+    private static final int WARMUP_ITERATIONS =
+            Integer.getInteger("mlmd.perf.warmupIterations", 1);
+    private static final int MEASURED_ITERATIONS =
+            Integer.getInteger("mlmd.perf.measuredIterations", 3);
+    private static final int HUGE_REPEAT = Integer.getInteger("mlmd.perf.hugeRepeat", 120);
+    private static final int CHUNK_LENGTH = Integer.getInteger("mlmd.perf.chunkLength", 350);
+    private static final double THRESHOLD_MULTIPLIER =
+            doubleProperty("mlmd.perf.thresholdMultiplier", 1.0d);
+    private static final boolean VERBOSE = Boolean.getBoolean("mlmd.perf.verbose");
 
     @Test
     public void largeAndComplexFixtures_completeWithinRegressionThresholds() {
@@ -28,7 +35,8 @@ public class MarkdownPerformanceRegressionTest {
 
         AstTokenModelBuilder builder = new AstTokenModelBuilder();
         MarkdownStructureTranslator translator =
-                new MarkdownStructureTranslator(new DeterministicMockTranslationEngine(), 350);
+                new MarkdownStructureTranslator(
+                        new DeterministicMockTranslationEngine(), CHUNK_LENGTH);
 
         for (Map.Entry<String, Long> entry : maxElapsedMillisByFixture.entrySet()) {
             String fixturePath = entry.getKey();
@@ -50,27 +58,37 @@ public class MarkdownPerformanceRegressionTest {
             }
 
             long maxObservedMillis = nanosToMillis(maxObservedNanos);
+            long allowedMillis = Math.round(maxElapsedMillis * THRESHOLD_MULTIPLIER);
             assertTrue(
                     fixturePath
                             + " expected max <="
-                            + maxElapsedMillis
+                            + allowedMillis
                             + "ms but was "
                             + maxObservedMillis
                             + "ms",
-                    maxObservedMillis <= maxElapsedMillis);
+                    maxObservedMillis <= allowedMillis);
             assertTrue(fixturePath + " should produce tokens", observedTokenCount > 0);
             assertTrue(fixturePath + " should produce translatable chunks", observedChunkCount > 0);
+
+            log(
+                    "fixture=%s observedMaxMs=%d allowedMs=%d tokens=%d chunks=%d",
+                    fixturePath,
+                    maxObservedMillis,
+                    allowedMillis,
+                    observedTokenCount,
+                    observedChunkCount);
         }
     }
 
     @Test
     public void hugeFixtureSeed_expandedInput_hasStableMemoryAndNoFailure() {
         String hugeSeed = readFixture("fixtures/perf/huge-document.md");
-        String hugeMarkdown = repeatSeed(hugeSeed, 120);
+        String hugeMarkdown = repeatSeed(hugeSeed, HUGE_REPEAT);
 
         AstTokenModelBuilder builder = new AstTokenModelBuilder();
         MarkdownStructureTranslator translator =
-                new MarkdownStructureTranslator(new DeterministicMockTranslationEngine(), 350);
+                new MarkdownStructureTranslator(
+                        new DeterministicMockTranslationEngine(), CHUNK_LENGTH);
 
         Runtime runtime = Runtime.getRuntime();
         long memoryBefore = usedMemory(runtime);
@@ -96,6 +114,16 @@ public class MarkdownPerformanceRegressionTest {
                 "second run memory growth too high: " + growthSecondRun,
                 growthSecondRun < maxAllowedGrowthBytes);
         assertTrue("second run should complete", secondRun.elapsedNanos > 0L);
+
+        log(
+                "huge seed repeat=%d elapsed1Ms=%d elapsed2Ms=%d tokens=%d chunks=%d growth1Bytes=%d growth2Bytes=%d",
+                HUGE_REPEAT,
+                nanosToMillis(firstRun.elapsedNanos),
+                nanosToMillis(secondRun.elapsedNanos),
+                firstRun.tokenCount,
+                firstRun.chunkCount,
+                growthFirstRun,
+                growthSecondRun);
     }
 
     private static PipelineResult executePipeline(
@@ -130,6 +158,25 @@ public class MarkdownPerformanceRegressionTest {
 
     private static long nanosToMillis(long nanos) {
         return nanos / 1_000_000L;
+    }
+
+    private static double doubleProperty(String key, double defaultValue) {
+        String value = System.getProperty(key);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException ignored) {
+            return defaultValue;
+        }
+    }
+
+    private static void log(String format, Object... args) {
+        if (!VERBOSE) {
+            return;
+        }
+        System.out.println("[PERF] " + String.format(format, args));
     }
 
     private static String readFixture(String path) {
