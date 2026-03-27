@@ -9,3 +9,4 @@
 - README now also includes Java quickstart snippets, a repository-style Java example path, JitPack setup notes, and integration guardrails (SDK/permission/threading/lifecycle/R8).
 - AST parsing now enables Flexmark table extension; GFM-style table delimiters/alignment are preserved in AST translation flow, and regex fallback protects whole table blocks.
 - Direct unit tests for `MarkdownStructureTranslator` are important because end-to-end translator tests can miss chunk boundary and per-token fallback error-propagation regressions.
+- Sample app styling now uses a dark ML Kit-like blue palette (`mlkit_*` color tokens) applied to theme, preview surfaces, controls, and button accents.

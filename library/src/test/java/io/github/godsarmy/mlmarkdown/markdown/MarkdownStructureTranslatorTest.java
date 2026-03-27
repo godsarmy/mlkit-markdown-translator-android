@@ -21,14 +21,11 @@ public class MarkdownStructureTranslatorTest {
                 new TokenizedMarkdownDocument(
                         "first\n\nsecond",
                         List.of(
-                                new MarkdownToken(MarkdownTokenType.TRANSLATABLE, "T1", "first", 0, 5),
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T1", "first", 0, 5),
                                 new MarkdownToken(MarkdownTokenType.STRUCTURAL, "\n\n", 5, 7),
                                 new MarkdownToken(
-                                        MarkdownTokenType.TRANSLATABLE,
-                                        "T2",
-                                        "second",
-                                        7,
-                                        13)));
+                                        MarkdownTokenType.TRANSLATABLE, "T2", "second", 7, 13)));
 
         List<MarkdownStructureTranslator.TranslationChunk> chunks =
                 translator.chunkTranslatableTokens(document);
@@ -46,13 +43,10 @@ public class MarkdownStructureTranslatorTest {
                 new TokenizedMarkdownDocument(
                         "alphabeta",
                         List.of(
-                                new MarkdownToken(MarkdownTokenType.TRANSLATABLE, "T1", "alpha", 0, 5),
                                 new MarkdownToken(
-                                        MarkdownTokenType.TRANSLATABLE,
-                                        "T2",
-                                        "beta",
-                                        5,
-                                        9)));
+                                        MarkdownTokenType.TRANSLATABLE, "T1", "alpha", 0, 5),
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T2", "beta", 5, 9)));
 
         List<MarkdownStructureTranslator.TranslationChunk> chunks =
                 translator.chunkTranslatableTokens(document);
@@ -69,7 +63,9 @@ public class MarkdownStructureTranslatorTest {
         TokenizedMarkdownDocument document =
                 new TokenizedMarkdownDocument(
                         "```code```",
-                        List.of(new MarkdownToken(MarkdownTokenType.PROTECTED, "```code```", 0, 10)));
+                        List.of(
+                                new MarkdownToken(
+                                        MarkdownTokenType.PROTECTED, "```code```", 0, 10)));
         TestCallback callback = new TestCallback();
 
         translator.translate(document, "en", "es", callback);
@@ -87,14 +83,11 @@ public class MarkdownStructureTranslatorTest {
                 new TokenizedMarkdownDocument(
                         "first second",
                         List.of(
-                                new MarkdownToken(MarkdownTokenType.TRANSLATABLE, "T1", "first", 0, 5),
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T1", "first", 0, 5),
                                 new MarkdownToken(MarkdownTokenType.STRUCTURAL, " ", 5, 6),
                                 new MarkdownToken(
-                                        MarkdownTokenType.TRANSLATABLE,
-                                        "T2",
-                                        "second",
-                                        6,
-                                        12)));
+                                        MarkdownTokenType.TRANSLATABLE, "T2", "second", 6, 12)));
         TestCallback callback = new TestCallback();
 
         translator.translate(document, "en", "es", callback);
