@@ -123,22 +123,7 @@ Additional Java repository-style example:
 
 This keeps app UI logic in app code while central markdown-translation logic stays in the library.
 
-### 4) Migration notes for `android-nixpkgs`
-
-Replace app-local helper flow with this library:
-
-- replace current `MarkdownTranslationHelper` orchestration with `MlKitMarkdownTranslator`
-- remove duplicated ML Kit model-management code where possible and use:
-  - `ensureLanguageModelDownloaded(...)`
-  - `getDownloadedLanguagePacks(...)`
-  - `deleteLanguagePack(...)`
-
-Target migration shape:
-
-- keep screen/state/UI logic in `android-nixpkgs`
-- move markdown translation and model concerns to this library API
-
-### 5) Integration guardrails
+### 4) Integration guardrails
 
 - **Android SDK**: current library module targets `minSdk 24`, `compileSdk 34`.
 - **Permissions**: host app should include network permission when model downloads are expected:
