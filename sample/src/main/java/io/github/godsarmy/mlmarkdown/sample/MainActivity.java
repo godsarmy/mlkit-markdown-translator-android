@@ -3,6 +3,7 @@ package io.github.godsarmy.mlmarkdown.sample;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -20,6 +21,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
 
 import io.noties.markwon.Markwon;
@@ -33,6 +35,7 @@ public final class MainActivity extends AppCompatActivity {
     private TextView originalMarkdownRendered;
     private TextView translatedMarkdownRendered;
     private SwitchMaterial renderModeSwitch;
+    private SwitchMaterial fallbackModeSwitch;
     private Spinner sourceLanguageSpinner;
     private Spinner targetLanguageSpinner;
     private TextView statusText;
@@ -41,6 +44,7 @@ public final class MainActivity extends AppCompatActivity {
 
     private boolean isBusy;
     private boolean isRenderMode;
+    private boolean isFallbackModeEnabled = true;
     private final Set<String> downloadedTargetModels = new HashSet<>();
 
     @Override
@@ -62,11 +66,15 @@ public final class MainActivity extends AppCompatActivity {
         originalMarkdownRendered = findViewById(R.id.originalMarkdownRendered);
         translatedMarkdownRendered = findViewById(R.id.translatedMarkdownRendered);
         renderModeSwitch = findViewById(R.id.renderModeSwitch);
+        fallbackModeSwitch = findViewById(R.id.fallbackModeSwitch);
         sourceLanguageSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetLanguageSpinner = findViewById(R.id.targetLanguageSpinner);
         statusText = findViewById(R.id.statusText);
         downloadModelButton = findViewById(R.id.downloadModelButton);
         translateButton = findViewById(R.id.translateButton);
+
+        originalMarkdownRendered.setMovementMethod(new ScrollingMovementMethod());
+        translatedMarkdownRendered.setMovementMethod(new ScrollingMovementMethod());
     }
 
     private void setupLanguageSpinners() {
@@ -102,6 +110,11 @@ public final class MainActivity extends AppCompatActivity {
         renderModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             isRenderMode = isChecked;
             applyRenderMode();
+        });
+
+        fallbackModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            isFallbackModeEnabled = isChecked;
+            recreateTranslator();
         });
 
         originalMarkdownInput.addTextChangedListener(new TextWatcher() {
@@ -211,6 +224,15 @@ public final class MainActivity extends AppCompatActivity {
                 .setCancelable(true)
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
                 .show();
+    }
+
+    private void recreateTranslator() {
+        translator.close();
+        translator = new MlKitMarkdownTranslator(
+                new MarkdownTranslationOptions.Builder()
+                        .setEnableRegexFallbackProtection(isFallbackModeEnabled)
+                        .build()
+        );
     }
 
     private void translateMarkdown() {

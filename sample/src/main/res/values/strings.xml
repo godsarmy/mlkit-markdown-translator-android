@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ML Markdown Sample</string>
-    <string name="sample_title">ML Markdown Translator Sample</string>
+    <string name="app_name">ML Markdown Translator Example</string>
+    <string name="sample_title">ML Markdown Translator Example</string>
     <string name="status_idle">Status: idle</string>
     <string name="source_markdown_label">Source markdown</string>
     <string name="source_language_label">Source language</string>
@@ -14,6 +14,7 @@
     <string name="original_markdown_label">Original text</string>
     <string name="translated_markdown_label">Translated text</string>
     <string name="render_mode_switch">Render markdown (Markwon)</string>
+    <string name="fallback_mode_switch">Enable fallback mode</string>
     <string name="default_markdown"># Welcome
 
 - Translate this markdown
