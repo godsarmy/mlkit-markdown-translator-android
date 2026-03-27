@@ -140,23 +140,19 @@ This keeps app UI logic in app code while central markdown-translation logic sta
 - **R8/ProGuard**: no custom keep rules are currently required for the public API surface; re-check if
   reflection-based integrations are added later.
 
-## Distribution strategy
+## Installation
 
-Current recommendation follows the roadmap:
+### Option A: Local module
 
-1. **Local included build** (now)
-   - fastest iteration while API and behavior are still stabilizing
-   - easiest debugging across app + library changes
-2. **Git submodule** (optional intermediate)
-   - useful when you want explicit repo linkage without publishing
-3. **JitPack** (next external distribution step)
-   - practical for simple dependency consumption from Android projects
-4. **Maven Central** (later)
-   - only after API maturity, stricter compatibility expectations, and release process hardening
+If this repository is part of your multi-module build, use:
 
-In short: start with local/submodule, then move to JitPack once the API is stable enough for broader reuse.
+```gradle
+dependencies {
+    implementation project(":library")
+}
+```
 
-### JitPack usage (release `0.1.0`)
+### Option B: JitPack (`v0.1.0`)
 
 ```gradle
 repositories {
@@ -183,8 +179,6 @@ dependencies {
     implementation("com.github.godsarmy:mlkit-markdown-translator-android:v0.1.0")
 }
 ```
-
-Project includes `jitpack.yml` for a library-focused JitPack build path and release tag compatibility.
 
 ## Limitations (v1)
 
