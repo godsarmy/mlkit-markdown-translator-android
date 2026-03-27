@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -19,6 +20,7 @@ import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
 import io.noties.markwon.Markwon;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public final class MainActivity extends AppCompatActivity {
@@ -33,6 +35,7 @@ public final class MainActivity extends AppCompatActivity {
     private SwitchMaterial fallbackModeSwitch;
     private Spinner sourceLanguageSpinner;
     private Spinner targetLanguageSpinner;
+    private Spinner markdownSampleSpinner;
     private TextView statusText;
     private Button downloadModelButton;
     private Button translateButton;
@@ -66,12 +69,31 @@ public final class MainActivity extends AppCompatActivity {
         fallbackModeSwitch = findViewById(R.id.fallbackModeSwitch);
         sourceLanguageSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetLanguageSpinner = findViewById(R.id.targetLanguageSpinner);
+        markdownSampleSpinner = findViewById(R.id.markdownSampleSpinner);
         statusText = findViewById(R.id.statusText);
         downloadModelButton = findViewById(R.id.downloadModelButton);
         translateButton = findViewById(R.id.translateButton);
 
         originalMarkdownRendered.setMovementMethod(new ScrollingMovementMethod());
         translatedMarkdownRendered.setMovementMethod(new ScrollingMovementMethod());
+
+        enableNestedScrollWithinPage(originalMarkdownInput);
+        enableNestedScrollWithinPage(translatedMarkdownRaw);
+        enableNestedScrollWithinPage(originalMarkdownRendered);
+        enableNestedScrollWithinPage(translatedMarkdownRendered);
+    }
+
+    private static void enableNestedScrollWithinPage(View scrollableView) {
+        scrollableView.setOnTouchListener(
+                (v, event) -> {
+                    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                        v.getParent().requestDisallowInterceptTouchEvent(true);
+                    } else if (event.getActionMasked() == MotionEvent.ACTION_UP
+                            || event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+                        v.getParent().requestDisallowInterceptTouchEvent(false);
+                    }
+                    return false;
+                });
     }
 
     private void setupLanguageSpinners() {
@@ -89,6 +111,20 @@ public final class MainActivity extends AppCompatActivity {
     private void setupActions() {
         downloadModelButton.setOnClickListener(v -> onModelButtonClicked());
         translateButton.setOnClickListener(v -> translateMarkdown());
+
+        markdownSampleSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(
+                            AdapterView<?> parent, View view, int position, long id) {
+                        loadSelectedMarkdownSample(position);
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        // no-op
+                    }
+                });
 
         targetLanguageSpinner.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
@@ -134,7 +170,32 @@ public final class MainActivity extends AppCompatActivity {
                 });
 
         refreshDownloadedModelsAndButtonState();
+        loadSelectedMarkdownSample(markdownSampleSpinner.getSelectedItemPosition());
         applyRenderMode();
+    }
+
+    private void loadSelectedMarkdownSample(int position) {
+        String markdown = markdownSampleAt(position).load(this);
+        originalMarkdownInput.setText(markdown);
+        translatedMarkdownRaw.setText("");
+        translatedMarkdownRendered.setText("");
+        if (isRenderMode) {
+            markwon.setMarkdown(originalMarkdownRendered, markdown);
+        }
+    }
+
+    private static MarkdownSample markdownSampleAt(int position) {
+        List<MarkdownSample> samples =
+                List.of(
+                        new MarkdownSample("markdown/simple.md"),
+                        new MarkdownSample("markdown/large-prose.md"),
+                        new MarkdownSample("markdown/complex-structure.md"),
+                        new MarkdownSample("markdown/mixed-worst-case.md"),
+                        new MarkdownSample("markdown/huge-document.md"));
+        if (position < 0 || position >= samples.size()) {
+            return samples.get(0);
+        }
+        return samples.get(position);
     }
 
     private void applyRenderMode() {
@@ -406,5 +467,26 @@ public final class MainActivity extends AppCompatActivity {
         dismissDownloadProgressDialog();
         super.onDestroy();
         translator.close();
+    }
+
+    private static final class MarkdownSample {
+        @Nullable private final String assetPath;
+
+        private MarkdownSample(@Nullable String assetPath) {
+            this.assetPath = assetPath;
+        }
+
+        private String load(MainActivity activity) {
+            if (assetPath == null) {
+                return activity.getString(R.string.default_markdown);
+            }
+
+            try (java.io.InputStream inputStream = activity.getAssets().open(assetPath)) {
+                return new String(
+                        inputStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            } catch (java.io.IOException e) {
+                return activity.getString(R.string.default_markdown);
+            }
+        }
     }
 }

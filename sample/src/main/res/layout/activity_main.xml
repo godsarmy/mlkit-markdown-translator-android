@@ -16,6 +16,15 @@
 			android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
 
 		<TextView android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="14dp"
+			android:text="@string/markdown_sample_label" />
+
+		<Spinner android:id="@+id/markdownSampleSpinner"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:entries="@array/markdown_sample_options" />
+
+		<TextView android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="16dp"
 			android:text="@string/original_markdown_label"
 			android:textStyle="bold" />
@@ -29,7 +38,8 @@
 				android:layout_width="match_parent"
 				android:layout_height="match_parent"
 				android:background="@android:color/transparent"
-				android:gravity="top|start" android:inputType="textMultiLine"
+				android:fadeScrollbars="false" android:gravity="top|start"
+				android:inputType="textMultiLine" android:overScrollMode="always"
 				android:padding="0dp" android:scrollbarStyle="insideInset"
 				android:scrollbars="vertical"
 				android:text="@string/default_markdown"
@@ -39,6 +49,7 @@
 			<TextView android:id="@+id/originalMarkdownRendered"
 				android:layout_width="match_parent"
 				android:layout_height="match_parent" android:gravity="top|start"
+				android:fadeScrollbars="false" android:overScrollMode="always"
 				android:scrollbarStyle="insideInset" android:scrollbars="vertical"
 				android:visibility="gone" />
 		</FrameLayout>
@@ -57,8 +68,9 @@
 				android:layout_width="match_parent"
 				android:layout_height="match_parent"
 				android:background="@android:color/transparent"
-				android:focusable="false" android:focusableInTouchMode="false"
-				android:gravity="top|start" android:inputType="none"
+				android:fadeScrollbars="false" android:focusable="false"
+				android:focusableInTouchMode="false" android:gravity="top|start"
+				android:inputType="none" android:overScrollMode="always"
 				android:padding="0dp" android:scrollbarStyle="insideInset"
 				android:scrollbars="vertical"
 				android:textColor="?android:attr/textColorPrimary" />
@@ -66,6 +78,7 @@
 			<TextView android:id="@+id/translatedMarkdownRendered"
 				android:layout_width="match_parent"
 				android:layout_height="match_parent" android:gravity="top|start"
+				android:fadeScrollbars="false" android:overScrollMode="always"
 				android:scrollbarStyle="insideInset" android:scrollbars="vertical"
 				android:visibility="gone" />
 		</FrameLayout>
