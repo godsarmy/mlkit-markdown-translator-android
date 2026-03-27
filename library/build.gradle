@@ -3,6 +3,7 @@ plugins {
 }
 
 def mlkitTranslateVersion = project.findProperty('mlkitTranslateVersion') ?: '17.0.3'
+def flexmarkVersion = project.findProperty('flexmarkVersion') ?: '0.64.8'
 
 android {
     namespace 'io.github.godsarmy.mlmarkdown'
@@ -29,8 +30,8 @@ android {
 
 dependencies {
     implementation 'androidx.annotation:annotation:1.8.2'
-    implementation 'com.vladsch.flexmark:flexmark:0.64.8'
-    implementation 'com.vladsch.flexmark:flexmark-ext-tables:0.64.8'
+    implementation "com.vladsch.flexmark:flexmark:${flexmarkVersion}"
+    implementation "com.vladsch.flexmark:flexmark-ext-tables:${flexmarkVersion}"
     implementation "com.google.mlkit:translate:${mlkitTranslateVersion}"
 
     testImplementation 'junit:junit:4.13.2'

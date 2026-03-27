@@ -159,6 +159,15 @@ dependencies {
 }
 ```
 
+### 6) Specify Flexmark version (local module integration)
+
+If you include this repo as a local module and need to align parser versions, set in root
+`gradle.properties`:
+
+```properties
+flexmarkVersion=0.64.8
+```
+
 You can also enforce with constraints:
 
 ```gradle
