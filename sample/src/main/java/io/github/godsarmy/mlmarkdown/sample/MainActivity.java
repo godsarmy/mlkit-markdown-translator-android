@@ -20,6 +20,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
 import io.noties.markwon.Markwon;
+import io.noties.markwon.ext.tables.TablePlugin;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +56,7 @@ public final class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         translator = new MlKitMarkdownTranslator();
-        markwon = Markwon.create(this);
+        markwon = Markwon.builder(this).usePlugin(TablePlugin.create(this)).build();
 
         bindViews();
         setupLanguageSpinners();
