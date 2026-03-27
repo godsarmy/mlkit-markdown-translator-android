@@ -24,6 +24,7 @@
 	<string name="status_deleting_model">Status: deleting model for %1$s...</string>
 	<string name="status_model_deleted">Status: model deleted for %1$s</string>
 	<string name="status_model_delete_failed">Status: model delete failed - %1$s</string>
+	<string name="status_translating">Translating...</string>
 	<string name="translate_markdown">Translate</string>
 	<string name="translation_error_icon_content_description">Show translation error details</string>
 	<string name="translation_error_dialog_title">Translation failed</string>

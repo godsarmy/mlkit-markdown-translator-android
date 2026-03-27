@@ -39,10 +39,12 @@ public final class MainActivity extends AppCompatActivity {
     private Spinner targetLanguageSpinner;
     private Spinner markdownSampleSpinner;
     private ImageButton translationErrorButton;
+    private View translationProgressContainer;
     private Button downloadModelButton;
     private Button translateButton;
 
     private boolean isBusy;
+    private boolean isTranslating;
     private boolean isRenderMode;
     private boolean isFallbackModeEnabled = true;
     private int activeDownloadRequestId;
@@ -74,6 +76,7 @@ public final class MainActivity extends AppCompatActivity {
         targetLanguageSpinner = findViewById(R.id.targetLanguageSpinner);
         markdownSampleSpinner = findViewById(R.id.markdownSampleSpinner);
         translationErrorButton = findViewById(R.id.translationErrorButton);
+        translationProgressContainer = findViewById(R.id.translationProgressContainer);
         downloadModelButton = findViewById(R.id.downloadModelButton);
         translateButton = findViewById(R.id.translateButton);
 
@@ -236,6 +239,11 @@ public final class MainActivity extends AppCompatActivity {
         isBusy = busy;
         updateDownloadButtonState();
         updateTranslateButtonState();
+        updateTranslationProgressState();
+    }
+
+    private void updateTranslationProgressState() {
+        translationProgressContainer.setVisibility(isTranslating ? View.VISIBLE : View.GONE);
     }
 
     private void updateDownloadButtonState() {
@@ -424,6 +432,7 @@ public final class MainActivity extends AppCompatActivity {
 
     private void translateMarkdown() {
         String markdown = originalMarkdownInput.getText().toString();
+        isTranslating = true;
         setBusy(true);
         clearTranslationError();
 
@@ -442,6 +451,7 @@ public final class MainActivity extends AppCompatActivity {
                                                 translatedMarkdownRendered, translatedText);
                                     }
                                     clearTranslationError();
+                                    isTranslating = false;
                                     setBusy(false);
                                 });
                     }
@@ -451,6 +461,7 @@ public final class MainActivity extends AppCompatActivity {
                         runOnUiThread(
                                 () -> {
                                     showTranslationError(error.getMessage());
+                                    isTranslating = false;
                                     setBusy(false);
                                 });
                     }
