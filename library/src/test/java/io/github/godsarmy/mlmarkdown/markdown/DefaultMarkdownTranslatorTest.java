@@ -3,6 +3,7 @@ package io.github.godsarmy.mlmarkdown.markdown;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 import java.util.List;
@@ -32,7 +33,7 @@ public class DefaultMarkdownTranslatorTest {
                 "# TR(Title)\n\n"
                         + "- TR(install package)\n"
                         + "> TR(quote text)\n\n"
-                        + "TR(Paragraph with )`code`TR( and )[TR(label)](https://example.com)TR( and )![TR(alt)](https://example.com/image.png)TR(.)\n\n"
+                        + "TR(Paragraph with ) `code` TR( and ) [TR(label)](https://example.com) TR( and ) ![TR(alt)](https://example.com/image.png)TR(.)\n\n"
                         + "```bash\n"
                         + "echo hello\n"
                         + "```\n",
@@ -58,7 +59,7 @@ public class DefaultMarkdownTranslatorTest {
                 builder.build("alpha *beta* gamma **delta** epsilon zeta"), "en", "es", callback);
 
         assertEquals(
-                "TR(alpha )*TR(beta)*TR( gamma )**TR(delta)**TR( epsilon zeta)",
+                "TR(alpha ) *TR(beta)* TR( gamma ) **TR(delta)** TR( epsilon zeta)",
                 callback.translatedText);
     }
 
@@ -92,8 +93,26 @@ public class DefaultMarkdownTranslatorTest {
                 "# TR(Title)\n\n"
                         + "- TR(install package)\n"
                         + "> TR(quote text)\n\n"
-                        + "TR(Paragraph with )[TR(label)](https://example.com)TR(.)\n",
+                        + "TR(Paragraph with ) [TR(label)](https://example.com)TR(.)\n",
                 callback.translatedText);
+        assertEquals(null, callback.error);
+    }
+
+    @Test
+    public void translateMarkdown_canDisableWhitespacePreservationAroundProtectedSegments() {
+        DefaultMarkdownTranslator translator =
+                new DefaultMarkdownTranslator(
+                        new MarkerStrippingTrimTranslationEngine(),
+                        new MarkdownTranslationOptions.Builder()
+                                .setPreserveWhitespaceAroundProtectedSegments(false)
+                                .build());
+
+        String source = "Run `echo hello` now";
+        TestTranslationCallback callback = new TestTranslationCallback();
+
+        translator.translateMarkdown(source, "en", "ja", callback);
+
+        assertEquals("TR(Run)`echo hello`TR(now)", callback.translatedText);
         assertEquals(null, callback.error);
     }
 
@@ -166,6 +185,24 @@ public class DefaultMarkdownTranslatorTest {
                 return;
             }
             callback.onSuccess("TR(" + text + ")");
+        }
+    }
+
+    private static final class MarkerStrippingTrimTranslationEngine implements TranslationEngine {
+        private static final Pattern MARKER_PATTERN = Pattern.compile("@@MLMD_TOKEN_[^@]+@@");
+
+        @Override
+        public void translate(
+                String text,
+                String sourceLanguage,
+                String targetLanguage,
+                TranslationCallback callback) {
+            if (text.contains("@@MLMD_TOKEN_")) {
+                String withoutMarkers = MARKER_PATTERN.matcher(text).replaceAll("");
+                callback.onSuccess(withoutMarkers);
+                return;
+            }
+            callback.onSuccess("TR(" + text.trim() + ")");
         }
     }
 

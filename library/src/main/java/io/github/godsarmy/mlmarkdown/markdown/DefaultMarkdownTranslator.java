@@ -17,7 +17,9 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
     public DefaultMarkdownTranslator(
             TranslationEngine translationEngine, MarkdownTranslationOptions options) {
         this.preparationService = new HybridMarkdownPreparationService(options);
-        this.structureTranslator = new MarkdownStructureTranslator(translationEngine);
+        this.structureTranslator =
+                new MarkdownStructureTranslator(
+                        translationEngine, options.preserveWhitespaceAroundProtectedSegments());
         this.restorer = new MarkdownRestorer();
     }
 

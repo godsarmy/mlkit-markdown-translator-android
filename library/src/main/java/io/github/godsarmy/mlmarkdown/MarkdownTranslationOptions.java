@@ -7,6 +7,7 @@ public final class MarkdownTranslationOptions {
     private final boolean normalizeCustomBlockTags;
     private final boolean protectAutolinks;
     private final boolean enableRegexFallbackProtection;
+    private final boolean preserveWhitespaceAroundProtectedSegments;
 
     private MarkdownTranslationOptions(Builder builder) {
         this.preserveNewlines = builder.preserveNewlines;
@@ -15,6 +16,8 @@ public final class MarkdownTranslationOptions {
         this.normalizeCustomBlockTags = builder.normalizeCustomBlockTags;
         this.protectAutolinks = builder.protectAutolinks;
         this.enableRegexFallbackProtection = builder.enableRegexFallbackProtection;
+        this.preserveWhitespaceAroundProtectedSegments =
+                builder.preserveWhitespaceAroundProtectedSegments;
     }
 
     public static MarkdownTranslationOptions defaults() {
@@ -45,6 +48,10 @@ public final class MarkdownTranslationOptions {
         return enableRegexFallbackProtection;
     }
 
+    public boolean preserveWhitespaceAroundProtectedSegments() {
+        return preserveWhitespaceAroundProtectedSegments;
+    }
+
     public static final class Builder {
         private boolean preserveNewlines = true;
         private boolean preserveListPrefixes = true;
@@ -52,6 +59,7 @@ public final class MarkdownTranslationOptions {
         private boolean normalizeCustomBlockTags = true;
         private boolean protectAutolinks = true;
         private boolean enableRegexFallbackProtection = true;
+        private boolean preserveWhitespaceAroundProtectedSegments = true;
 
         public Builder setPreserveNewlines(boolean preserveNewlines) {
             this.preserveNewlines = preserveNewlines;
@@ -80,6 +88,13 @@ public final class MarkdownTranslationOptions {
 
         public Builder setEnableRegexFallbackProtection(boolean enableRegexFallbackProtection) {
             this.enableRegexFallbackProtection = enableRegexFallbackProtection;
+            return this;
+        }
+
+        public Builder setPreserveWhitespaceAroundProtectedSegments(
+                boolean preserveWhitespaceAroundProtectedSegments) {
+            this.preserveWhitespaceAroundProtectedSegments =
+                    preserveWhitespaceAroundProtectedSegments;
             return this;
         }
 

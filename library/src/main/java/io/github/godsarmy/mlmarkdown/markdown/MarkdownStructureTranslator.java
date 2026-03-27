@@ -16,14 +16,32 @@ public class MarkdownStructureTranslator {
 
     private final TranslationEngine translationEngine;
     private final int maxChunkLength;
+    private final boolean preserveWhitespaceAroundProtectedSegments;
 
     public MarkdownStructureTranslator(TranslationEngine translationEngine) {
-        this(translationEngine, DEFAULT_MAX_CHUNK_LENGTH);
+        this(translationEngine, DEFAULT_MAX_CHUNK_LENGTH, true);
+    }
+
+    MarkdownStructureTranslator(
+            TranslationEngine translationEngine,
+            boolean preserveWhitespaceAroundProtectedSegments) {
+        this(
+                translationEngine,
+                DEFAULT_MAX_CHUNK_LENGTH,
+                preserveWhitespaceAroundProtectedSegments);
     }
 
     MarkdownStructureTranslator(TranslationEngine translationEngine, int maxChunkLength) {
+        this(translationEngine, maxChunkLength, true);
+    }
+
+    MarkdownStructureTranslator(
+            TranslationEngine translationEngine,
+            int maxChunkLength,
+            boolean preserveWhitespaceAroundProtectedSegments) {
         this.translationEngine = translationEngine;
         this.maxChunkLength = maxChunkLength;
+        this.preserveWhitespaceAroundProtectedSegments = preserveWhitespaceAroundProtectedSegments;
     }
 
     public void translate(
@@ -178,7 +196,8 @@ public class MarkdownStructureTranslator {
                 new TranslationCallback() {
                     @Override
                     public void onSuccess(String translatedText) {
-                        translations.put(tokenId, translatedText);
+                        translations.put(
+                                tokenId, maybePreserveEdgeWhitespace(tokenValue, translatedText));
                         translateChunkTokenAt(
                                 tokenizedDocument,
                                 chunk,
@@ -201,13 +220,14 @@ public class MarkdownStructureTranslator {
         return token.getValue().contains("\n");
     }
 
-    private static Map<String, String> parseChunkTranslations(
+    private Map<String, String> parseChunkTranslations(
             TranslationChunk chunk, String translatedText) {
         Map<String, String> translations = new LinkedHashMap<>();
         int searchFrom = 0;
 
         for (int i = 0; i < chunk.getTokenIds().size(); i++) {
             String tokenId = chunk.getTokenIds().get(i);
+            String sourceTokenValue = chunk.getTokenValues().get(i);
             String marker = markerFor(tokenId);
             int markerStart = translatedText.indexOf(marker, searchFrom);
             if (markerStart < 0) {
@@ -226,7 +246,9 @@ public class MarkdownStructureTranslator {
                 }
             }
 
-            translations.put(tokenId, translatedText.substring(valueStart, valueEnd));
+            String translatedValue = translatedText.substring(valueStart, valueEnd);
+            translations.put(
+                    tokenId, maybePreserveEdgeWhitespace(sourceTokenValue, translatedValue));
             searchFrom = valueEnd;
         }
 
@@ -235,6 +257,50 @@ public class MarkdownStructureTranslator {
 
     private static String markerFor(String tokenId) {
         return TOKEN_MARKER_PREFIX + tokenId + TOKEN_MARKER_SUFFIX;
+    }
+
+    private String maybePreserveEdgeWhitespace(String sourceValue, String translatedValue) {
+        if (!preserveWhitespaceAroundProtectedSegments) {
+            return translatedValue;
+        }
+        return preserveEdgeWhitespace(sourceValue, translatedValue);
+    }
+
+    private static String preserveEdgeWhitespace(String sourceValue, String translatedValue) {
+        if (translatedValue == null || translatedValue.isEmpty()) {
+            return translatedValue;
+        }
+
+        String leadingWhitespace = leadingWhitespace(sourceValue);
+        String trailingWhitespace = trailingWhitespace(sourceValue);
+        String result = translatedValue;
+
+        if (!leadingWhitespace.isEmpty() && !Character.isWhitespace(result.charAt(0))) {
+            result = leadingWhitespace + result;
+        }
+
+        if (!trailingWhitespace.isEmpty()
+                && !Character.isWhitespace(result.charAt(result.length() - 1))) {
+            result = result + trailingWhitespace;
+        }
+
+        return result;
+    }
+
+    private static String leadingWhitespace(String value) {
+        int index = 0;
+        while (index < value.length() && Character.isWhitespace(value.charAt(index))) {
+            index++;
+        }
+        return value.substring(0, index);
+    }
+
+    private static String trailingWhitespace(String value) {
+        int index = value.length() - 1;
+        while (index >= 0 && Character.isWhitespace(value.charAt(index))) {
+            index--;
+        }
+        return value.substring(index + 1);
     }
 
     static final class TranslationChunk {

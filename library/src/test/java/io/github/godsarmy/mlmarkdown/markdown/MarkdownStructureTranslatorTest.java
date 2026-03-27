@@ -10,6 +10,8 @@ import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.Test;
 
 public class MarkdownStructureTranslatorTest {
@@ -97,6 +99,79 @@ public class MarkdownStructureTranslatorTest {
         assertNull(callback.translatedText);
     }
 
+    @Test
+    public void
+            translate_preservesSpacesAroundProtectedSegments_whenChunkTranslationTrimsWhitespace() {
+        MarkdownStructureTranslator translator =
+                new MarkdownStructureTranslator(new ChunkTrimmingEngine(), 200);
+        TokenizedMarkdownDocument document =
+                new TokenizedMarkdownDocument(
+                        "Open <https://example.com> now",
+                        List.of(
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T1", "Open ", 0, 5),
+                                new MarkdownToken(
+                                        MarkdownTokenType.PROTECTED,
+                                        "<https://example.com>",
+                                        5,
+                                        26),
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T2", " now", 26, 30)));
+        TestCallback callback = new TestCallback();
+
+        translator.translate(document, "en", "es", callback);
+
+        assertEquals("TR(Open) <https://example.com> TR(now)", callback.translatedText);
+        assertNull(callback.error);
+    }
+
+    @Test
+    public void translate_preservesSpacesAroundProtectedSegments_inPerTokenFallbackPath() {
+        MarkdownStructureTranslator translator =
+                new MarkdownStructureTranslator(new MarkerStrippingTrimEngine(), 200);
+        TokenizedMarkdownDocument document =
+                new TokenizedMarkdownDocument(
+                        "Run `echo hello` now",
+                        List.of(
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T1", "Run ", 0, 4),
+                                new MarkdownToken(
+                                        MarkdownTokenType.PROTECTED, "`echo hello`", 4, 16),
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T2", " now", 16, 20)));
+        TestCallback callback = new TestCallback();
+
+        translator.translate(document, "en", "es", callback);
+
+        assertEquals("TR(Run) `echo hello` TR(now)", callback.translatedText);
+        assertNull(callback.error);
+    }
+
+    @Test
+    public void translate_canDisableWhitespacePreservationAroundProtectedSegments() {
+        MarkdownStructureTranslator translator =
+                new MarkdownStructureTranslator(new ChunkTrimmingEngine(), 200, false);
+        TokenizedMarkdownDocument document =
+                new TokenizedMarkdownDocument(
+                        "Open <https://example.com> now",
+                        List.of(
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T1", "Open ", 0, 5),
+                                new MarkdownToken(
+                                        MarkdownTokenType.PROTECTED,
+                                        "<https://example.com>",
+                                        5,
+                                        26),
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T2", " now", 26, 30)));
+        TestCallback callback = new TestCallback();
+
+        translator.translate(document, "en", "es", callback);
+
+        assertEquals("TR(Open)<https://example.com>TR(now)", callback.translatedText);
+        assertNull(callback.error);
+    }
+
     private static final class EchoTranslationEngine implements TranslationEngine {
         @Override
         public void translate(
@@ -143,6 +218,57 @@ public class MarkdownStructureTranslatorTest {
             }
 
             callback.onSuccess("TR(" + text + ")");
+        }
+    }
+
+    private static final class ChunkTrimmingEngine implements TranslationEngine {
+        private static final Pattern MARKER_PATTERN = Pattern.compile("@@MLMD_TOKEN_[^@]+@@");
+
+        @Override
+        public void translate(
+                String text,
+                String sourceLanguage,
+                String targetLanguage,
+                TranslationCallback callback) {
+            if (!text.contains("@@MLMD_TOKEN_")) {
+                callback.onSuccess("TR(" + text.trim() + ")");
+                return;
+            }
+
+            Matcher matcher = MARKER_PATTERN.matcher(text);
+            StringBuilder translated = new StringBuilder();
+
+            while (matcher.find()) {
+                translated.append(matcher.group());
+                String segment =
+                        text.substring(matcher.end(), nextMarkerStart(text, matcher.end()));
+                translated.append("TR(").append(segment.trim()).append(")");
+            }
+
+            callback.onSuccess(translated.toString());
+        }
+
+        private static int nextMarkerStart(String text, int from) {
+            Matcher matcher = MARKER_PATTERN.matcher(text);
+            return matcher.find(from) ? matcher.start() : text.length();
+        }
+    }
+
+    private static final class MarkerStrippingTrimEngine implements TranslationEngine {
+        private static final Pattern MARKER_PATTERN = Pattern.compile("@@MLMD_TOKEN_[^@]+@@");
+
+        @Override
+        public void translate(
+                String text,
+                String sourceLanguage,
+                String targetLanguage,
+                TranslationCallback callback) {
+            if (text.contains("@@MLMD_TOKEN_")) {
+                callback.onSuccess(MARKER_PATTERN.matcher(text).replaceAll(""));
+                return;
+            }
+
+            callback.onSuccess("TR(" + text.trim() + ")");
         }
     }
 

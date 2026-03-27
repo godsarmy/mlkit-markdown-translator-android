@@ -16,6 +16,7 @@ public class MarkdownTranslationOptionsTest {
         assertTrue(options.normalizeCustomBlockTags());
         assertTrue(options.protectAutolinks());
         assertTrue(options.enableRegexFallbackProtection());
+        assertTrue(options.preserveWhitespaceAroundProtectedSegments());
     }
 
     @Test
@@ -28,6 +29,7 @@ public class MarkdownTranslationOptionsTest {
                         .setNormalizeCustomBlockTags(false)
                         .setProtectAutolinks(false)
                         .setEnableRegexFallbackProtection(false)
+                        .setPreserveWhitespaceAroundProtectedSegments(false)
                         .build();
 
         assertFalse(options.preserveNewlines());
@@ -36,5 +38,6 @@ public class MarkdownTranslationOptionsTest {
         assertFalse(options.normalizeCustomBlockTags());
         assertFalse(options.protectAutolinks());
         assertFalse(options.enableRegexFallbackProtection());
+        assertFalse(options.preserveWhitespaceAroundProtectedSegments());
     }
 }
