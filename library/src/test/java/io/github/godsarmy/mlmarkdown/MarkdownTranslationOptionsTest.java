@@ -1,8 +1,12 @@
 package io.github.godsarmy.mlmarkdown;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
+import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
 import org.junit.Test;
 
 public class MarkdownTranslationOptionsTest {
@@ -17,6 +21,7 @@ public class MarkdownTranslationOptionsTest {
         assertTrue(options.protectAutolinks());
         assertTrue(options.enableRegexFallbackProtection());
         assertTrue(options.preserveWhitespaceAroundProtectedSegments());
+        assertNull(options.translationTimingListener());
     }
 
     @Test
@@ -39,5 +44,24 @@ public class MarkdownTranslationOptionsTest {
         assertFalse(options.protectAutolinks());
         assertFalse(options.enableRegexFallbackProtection());
         assertFalse(options.preserveWhitespaceAroundProtectedSegments());
+        assertNull(options.translationTimingListener());
+    }
+
+    @Test
+    public void builder_allowsSettingTimingListener() {
+        TranslationTimingListener listener = new NoOpTimingListener();
+        MarkdownTranslationOptions options =
+                new MarkdownTranslationOptions.Builder()
+                        .setTranslationTimingListener(listener)
+                        .build();
+
+        assertSame(listener, options.translationTimingListener());
+    }
+
+    private static final class NoOpTimingListener implements TranslationTimingListener {
+        @Override
+        public void onCompleted(TranslationTimingReport report) {
+            // no-op
+        }
     }
 }

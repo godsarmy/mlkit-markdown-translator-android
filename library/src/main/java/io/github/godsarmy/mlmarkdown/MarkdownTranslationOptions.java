@@ -1,5 +1,8 @@
 package io.github.godsarmy.mlmarkdown;
 
+import androidx.annotation.Nullable;
+import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
+
 public final class MarkdownTranslationOptions {
     private final boolean preserveNewlines;
     private final boolean preserveListPrefixes;
@@ -8,6 +11,7 @@ public final class MarkdownTranslationOptions {
     private final boolean protectAutolinks;
     private final boolean enableRegexFallbackProtection;
     private final boolean preserveWhitespaceAroundProtectedSegments;
+    @Nullable private final TranslationTimingListener translationTimingListener;
 
     private MarkdownTranslationOptions(Builder builder) {
         this.preserveNewlines = builder.preserveNewlines;
@@ -18,6 +22,7 @@ public final class MarkdownTranslationOptions {
         this.enableRegexFallbackProtection = builder.enableRegexFallbackProtection;
         this.preserveWhitespaceAroundProtectedSegments =
                 builder.preserveWhitespaceAroundProtectedSegments;
+        this.translationTimingListener = builder.translationTimingListener;
     }
 
     public static MarkdownTranslationOptions defaults() {
@@ -52,6 +57,11 @@ public final class MarkdownTranslationOptions {
         return preserveWhitespaceAroundProtectedSegments;
     }
 
+    @Nullable
+    public TranslationTimingListener translationTimingListener() {
+        return translationTimingListener;
+    }
+
     public static final class Builder {
         private boolean preserveNewlines = true;
         private boolean preserveListPrefixes = true;
@@ -60,6 +70,7 @@ public final class MarkdownTranslationOptions {
         private boolean protectAutolinks = true;
         private boolean enableRegexFallbackProtection = true;
         private boolean preserveWhitespaceAroundProtectedSegments = true;
+        @Nullable private TranslationTimingListener translationTimingListener;
 
         public Builder setPreserveNewlines(boolean preserveNewlines) {
             this.preserveNewlines = preserveNewlines;
@@ -95,6 +106,12 @@ public final class MarkdownTranslationOptions {
                 boolean preserveWhitespaceAroundProtectedSegments) {
             this.preserveWhitespaceAroundProtectedSegments =
                     preserveWhitespaceAroundProtectedSegments;
+            return this;
+        }
+
+        public Builder setTranslationTimingListener(
+                @Nullable TranslationTimingListener translationTimingListener) {
+            this.translationTimingListener = translationTimingListener;
             return this;
         }
 

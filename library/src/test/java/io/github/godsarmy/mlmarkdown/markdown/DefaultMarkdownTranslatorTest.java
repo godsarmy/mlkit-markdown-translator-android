@@ -1,10 +1,15 @@
 package io.github.godsarmy.mlmarkdown.markdown;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
+import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
+import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -116,6 +121,68 @@ public class DefaultMarkdownTranslatorTest {
         assertEquals(null, callback.error);
     }
 
+    @Test
+    public void translateMarkdown_reportsStageTimingsOnSuccess() {
+        RecordingTimingListener timingListener = new RecordingTimingListener();
+        FakeNanoTimeProvider nanoTimeProvider =
+                new FakeNanoTimeProvider(
+                        0L, 1_000_000L, 4_000_000L, 7_000_000L, 9_000_000L, 12_000_000L);
+        DefaultMarkdownTranslator translator =
+                new DefaultMarkdownTranslator(
+                        new MarkerStrippingTranslationEngine(),
+                        new MarkdownTranslationOptions.Builder()
+                                .setTranslationTimingListener(timingListener)
+                                .build(),
+                        nanoTimeProvider);
+
+        TestTranslationCallback callback = new TestTranslationCallback();
+        translator.translateMarkdown("Run `echo hello` now", "en", "es", callback);
+
+        assertNotNull(callback.translatedText);
+        assertNull(callback.error);
+        assertNotNull(timingListener.lastReport);
+        assertTrue(timingListener.lastReport.isSuccessful());
+        assertEquals(
+                ProcessingMode.AST_TOKEN_STREAM, timingListener.lastReport.getProcessingMode());
+        assertEquals(3L, timingListener.lastReport.getPreparationDurationMs());
+        assertEquals(2L, timingListener.lastReport.getTranslationDurationMs());
+        assertEquals(0L, timingListener.lastReport.getRestorationDurationMs());
+        assertEquals(12L, timingListener.lastReport.getTotalDurationMs());
+        assertTrue(timingListener.lastReport.getTotalTokenCount() > 0);
+        assertNull(timingListener.lastReport.getError());
+    }
+
+    @Test
+    public void translateMarkdown_reportsStageTimingsOnFailure() {
+        RecordingTimingListener timingListener = new RecordingTimingListener();
+        FakeNanoTimeProvider nanoTimeProvider =
+                new FakeNanoTimeProvider(0L, 2_000_000L, 5_000_000L, 8_000_000L, 11_000_000L);
+        DefaultMarkdownTranslator translator =
+                new DefaultMarkdownTranslator(
+                        new FailingTranslationEngine(),
+                        new MarkdownTranslationOptions.Builder()
+                                .setTranslationTimingListener(timingListener)
+                                .build(),
+                        nanoTimeProvider);
+
+        TestTranslationCallback callback = new TestTranslationCallback();
+        translator.translateMarkdown("# Title", "en", "es", callback);
+
+        assertNull(callback.translatedText);
+        assertNotNull(callback.error);
+        assertNotNull(timingListener.lastReport);
+        assertFalse(timingListener.lastReport.isSuccessful());
+        assertEquals(
+                ProcessingMode.AST_TOKEN_STREAM, timingListener.lastReport.getProcessingMode());
+        assertEquals(3L, timingListener.lastReport.getPreparationDurationMs());
+        assertEquals(3L, timingListener.lastReport.getTranslationDurationMs());
+        assertEquals(0L, timingListener.lastReport.getRestorationDurationMs());
+        assertEquals(11L, timingListener.lastReport.getTotalDurationMs());
+        assertTrue(timingListener.lastReport.getTotalTokenCount() > 0);
+        assertNotNull(timingListener.lastReport.getError());
+        assertEquals("boom", timingListener.lastReport.getError().getMessage());
+    }
+
     private static class RecordingTranslationEngine implements TranslationEngine {
         private static final Pattern MARKER_PATTERN = Pattern.compile("@@MLMD_TOKEN_[^@]+@@");
         private final java.util.ArrayList<String> inputs = new java.util.ArrayList<>();
@@ -218,6 +285,33 @@ public class DefaultMarkdownTranslatorTest {
         @Override
         public void onFailure(Exception error) {
             this.error = error;
+        }
+    }
+
+    private static final class RecordingTimingListener implements TranslationTimingListener {
+        private TranslationTimingReport lastReport;
+
+        @Override
+        public void onCompleted(TranslationTimingReport report) {
+            this.lastReport = report;
+        }
+    }
+
+    private static final class FakeNanoTimeProvider
+            implements DefaultMarkdownTranslator.NanoTimeProvider {
+        private final long[] values;
+        private int index;
+
+        private FakeNanoTimeProvider(long... values) {
+            this.values = values;
+        }
+
+        @Override
+        public long nowNanos() {
+            if (index >= values.length) {
+                return values[values.length - 1];
+            }
+            return values[index++];
         }
     }
 }
