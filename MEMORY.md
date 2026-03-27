@@ -12,3 +12,4 @@
 - Sample app styling now uses a dark ML Kit-like blue palette (`mlkit_*` color tokens) applied to theme, preview surfaces, controls, and button accents.
 - Whitespace preservation around protected segments is now configurable via `MarkdownTranslationOptions.setPreserveWhitespaceAroundProtectedSegments(...)` (default true) to support languages like Chinese/Japanese.
 - Markwon core alone does not render pipe tables; sample app must include `io.noties.markwon:ext-tables` and register `TablePlugin` in `Markwon.builder(...)`.
+- ML Kit translate dependency is now configurable via root `gradle.properties` (`mlkitTranslateVersion`), and README documents app-level override strategies for artifact integrations.

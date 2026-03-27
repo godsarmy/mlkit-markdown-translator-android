@@ -140,6 +140,37 @@ This keeps app UI logic in app code while central markdown-translation logic sta
 - **R8/ProGuard**: no custom keep rules are currently required for the public API surface; re-check if
   reflection-based integrations are added later.
 
+### 5) Specify ML Kit translate version
+
+This library defaults to `com.google.mlkit:translate:17.0.3`, but you can choose a different version.
+
+If integrating this repo as a **local module**, set in your root `gradle.properties`:
+
+```properties
+mlkitTranslateVersion=17.0.4
+```
+
+If integrating via **JitPack/artifact**, override in your app `dependencies`:
+
+```gradle
+dependencies {
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:v0.1.1"
+    implementation "com.google.mlkit:translate:17.0.4"
+}
+```
+
+You can also enforce with constraints:
+
+```gradle
+dependencies {
+    constraints {
+        implementation("com.google.mlkit:translate:17.0.4") {
+            because("Pin ML Kit version used by app")
+        }
+    }
+}
+```
+
 ## Installation
 
 ### Option A: Local module
