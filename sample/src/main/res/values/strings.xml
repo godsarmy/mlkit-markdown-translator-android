@@ -25,6 +25,8 @@
 	<string name="status_model_deleted">Status: model deleted for %1$s</string>
 	<string name="status_model_delete_failed">Status: model delete failed - %1$s</string>
 	<string name="translate_markdown">Translate</string>
+	<string name="translation_error_icon_content_description">Show translation error details</string>
+	<string name="translation_error_dialog_title">Translation failed</string>
 	<string name="original_markdown_label">Original text</string>
 	<string name="translated_markdown_label">Translated text</string>
 	<string name="render_mode_switch">Render markdown (Markwon)</string>

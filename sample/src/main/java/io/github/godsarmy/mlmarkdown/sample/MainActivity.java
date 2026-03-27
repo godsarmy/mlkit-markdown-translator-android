@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
@@ -36,7 +37,7 @@ public final class MainActivity extends AppCompatActivity {
     private Spinner sourceLanguageSpinner;
     private Spinner targetLanguageSpinner;
     private Spinner markdownSampleSpinner;
-    private TextView statusText;
+    private ImageButton translationErrorButton;
     private Button downloadModelButton;
     private Button translateButton;
 
@@ -45,6 +46,7 @@ public final class MainActivity extends AppCompatActivity {
     private boolean isFallbackModeEnabled = true;
     private int activeDownloadRequestId;
     private AlertDialog downloadProgressDialog;
+    private String latestTranslationError;
     private final Set<String> downloadedTargetModels = new HashSet<>();
 
     @Override
@@ -70,7 +72,7 @@ public final class MainActivity extends AppCompatActivity {
         sourceLanguageSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetLanguageSpinner = findViewById(R.id.targetLanguageSpinner);
         markdownSampleSpinner = findViewById(R.id.markdownSampleSpinner);
-        statusText = findViewById(R.id.statusText);
+        translationErrorButton = findViewById(R.id.translationErrorButton);
         downloadModelButton = findViewById(R.id.downloadModelButton);
         translateButton = findViewById(R.id.translateButton);
 
@@ -81,6 +83,8 @@ public final class MainActivity extends AppCompatActivity {
         enableNestedScrollWithinPage(translatedMarkdownRaw);
         enableNestedScrollWithinPage(originalMarkdownRendered);
         enableNestedScrollWithinPage(translatedMarkdownRendered);
+
+        translationErrorButton.setOnClickListener(v -> showTranslationErrorDialog());
     }
 
     private static void enableNestedScrollWithinPage(View scrollableView) {
@@ -229,14 +233,19 @@ public final class MainActivity extends AppCompatActivity {
 
     private void setBusy(boolean busy) {
         isBusy = busy;
-        translateButton.setEnabled(!busy);
         updateDownloadButtonState();
+        updateTranslateButtonState();
     }
 
     private void updateDownloadButtonState() {
         boolean downloaded = downloadedTargetModels.contains(targetLanguage());
         downloadModelButton.setEnabled(!isBusy);
         downloadModelButton.setText(downloaded ? R.string.delete_model : R.string.download_model);
+    }
+
+    private void updateTranslateButtonState() {
+        boolean downloaded = downloadedTargetModels.contains(targetLanguage());
+        translateButton.setEnabled(!isBusy && downloaded);
     }
 
     private String sourceLanguage() {
@@ -270,7 +279,6 @@ public final class MainActivity extends AppCompatActivity {
 
     private void deleteTargetModel(String languageCode) {
         setBusy(true);
-        statusText.setText(getString(R.string.status_deleting_model, languageCode));
 
         translator.deleteLanguagePack(
                 languageCode,
@@ -280,22 +288,13 @@ public final class MainActivity extends AppCompatActivity {
                         runOnUiThread(
                                 () -> {
                                     downloadedTargetModels.remove(languageCode);
-                                    statusText.setText(
-                                            getString(R.string.status_model_deleted, languageCode));
                                     setBusy(false);
                                 });
                     }
 
                     @Override
                     public void onFailure(Exception error) {
-                        runOnUiThread(
-                                () -> {
-                                    statusText.setText(
-                                            getString(
-                                                    R.string.status_model_delete_failed,
-                                                    error.getMessage()));
-                                    setBusy(false);
-                                });
+                        runOnUiThread(() -> setBusy(false));
                     }
                 });
     }
@@ -307,7 +306,6 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         setBusy(true);
-        statusText.setText(getString(R.string.status_downloading_model, languageCode));
 
         int requestId = ++activeDownloadRequestId;
         showDownloadProgressDialog(languageCode, requestId);
@@ -326,8 +324,6 @@ public final class MainActivity extends AppCompatActivity {
                                     activeDownloadRequestId = 0;
                                     dismissDownloadProgressDialog();
                                     downloadedTargetModels.add(languageCode);
-                                    statusText.setText(
-                                            getString(R.string.status_model_ready, languageCode));
                                     showModelDownloadedDialog(languageCode);
                                     setBusy(false);
                                 });
@@ -343,10 +339,6 @@ public final class MainActivity extends AppCompatActivity {
 
                                     activeDownloadRequestId = 0;
                                     dismissDownloadProgressDialog();
-                                    statusText.setText(
-                                            getString(
-                                                    R.string.status_model_download_failed,
-                                                    error.getMessage()));
                                     setBusy(false);
                                 });
                     }
@@ -375,7 +367,6 @@ public final class MainActivity extends AppCompatActivity {
         }
         activeDownloadRequestId = 0;
         dismissDownloadProgressDialog();
-        statusText.setText(R.string.status_model_download_cancelled);
         setBusy(false);
     }
 
@@ -415,12 +406,17 @@ public final class MainActivity extends AppCompatActivity {
                                     downloadedTargetModels.clear();
                                     downloadedTargetModels.addAll(languageCodes);
                                     updateDownloadButtonState();
+                                    updateTranslateButtonState();
                                 });
                     }
 
                     @Override
                     public void onFailure(Exception error) {
-                        runOnUiThread(() -> updateDownloadButtonState());
+                        runOnUiThread(
+                                () -> {
+                                    updateDownloadButtonState();
+                                    updateTranslateButtonState();
+                                });
                     }
                 });
     }
@@ -428,8 +424,7 @@ public final class MainActivity extends AppCompatActivity {
     private void translateMarkdown() {
         String markdown = originalMarkdownInput.getText().toString();
         setBusy(true);
-        statusText.setText(
-                "Status: translating " + sourceLanguage() + " → " + targetLanguage() + "...");
+        clearTranslationError();
 
         translator.translateMarkdown(
                 markdown,
@@ -445,7 +440,7 @@ public final class MainActivity extends AppCompatActivity {
                                         markwon.setMarkdown(
                                                 translatedMarkdownRendered, translatedText);
                                     }
-                                    statusText.setText("Status: translation complete");
+                                    clearTranslationError();
                                     setBusy(false);
                                 });
                     }
@@ -454,12 +449,33 @@ public final class MainActivity extends AppCompatActivity {
                     public void onFailure(Exception error) {
                         runOnUiThread(
                                 () -> {
-                                    statusText.setText(
-                                            "Status: translation failed - " + error.getMessage());
+                                    showTranslationError(error.getMessage());
                                     setBusy(false);
                                 });
                     }
                 });
+    }
+
+    private void clearTranslationError() {
+        latestTranslationError = null;
+        translationErrorButton.setVisibility(View.GONE);
+    }
+
+    private void showTranslationError(String details) {
+        latestTranslationError = details == null ? "Unknown error" : details;
+        translationErrorButton.setVisibility(View.VISIBLE);
+    }
+
+    private void showTranslationErrorDialog() {
+        if (latestTranslationError == null || latestTranslationError.isBlank()) {
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.translation_error_dialog_title)
+                .setMessage(latestTranslationError)
+                .setCancelable(true)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
     @Override
