@@ -1,29 +1,25 @@
 package io.github.godsarmy.mlmarkdown;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import io.github.godsarmy.mlmarkdown.api.LanguageModelManager;
 import io.github.godsarmy.mlmarkdown.api.LanguagePacksCallback;
 import io.github.godsarmy.mlmarkdown.api.MarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.OperationCallback;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
-
-import org.junit.Test;
-
 import java.io.Closeable;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 public class MlKitMarkdownTranslatorTest {
     @Test
     public void translateMarkdown_delegatesToMarkdownTranslator() {
         FakeMarkdownTranslator markdownTranslator = new FakeMarkdownTranslator();
         FakeLanguageModelManager languageModelManager = new FakeLanguageModelManager();
-        MlKitMarkdownTranslator facade = new MlKitMarkdownTranslator(
-                markdownTranslator,
-                languageModelManager,
-                new FakeCloseable()
-        );
+        MlKitMarkdownTranslator facade =
+                new MlKitMarkdownTranslator(
+                        markdownTranslator, languageModelManager, new FakeCloseable());
         TestTranslationCallback callback = new TestTranslationCallback();
 
         facade.translateMarkdown("# Hello", "en", "es", callback);
@@ -37,11 +33,9 @@ public class MlKitMarkdownTranslatorTest {
     @Test
     public void modelMethods_delegateToLanguageModelManager() {
         FakeLanguageModelManager languageModelManager = new FakeLanguageModelManager();
-        MlKitMarkdownTranslator facade = new MlKitMarkdownTranslator(
-                new FakeMarkdownTranslator(),
-                languageModelManager,
-                new FakeCloseable()
-        );
+        MlKitMarkdownTranslator facade =
+                new MlKitMarkdownTranslator(
+                        new FakeMarkdownTranslator(), languageModelManager, new FakeCloseable());
         TestOperationCallback operationCallback = new TestOperationCallback();
         TestLanguagePacksCallback packsCallback = new TestLanguagePacksCallback();
 
@@ -58,11 +52,9 @@ public class MlKitMarkdownTranslatorTest {
     @Test
     public void close_closesUnderlyingResource() {
         FakeCloseable closeable = new FakeCloseable();
-        MlKitMarkdownTranslator facade = new MlKitMarkdownTranslator(
-                new FakeMarkdownTranslator(),
-                new FakeLanguageModelManager(),
-                closeable
-        );
+        MlKitMarkdownTranslator facade =
+                new MlKitMarkdownTranslator(
+                        new FakeMarkdownTranslator(), new FakeLanguageModelManager(), closeable);
 
         facade.close();
 
@@ -75,7 +67,11 @@ public class MlKitMarkdownTranslatorTest {
         private String targetLanguage;
 
         @Override
-        public void translateMarkdown(String markdown, String sourceLanguage, String targetLanguage, TranslationCallback callback) {
+        public void translateMarkdown(
+                String markdown,
+                String sourceLanguage,
+                String targetLanguage,
+                TranslationCallback callback) {
             this.markdown = markdown;
             this.sourceLanguage = sourceLanguage;
             this.targetLanguage = targetLanguage;

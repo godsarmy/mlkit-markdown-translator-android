@@ -4,12 +4,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MarkdownPreprocessor {
-    private static final Pattern BLOCK_TAG_PATTERN = Pattern.compile("<block>(.*?)</block>", Pattern.DOTALL);
+    private static final Pattern BLOCK_TAG_PATTERN =
+            Pattern.compile("<block>(.*?)</block>", Pattern.DOTALL);
 
     public String normalizeLineEndings(String markdown) {
-        return markdown
-                .replace("\r\n", "\n")
-                .replace("\r", "\n");
+        return markdown.replace("\r\n", "\n").replace("\r", "\n");
     }
 
     public String normalizeCustomBlockTags(String markdown) {

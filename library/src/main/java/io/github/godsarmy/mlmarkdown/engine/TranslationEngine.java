@@ -7,6 +7,5 @@ public interface TranslationEngine {
             String text,
             String sourceLanguage,
             String targetLanguage,
-            TranslationCallback callback
-    );
+            TranslationCallback callback);
 }

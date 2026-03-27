@@ -1,7 +1,6 @@
 package io.github.godsarmy.mlmarkdown.markdown;
 
 import io.github.godsarmy.mlmarkdown.model.ProtectedSegment;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

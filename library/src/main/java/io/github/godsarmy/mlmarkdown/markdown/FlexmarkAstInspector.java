@@ -15,13 +15,10 @@ import com.vladsch.flexmark.ast.StrongEmphasis;
 import com.vladsch.flexmark.ast.Text;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/**
- * Step 6A prototype for parsing Markdown and inspecting AST node categories.
- */
+/** Step 6A prototype for parsing Markdown and inspecting AST node categories. */
 public final class FlexmarkAstInspector {
     private final Parser parser;
 

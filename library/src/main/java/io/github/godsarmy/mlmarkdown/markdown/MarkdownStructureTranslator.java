@@ -3,7 +3,6 @@ package io.github.godsarmy.mlmarkdown.markdown;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -27,7 +26,11 @@ public class MarkdownStructureTranslator {
         this.maxChunkLength = maxChunkLength;
     }
 
-    public void translate(String markdown, String sourceLanguage, String targetLanguage, TranslationCallback callback) {
+    public void translate(
+            String markdown,
+            String sourceLanguage,
+            String targetLanguage,
+            TranslationCallback callback) {
         translationEngine.translate(markdown, sourceLanguage, targetLanguage, callback);
     }
 
@@ -35,8 +38,7 @@ public class MarkdownStructureTranslator {
             TokenizedMarkdownDocument tokenizedDocument,
             String sourceLanguage,
             String targetLanguage,
-            TranslationCallback callback
-    ) {
+            TranslationCallback callback) {
         List<TranslationChunk> chunks = chunkTranslatableTokens(tokenizedDocument);
         if (chunks.isEmpty()) {
             callback.onSuccess(tokenizedDocument.reconstruct());
@@ -49,8 +51,7 @@ public class MarkdownStructureTranslator {
                 new LinkedHashMap<>(),
                 sourceLanguage,
                 targetLanguage,
-                callback
-        );
+                callback);
     }
 
     List<TranslationChunk> chunkTranslatableTokens(TokenizedMarkdownDocument tokenizedDocument) {
@@ -59,7 +60,8 @@ public class MarkdownStructureTranslator {
 
         for (MarkdownToken token : tokenizedDocument.getTokens()) {
             if (token.getType() == MarkdownTokenType.TRANSLATABLE && token.getTokenId() != null) {
-                if (!currentChunk.isEmpty() && currentChunk.wouldExceedLimit(token, maxChunkLength)) {
+                if (!currentChunk.isEmpty()
+                        && currentChunk.wouldExceedLimit(token, maxChunkLength)) {
                     chunks.add(currentChunk.build());
                     currentChunk = new TranslationChunkBuilder();
                 }
@@ -86,8 +88,7 @@ public class MarkdownStructureTranslator {
             Map<String, String> translations,
             String sourceLanguage,
             String targetLanguage,
-            TranslationCallback callback
-    ) {
+            TranslationCallback callback) {
         if (!iterator.hasNext()) {
             callback.onSuccess(tokenizedDocument.reconstructWithTranslations(translations));
             return;
@@ -109,8 +110,7 @@ public class MarkdownStructureTranslator {
                                     translations,
                                     sourceLanguage,
                                     targetLanguage,
-                                    callback
-                            );
+                                    callback);
                         } catch (IllegalStateException parseError) {
                             translateChunkIndividually(
                                     tokenizedDocument,
@@ -119,8 +119,7 @@ public class MarkdownStructureTranslator {
                                     translations,
                                     sourceLanguage,
                                     targetLanguage,
-                                    callback
-                            );
+                                    callback);
                         }
                     }
 
@@ -128,8 +127,7 @@ public class MarkdownStructureTranslator {
                     public void onFailure(Exception error) {
                         callback.onFailure(error);
                     }
-                }
-        );
+                });
     }
 
     private void translateChunkIndividually(
@@ -139,8 +137,7 @@ public class MarkdownStructureTranslator {
             Map<String, String> translations,
             String sourceLanguage,
             String targetLanguage,
-            TranslationCallback callback
-    ) {
+            TranslationCallback callback) {
         translateChunkTokenAt(
                 tokenizedDocument,
                 chunk,
@@ -149,8 +146,7 @@ public class MarkdownStructureTranslator {
                 sourceLanguage,
                 targetLanguage,
                 callback,
-                0
-        );
+                0);
     }
 
     private void translateChunkTokenAt(
@@ -161,10 +157,15 @@ public class MarkdownStructureTranslator {
             String sourceLanguage,
             String targetLanguage,
             TranslationCallback callback,
-            int index
-    ) {
+            int index) {
         if (index >= chunk.getTokenIds().size()) {
-            translateChunks(tokenizedDocument, iterator, translations, sourceLanguage, targetLanguage, callback);
+            translateChunks(
+                    tokenizedDocument,
+                    iterator,
+                    translations,
+                    sourceLanguage,
+                    targetLanguage,
+                    callback);
             return;
         }
 
@@ -186,23 +187,22 @@ public class MarkdownStructureTranslator {
                                 sourceLanguage,
                                 targetLanguage,
                                 callback,
-                                index + 1
-                        );
+                                index + 1);
                     }
 
                     @Override
                     public void onFailure(Exception error) {
                         callback.onFailure(error);
                     }
-                }
-        );
+                });
     }
 
     private static boolean containsLineBoundary(MarkdownToken token) {
         return token.getValue().contains("\n");
     }
 
-    private static Map<String, String> parseChunkTranslations(TranslationChunk chunk, String translatedText) {
+    private static Map<String, String> parseChunkTranslations(
+            TranslationChunk chunk, String translatedText) {
         Map<String, String> translations = new LinkedHashMap<>();
         int searchFrom = 0;
 
@@ -211,7 +211,8 @@ public class MarkdownStructureTranslator {
             String marker = markerFor(tokenId);
             int markerStart = translatedText.indexOf(marker, searchFrom);
             if (markerStart < 0) {
-                throw new IllegalStateException("Translated chunk is missing marker for token " + tokenId);
+                throw new IllegalStateException(
+                        "Translated chunk is missing marker for token " + tokenId);
             }
 
             int valueStart = markerStart + marker.length();
@@ -221,8 +222,7 @@ public class MarkdownStructureTranslator {
                 valueEnd = translatedText.indexOf(nextMarker, valueStart);
                 if (valueEnd < 0) {
                     throw new IllegalStateException(
-                            "Translated chunk is missing next marker after token " + tokenId
-                    );
+                            "Translated chunk is missing next marker after token " + tokenId);
                 }
             }
 

@@ -1,13 +1,12 @@
 package io.github.godsarmy.mlmarkdown.engine;
 
-import io.github.godsarmy.mlmarkdown.api.OperationCallback;
-import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
-
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import io.github.godsarmy.mlmarkdown.api.OperationCallback;
+import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
+import org.junit.Test;
 
 public class MlKitTranslationEngineTest {
     @Test
@@ -64,12 +63,14 @@ public class MlKitTranslationEngineTest {
         assertEquals(1, factory.client.closeCount);
     }
 
-    private static final class FakeTranslatorClientFactory implements MlKitTranslationEngine.TranslatorClientFactory {
+    private static final class FakeTranslatorClientFactory
+            implements MlKitTranslationEngine.TranslatorClientFactory {
         private int createCount;
         private final FakeTranslatorClient client = new FakeTranslatorClient();
 
         @Override
-        public MlKitTranslationEngine.TranslatorClient create(String sourceLanguage, String targetLanguage) {
+        public MlKitTranslationEngine.TranslatorClient create(
+                String sourceLanguage, String targetLanguage) {
             createCount++;
             client.lastSourceLanguage = sourceLanguage;
             client.lastTargetLanguage = targetLanguage;
@@ -77,7 +78,8 @@ public class MlKitTranslationEngineTest {
         }
     }
 
-    private static final class FakeTranslatorClient implements MlKitTranslationEngine.TranslatorClient {
+    private static final class FakeTranslatorClient
+            implements MlKitTranslationEngine.TranslatorClient {
         private int downloadCount;
         private int translateCount;
         private int closeCount;

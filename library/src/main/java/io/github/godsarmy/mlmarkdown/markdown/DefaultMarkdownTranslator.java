@@ -15,9 +15,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
     }
 
     public DefaultMarkdownTranslator(
-            TranslationEngine translationEngine,
-            MarkdownTranslationOptions options
-    ) {
+            TranslationEngine translationEngine, MarkdownTranslationOptions options) {
         this.preparationService = new HybridMarkdownPreparationService(options);
         this.structureTranslator = new MarkdownStructureTranslator(translationEngine);
         this.restorer = new MarkdownRestorer();
@@ -28,8 +26,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             String markdown,
             String sourceLanguage,
             String targetLanguage,
-            TranslationCallback callback
-    ) {
+            TranslationCallback callback) {
         MarkdownPreparationResult preparationResult = preparationService.prepare(markdown);
         if (preparationResult.getMode() == ProcessingMode.AST_TOKEN_STREAM
                 && preparationResult.getTokenizedDocument() != null) {
@@ -37,8 +34,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                     preparationResult.getTokenizedDocument(),
                     sourceLanguage,
                     targetLanguage,
-                    callback
-            );
+                    callback);
             return;
         }
 
@@ -50,7 +46,9 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                     @Override
                     public void onSuccess(String translatedText) {
                         if (preparationResult.getMode() == ProcessingMode.REGEX_FALLBACK) {
-                            callback.onSuccess(restorer.restore(translatedText, preparationResult.getTokenStore()));
+                            callback.onSuccess(
+                                    restorer.restore(
+                                            translatedText, preparationResult.getTokenStore()));
                             return;
                         }
                         callback.onSuccess(translatedText);
@@ -60,7 +58,6 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                     public void onFailure(Exception error) {
                         callback.onFailure(error);
                     }
-                }
-        );
+                });
     }
 }

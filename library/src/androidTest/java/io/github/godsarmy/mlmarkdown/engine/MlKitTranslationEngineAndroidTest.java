@@ -1,15 +1,13 @@
 package io.github.godsarmy.mlmarkdown.engine;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
-import io.github.godsarmy.mlmarkdown.api.OperationCallback;
-import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import io.github.godsarmy.mlmarkdown.api.OperationCallback;
+import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public class MlKitTranslationEngineAndroidTest {
@@ -40,18 +38,21 @@ public class MlKitTranslationEngineAndroidTest {
         assertEquals("download failed", callback.error.getMessage());
     }
 
-    private static final class FakeTranslatorClientFactory implements MlKitTranslationEngine.TranslatorClientFactory {
+    private static final class FakeTranslatorClientFactory
+            implements MlKitTranslationEngine.TranslatorClientFactory {
         private int createCount;
         private final FakeTranslatorClient client = new FakeTranslatorClient();
 
         @Override
-        public MlKitTranslationEngine.TranslatorClient create(String sourceLanguage, String targetLanguage) {
+        public MlKitTranslationEngine.TranslatorClient create(
+                String sourceLanguage, String targetLanguage) {
             createCount++;
             return client;
         }
     }
 
-    private static final class FakeTranslatorClient implements MlKitTranslationEngine.TranslatorClient {
+    private static final class FakeTranslatorClient
+            implements MlKitTranslationEngine.TranslatorClient {
         private int downloadCount;
         private int translateCount;
         private Exception downloadError;

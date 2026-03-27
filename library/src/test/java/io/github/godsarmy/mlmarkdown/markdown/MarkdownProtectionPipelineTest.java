@@ -1,10 +1,10 @@
 package io.github.godsarmy.mlmarkdown.markdown;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 
 public class MarkdownProtectionPipelineTest {
     @Test
@@ -12,8 +12,9 @@ public class MarkdownProtectionPipelineTest {
         MarkdownProtectionPipeline pipeline = new MarkdownProtectionPipeline();
         MarkdownTokenStore tokenStore = new MarkdownTokenStore();
 
-        String input = "Here is `inline` code and [label](https://example.com) with ![img](https://example.com/x.png) "
-                + "and <https://example.com>.\n\n```kotlin\nprintln(\"hi\")\n```";
+        String input =
+                "Here is `inline` code and [label](https://example.com) with ![img](https://example.com/x.png) "
+                        + "and <https://example.com>.\n\n```kotlin\nprintln(\"hi\")\n```";
 
         String protectedMarkdown = pipeline.protect(input, tokenStore);
 
@@ -31,7 +32,8 @@ public class MarkdownProtectionPipelineTest {
         MarkdownRestorer restorer = new MarkdownRestorer();
         MarkdownTokenStore tokenStore = new MarkdownTokenStore();
 
-        String input = "before\n```bash\necho hi\n```\n`code` [link](https://example.com) ![image](https://example.com/i.png) <https://example.com>\nafter";
+        String input =
+                "before\n```bash\necho hi\n```\n`code` [link](https://example.com) ![image](https://example.com/i.png) <https://example.com>\nafter";
 
         String protectedMarkdown = pipeline.protect(input, tokenStore);
         String translated = "TR(" + protectedMarkdown + ")";
@@ -50,10 +52,11 @@ public class MarkdownProtectionPipelineTest {
         MarkdownRestorer restorer = new MarkdownRestorer();
         MarkdownTokenStore tokenStore = new MarkdownTokenStore();
 
-        String input = "| Name | Notes |\n"
-                + "| --- | --- |\n"
-                + "| Alice | value |\n"
-                + "| Bob | value |\n";
+        String input =
+                "| Name | Notes |\n"
+                        + "| --- | --- |\n"
+                        + "| Alice | value |\n"
+                        + "| Bob | value |\n";
 
         String protectedMarkdown = pipeline.protect(input, tokenStore);
 

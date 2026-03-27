@@ -16,12 +16,7 @@ public final class MarkdownToken {
     }
 
     public MarkdownToken(
-            MarkdownTokenType type,
-            String tokenId,
-            String value,
-            int startOffset,
-            int endOffset
-    ) {
+            MarkdownTokenType type, String tokenId, String value, int startOffset, int endOffset) {
         this.type = type;
         this.tokenId = tokenId;
         this.value = value;

@@ -1,26 +1,25 @@
 package io.github.godsarmy.mlmarkdown.markdown;
 
-import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
-
-import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.Test;
 
 public class TokenizedMarkdownDocumentReconstructionTest {
     @Test
     public void reconstructWithTranslations_preservesMarkdownStructureDelimiters() {
         AstTokenModelBuilder builder = new AstTokenModelBuilder();
-        String source = "# Title\n\n"
-                + "- install package\n"
-                + "> quote text\n\n"
-                + "inline `code` and [label](https://example.com) and ![alt](https://example.com/a.png)\n\n"
-                + "```bash\n"
-                + "echo hello\n"
-                + "```\n";
+        String source =
+                "# Title\n\n"
+                        + "- install package\n"
+                        + "> quote text\n\n"
+                        + "inline `code` and [label](https://example.com) and ![alt](https://example.com/a.png)\n\n"
+                        + "```bash\n"
+                        + "echo hello\n"
+                        + "```\n";
 
         TokenizedMarkdownDocument document = builder.build(source);
         Map<String, String> translations = new HashMap<>();

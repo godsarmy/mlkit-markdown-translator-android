@@ -4,11 +4,9 @@ import com.google.mlkit.common.model.DownloadConditions;
 import com.google.mlkit.common.model.RemoteModelManager;
 import com.google.mlkit.nl.translate.TranslateLanguage;
 import com.google.mlkit.nl.translate.TranslateRemoteModel;
-
 import io.github.godsarmy.mlmarkdown.api.LanguageModelManager;
 import io.github.godsarmy.mlmarkdown.api.LanguagePacksCallback;
 import io.github.godsarmy.mlmarkdown.api.OperationCallback;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +16,10 @@ public class MlKitLanguageModelManager implements LanguageModelManager {
     private final RemoteModelManagerClient remoteModelManagerClient;
 
     public MlKitLanguageModelManager() {
-        this(new DefaultRemoteModelManagerClient(RemoteModelManager.getInstance(), new DownloadConditions.Builder().build()));
+        this(
+                new DefaultRemoteModelManagerClient(
+                        RemoteModelManager.getInstance(),
+                        new DownloadConditions.Builder().build()));
     }
 
     MlKitLanguageModelManager(RemoteModelManagerClient remoteModelManagerClient) {
@@ -43,19 +44,20 @@ public class MlKitLanguageModelManager implements LanguageModelManager {
 
     @Override
     public void getDownloadedModels(LanguagePacksCallback callback) {
-        remoteModelManagerClient.getDownloadedModels(new DownloadedModelsCallback() {
-            @Override
-            public void onSuccess(Set<String> languageCodes) {
-                List<String> codes = new ArrayList<>(languageCodes);
-                Collections.sort(codes);
-                callback.onSuccess(codes);
-            }
+        remoteModelManagerClient.getDownloadedModels(
+                new DownloadedModelsCallback() {
+                    @Override
+                    public void onSuccess(Set<String> languageCodes) {
+                        List<String> codes = new ArrayList<>(languageCodes);
+                        Collections.sort(codes);
+                        callback.onSuccess(codes);
+                    }
 
-            @Override
-            public void onFailure(Exception error) {
-                callback.onFailure(error);
-            }
-        });
+                    @Override
+                    public void onFailure(Exception error) {
+                        callback.onFailure(error);
+                    }
+                });
     }
 
     @Override
@@ -115,9 +117,7 @@ public class MlKitLanguageModelManager implements LanguageModelManager {
         private final DownloadConditions downloadConditions;
 
         private DefaultRemoteModelManagerClient(
-                RemoteModelManager remoteModelManager,
-                DownloadConditions downloadConditions
-        ) {
+                RemoteModelManager remoteModelManager, DownloadConditions downloadConditions) {
             this.remoteModelManager = remoteModelManager;
             this.downloadConditions = downloadConditions;
         }
@@ -125,28 +125,32 @@ public class MlKitLanguageModelManager implements LanguageModelManager {
         @Override
         public void downloadModel(String languageCode, OperationCallback callback) {
             TranslateRemoteModel model = new TranslateRemoteModel.Builder(languageCode).build();
-            remoteModelManager.download(model, downloadConditions)
+            remoteModelManager
+                    .download(model, downloadConditions)
                     .addOnSuccessListener(unused -> callback.onSuccess())
                     .addOnFailureListener(error -> callback.onFailure(error));
         }
 
         @Override
         public void getDownloadedModels(DownloadedModelsCallback callback) {
-            remoteModelManager.getDownloadedModels(TranslateRemoteModel.class)
-                    .addOnSuccessListener(models -> {
-                        Set<String> languageCodes = new java.util.LinkedHashSet<>();
-                        for (TranslateRemoteModel model : models) {
-                            languageCodes.add(model.getLanguage());
-                        }
-                        callback.onSuccess(languageCodes);
-                    })
+            remoteModelManager
+                    .getDownloadedModels(TranslateRemoteModel.class)
+                    .addOnSuccessListener(
+                            models -> {
+                                Set<String> languageCodes = new java.util.LinkedHashSet<>();
+                                for (TranslateRemoteModel model : models) {
+                                    languageCodes.add(model.getLanguage());
+                                }
+                                callback.onSuccess(languageCodes);
+                            })
                     .addOnFailureListener(callback::onFailure);
         }
 
         @Override
         public void deleteModel(String languageCode, OperationCallback callback) {
             TranslateRemoteModel model = new TranslateRemoteModel.Builder(languageCode).build();
-            remoteModelManager.deleteDownloadedModel(model)
+            remoteModelManager
+                    .deleteDownloadedModel(model)
                     .addOnSuccessListener(unused -> callback.onSuccess())
                     .addOnFailureListener(error -> callback.onFailure(error));
         }

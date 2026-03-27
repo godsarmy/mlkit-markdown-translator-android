@@ -1,9 +1,9 @@
 package io.github.godsarmy.mlmarkdown;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 
 public class MarkdownTranslationOptionsTest {
     @Test
@@ -20,14 +20,15 @@ public class MarkdownTranslationOptionsTest {
 
     @Test
     public void builder_allowsDisablingOptions() {
-        MarkdownTranslationOptions options = new MarkdownTranslationOptions.Builder()
-                .setPreserveNewlines(false)
-                .setPreserveListPrefixes(false)
-                .setPreserveBlockquotes(false)
-                .setNormalizeCustomBlockTags(false)
-                .setProtectAutolinks(false)
-                .setEnableRegexFallbackProtection(false)
-                .build();
+        MarkdownTranslationOptions options =
+                new MarkdownTranslationOptions.Builder()
+                        .setPreserveNewlines(false)
+                        .setPreserveListPrefixes(false)
+                        .setPreserveBlockquotes(false)
+                        .setNormalizeCustomBlockTags(false)
+                        .setProtectAutolinks(false)
+                        .setEnableRegexFallbackProtection(false)
+                        .build();
 
         assertFalse(options.preserveNewlines());
         assertFalse(options.preserveListPrefixes());

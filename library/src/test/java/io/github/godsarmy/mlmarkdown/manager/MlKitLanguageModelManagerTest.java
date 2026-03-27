@@ -1,17 +1,15 @@
 package io.github.godsarmy.mlmarkdown.manager;
 
-import io.github.godsarmy.mlmarkdown.api.LanguagePacksCallback;
-import io.github.godsarmy.mlmarkdown.api.OperationCallback;
-
-import org.junit.Test;
-
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import io.github.godsarmy.mlmarkdown.api.LanguagePacksCallback;
+import io.github.godsarmy.mlmarkdown.api.OperationCallback;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.Test;
 
 public class MlKitLanguageModelManagerTest {
     @Test
@@ -75,7 +73,8 @@ public class MlKitLanguageModelManagerTest {
         assertEquals("cannot delete", callback.error.getMessage());
     }
 
-    private static final class FakeRemoteModelManagerClient implements MlKitLanguageModelManager.RemoteModelManagerClient {
+    private static final class FakeRemoteModelManagerClient
+            implements MlKitLanguageModelManager.RemoteModelManagerClient {
         private String downloadedLanguage;
         private String deletedLanguage;
         private Exception deleteError;
@@ -88,7 +87,8 @@ public class MlKitLanguageModelManagerTest {
         }
 
         @Override
-        public void getDownloadedModels(MlKitLanguageModelManager.DownloadedModelsCallback callback) {
+        public void getDownloadedModels(
+                MlKitLanguageModelManager.DownloadedModelsCallback callback) {
             callback.onSuccess(downloadedModels);
         }
 

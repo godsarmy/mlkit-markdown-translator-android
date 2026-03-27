@@ -11,20 +11,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
-
+import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.switchmaterial.SwitchMaterial;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
-
 import io.noties.markwon.Markwon;
+import java.util.HashSet;
+import java.util.Set;
 
 public final class MainActivity extends AppCompatActivity {
     private MlKitMarkdownTranslator translator;
@@ -80,11 +75,9 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void setupLanguageSpinners() {
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this,
-                R.array.language_codes,
-                android.R.layout.simple_spinner_item
-        );
+        ArrayAdapter<CharSequence> adapter =
+                ArrayAdapter.createFromResource(
+                        this, R.array.language_codes, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sourceLanguageSpinner.setAdapter(adapter);
         targetLanguageSpinner.setAdapter(adapter);
@@ -97,44 +90,48 @@ public final class MainActivity extends AppCompatActivity {
         downloadModelButton.setOnClickListener(v -> onModelButtonClicked());
         translateButton.setOnClickListener(v -> translateMarkdown());
 
-        targetLanguageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                refreshDownloadedModelsAndButtonState();
-            }
+        targetLanguageSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(
+                            AdapterView<?> parent, View view, int position, long id) {
+                        refreshDownloadedModelsAndButtonState();
+                    }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                updateDownloadButtonState();
-            }
-        });
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        updateDownloadButtonState();
+                    }
+                });
 
-        renderModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            isRenderMode = isChecked;
-            applyRenderMode();
-        });
+        renderModeSwitch.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> {
+                    isRenderMode = isChecked;
+                    applyRenderMode();
+                });
 
-        fallbackModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            isFallbackModeEnabled = isChecked;
-            recreateTranslator();
-        });
+        fallbackModeSwitch.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> {
+                    isFallbackModeEnabled = isChecked;
+                    recreateTranslator();
+                });
 
-        originalMarkdownInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
+        originalMarkdownInput.addTextChangedListener(
+                new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(
+                            CharSequence s, int start, int count, int after) {}
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (isRenderMode) {
-                    markwon.setMarkdown(originalMarkdownRendered, s.toString());
-                }
-            }
-        });
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        if (isRenderMode) {
+                            markwon.setMarkdown(originalMarkdownRendered, s.toString());
+                        }
+                    }
+                });
 
         refreshDownloadedModelsAndButtonState();
         applyRenderMode();
@@ -205,7 +202,8 @@ public final class MainActivity extends AppCompatActivity {
                 .setMessage(getString(R.string.delete_model_dialog_message, languageCode))
                 .setCancelable(true)
                 .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
-                .setPositiveButton(R.string.delete_model, (dialog, which) -> deleteTargetModel(languageCode))
+                .setPositiveButton(
+                        R.string.delete_model, (dialog, which) -> deleteTargetModel(languageCode))
                 .show();
     }
 
@@ -213,24 +211,32 @@ public final class MainActivity extends AppCompatActivity {
         setBusy(true);
         statusText.setText(getString(R.string.status_deleting_model, languageCode));
 
-        translator.deleteLanguagePack(languageCode, new io.github.godsarmy.mlmarkdown.api.OperationCallback() {
-            @Override
-            public void onSuccess() {
-                runOnUiThread(() -> {
-                    downloadedTargetModels.remove(languageCode);
-                    statusText.setText(getString(R.string.status_model_deleted, languageCode));
-                    setBusy(false);
-                });
-            }
+        translator.deleteLanguagePack(
+                languageCode,
+                new io.github.godsarmy.mlmarkdown.api.OperationCallback() {
+                    @Override
+                    public void onSuccess() {
+                        runOnUiThread(
+                                () -> {
+                                    downloadedTargetModels.remove(languageCode);
+                                    statusText.setText(
+                                            getString(R.string.status_model_deleted, languageCode));
+                                    setBusy(false);
+                                });
+                    }
 
-            @Override
-            public void onFailure(Exception error) {
-                runOnUiThread(() -> {
-                    statusText.setText(getString(R.string.status_model_delete_failed, error.getMessage()));
-                    setBusy(false);
+                    @Override
+                    public void onFailure(Exception error) {
+                        runOnUiThread(
+                                () -> {
+                                    statusText.setText(
+                                            getString(
+                                                    R.string.status_model_delete_failed,
+                                                    error.getMessage()));
+                                    setBusy(false);
+                                });
+                    }
                 });
-            }
-        });
     }
 
     private void downloadTargetModel(String languageCode) {
@@ -245,48 +251,60 @@ public final class MainActivity extends AppCompatActivity {
         int requestId = ++activeDownloadRequestId;
         showDownloadProgressDialog(languageCode, requestId);
 
-        translator.ensureLanguageModelDownloaded(languageCode, new io.github.godsarmy.mlmarkdown.api.OperationCallback() {
-            @Override
-            public void onSuccess() {
-                runOnUiThread(() -> {
-                    if (requestId != activeDownloadRequestId) {
-                        return;
+        translator.ensureLanguageModelDownloaded(
+                languageCode,
+                new io.github.godsarmy.mlmarkdown.api.OperationCallback() {
+                    @Override
+                    public void onSuccess() {
+                        runOnUiThread(
+                                () -> {
+                                    if (requestId != activeDownloadRequestId) {
+                                        return;
+                                    }
+
+                                    activeDownloadRequestId = 0;
+                                    dismissDownloadProgressDialog();
+                                    downloadedTargetModels.add(languageCode);
+                                    statusText.setText(
+                                            getString(R.string.status_model_ready, languageCode));
+                                    showModelDownloadedDialog(languageCode);
+                                    setBusy(false);
+                                });
                     }
 
-                    activeDownloadRequestId = 0;
-                    dismissDownloadProgressDialog();
-                    downloadedTargetModels.add(languageCode);
-                    statusText.setText(getString(R.string.status_model_ready, languageCode));
-                    showModelDownloadedDialog(languageCode);
-                    setBusy(false);
-                });
-            }
+                    @Override
+                    public void onFailure(Exception error) {
+                        runOnUiThread(
+                                () -> {
+                                    if (requestId != activeDownloadRequestId) {
+                                        return;
+                                    }
 
-            @Override
-            public void onFailure(Exception error) {
-                runOnUiThread(() -> {
-                    if (requestId != activeDownloadRequestId) {
-                        return;
+                                    activeDownloadRequestId = 0;
+                                    dismissDownloadProgressDialog();
+                                    statusText.setText(
+                                            getString(
+                                                    R.string.status_model_download_failed,
+                                                    error.getMessage()));
+                                    setBusy(false);
+                                });
                     }
-
-                    activeDownloadRequestId = 0;
-                    dismissDownloadProgressDialog();
-                    statusText.setText(getString(R.string.status_model_download_failed, error.getMessage()));
-                    setBusy(false);
                 });
-            }
-        });
     }
 
     private void showDownloadProgressDialog(String languageCode, int requestId) {
         dismissDownloadProgressDialog();
-        downloadProgressDialog = new AlertDialog.Builder(this)
-                .setTitle(R.string.model_download_progress_title)
-                .setMessage(getString(R.string.model_download_progress_message, languageCode))
-                .setCancelable(true)
-                .setNegativeButton(R.string.cancel_download, (dialog, which) -> cancelActiveDownload(requestId))
-                .setOnCancelListener(dialog -> cancelActiveDownload(requestId))
-                .create();
+        downloadProgressDialog =
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.model_download_progress_title)
+                        .setMessage(
+                                getString(R.string.model_download_progress_message, languageCode))
+                        .setCancelable(true)
+                        .setNegativeButton(
+                                R.string.cancel_download,
+                                (dialog, which) -> cancelActiveDownload(requestId))
+                        .setOnCancelListener(dialog -> cancelActiveDownload(requestId))
+                        .create();
         downloadProgressDialog.show();
     }
 
@@ -318,36 +336,39 @@ public final class MainActivity extends AppCompatActivity {
 
     private void recreateTranslator() {
         translator.close();
-        translator = new MlKitMarkdownTranslator(
-                new MarkdownTranslationOptions.Builder()
-                        .setEnableRegexFallbackProtection(isFallbackModeEnabled)
-                        .build()
-        );
+        translator =
+                new MlKitMarkdownTranslator(
+                        new MarkdownTranslationOptions.Builder()
+                                .setEnableRegexFallbackProtection(isFallbackModeEnabled)
+                                .build());
         refreshDownloadedModelsAndButtonState();
     }
 
     private void refreshDownloadedModelsAndButtonState() {
-        translator.getDownloadedLanguagePacks(new io.github.godsarmy.mlmarkdown.api.LanguagePacksCallback() {
-            @Override
-            public void onSuccess(java.util.List<String> languageCodes) {
-                runOnUiThread(() -> {
-                    downloadedTargetModels.clear();
-                    downloadedTargetModels.addAll(languageCodes);
-                    updateDownloadButtonState();
-                });
-            }
+        translator.getDownloadedLanguagePacks(
+                new io.github.godsarmy.mlmarkdown.api.LanguagePacksCallback() {
+                    @Override
+                    public void onSuccess(java.util.List<String> languageCodes) {
+                        runOnUiThread(
+                                () -> {
+                                    downloadedTargetModels.clear();
+                                    downloadedTargetModels.addAll(languageCodes);
+                                    updateDownloadButtonState();
+                                });
+                    }
 
-            @Override
-            public void onFailure(Exception error) {
-                runOnUiThread(() -> updateDownloadButtonState());
-            }
-        });
+                    @Override
+                    public void onFailure(Exception error) {
+                        runOnUiThread(() -> updateDownloadButtonState());
+                    }
+                });
     }
 
     private void translateMarkdown() {
         String markdown = originalMarkdownInput.getText().toString();
         setBusy(true);
-        statusText.setText("Status: translating " + sourceLanguage() + " → " + targetLanguage() + "...");
+        statusText.setText(
+                "Status: translating " + sourceLanguage() + " → " + targetLanguage() + "...");
 
         translator.translateMarkdown(
                 markdown,
@@ -356,25 +377,28 @@ public final class MainActivity extends AppCompatActivity {
                 new io.github.godsarmy.mlmarkdown.api.TranslationCallback() {
                     @Override
                     public void onSuccess(String translatedText) {
-                        runOnUiThread(() -> {
-                            translatedMarkdownRaw.setText(translatedText);
-                            if (isRenderMode) {
-                                markwon.setMarkdown(translatedMarkdownRendered, translatedText);
-                            }
-                            statusText.setText("Status: translation complete");
-                            setBusy(false);
-                        });
+                        runOnUiThread(
+                                () -> {
+                                    translatedMarkdownRaw.setText(translatedText);
+                                    if (isRenderMode) {
+                                        markwon.setMarkdown(
+                                                translatedMarkdownRendered, translatedText);
+                                    }
+                                    statusText.setText("Status: translation complete");
+                                    setBusy(false);
+                                });
                     }
 
                     @Override
                     public void onFailure(Exception error) {
-                        runOnUiThread(() -> {
-                            statusText.setText("Status: translation failed - " + error.getMessage());
-                            setBusy(false);
-                        });
+                        runOnUiThread(
+                                () -> {
+                                    statusText.setText(
+                                            "Status: translation failed - " + error.getMessage());
+                                    setBusy(false);
+                                });
                     }
-                }
-        );
+                });
     }
 
     @Override

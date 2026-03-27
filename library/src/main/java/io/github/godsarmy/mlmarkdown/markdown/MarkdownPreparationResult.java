@@ -12,8 +12,7 @@ public final class MarkdownPreparationResult {
             ProcessingMode mode,
             String markdownForTranslation,
             MarkdownTokenStore tokenStore,
-            TokenizedMarkdownDocument tokenizedDocument
-    ) {
+            TokenizedMarkdownDocument tokenizedDocument) {
         this.mode = mode;
         this.markdownForTranslation = markdownForTranslation;
         this.tokenStore = tokenStore;

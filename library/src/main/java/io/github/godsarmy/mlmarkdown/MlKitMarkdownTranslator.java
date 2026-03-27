@@ -8,7 +8,6 @@ import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.engine.MlKitTranslationEngine;
 import io.github.godsarmy.mlmarkdown.manager.MlKitLanguageModelManager;
 import io.github.godsarmy.mlmarkdown.markdown.DefaultMarkdownTranslator;
-
 import java.io.Closeable;
 
 public final class MlKitMarkdownTranslator implements Closeable {
@@ -24,19 +23,18 @@ public final class MlKitMarkdownTranslator implements Closeable {
         this(new MlKitTranslationEngine(), options);
     }
 
-    private MlKitMarkdownTranslator(MlKitTranslationEngine translationEngine, MarkdownTranslationOptions options) {
+    private MlKitMarkdownTranslator(
+            MlKitTranslationEngine translationEngine, MarkdownTranslationOptions options) {
         this(
                 new DefaultMarkdownTranslator(translationEngine, options),
                 new MlKitLanguageModelManager(),
-                translationEngine
-        );
+                translationEngine);
     }
 
     MlKitMarkdownTranslator(
             MarkdownTranslator markdownTranslator,
             LanguageModelManager languageModelManager,
-            Closeable closeableResource
-    ) {
+            Closeable closeableResource) {
         this.markdownTranslator = markdownTranslator;
         this.languageModelManager = languageModelManager;
         this.closeableResource = closeableResource;
@@ -46,8 +44,7 @@ public final class MlKitMarkdownTranslator implements Closeable {
             String markdown,
             String sourceLanguage,
             String targetLanguage,
-            TranslationCallback callback
-    ) {
+            TranslationCallback callback) {
         markdownTranslator.translateMarkdown(markdown, sourceLanguage, targetLanguage, callback);
     }
 

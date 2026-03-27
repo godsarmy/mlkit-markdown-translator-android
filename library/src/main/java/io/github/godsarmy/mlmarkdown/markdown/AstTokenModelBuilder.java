@@ -6,23 +6,19 @@ import com.vladsch.flexmark.ast.FencedCodeBlock;
 import com.vladsch.flexmark.ast.HtmlBlock;
 import com.vladsch.flexmark.ast.HtmlInline;
 import com.vladsch.flexmark.ast.Text;
-import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.ext.tables.TableSeparator;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import com.vladsch.flexmark.util.sequence.BasedSequence;
-
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
-/**
- * Step 6C: Converts a Flexmark AST into an ordered token stream.
- */
+/** Step 6C: Converts a Flexmark AST into an ordered token stream. */
 public final class AstTokenModelBuilder {
     private final Parser parser;
     private final boolean protectAutolinks;
@@ -54,8 +50,7 @@ public final class AstTokenModelBuilder {
             Node node,
             List<Span> translatableSpans,
             List<Span> protectedSpans,
-            boolean protectAutolinks
-    ) {
+            boolean protectAutolinks) {
         BasedSequence chars = node.getChars();
         int start = chars.getStartOffset();
         int end = chars.getEndOffset();
@@ -79,10 +74,7 @@ public final class AstTokenModelBuilder {
     }
 
     private static List<MarkdownToken> toTokenStream(
-            String source,
-            List<Span> translatableSpans,
-            List<Span> protectedSpans
-    ) {
+            String source, List<Span> translatableSpans, List<Span> protectedSpans) {
         TreeSet<Integer> boundaries = new TreeSet<>(Comparator.naturalOrder());
         boundaries.add(0);
         boundaries.add(source.length());
@@ -115,11 +107,7 @@ public final class AstTokenModelBuilder {
     }
 
     private static MarkdownTokenType classify(
-            int start,
-            int end,
-            List<Span> translatableSpans,
-            List<Span> protectedSpans
-    ) {
+            int start, int end, List<Span> translatableSpans, List<Span> protectedSpans) {
         if (isCovered(start, end, protectedSpans)) {
             return MarkdownTokenType.PROTECTED;
         }
@@ -145,14 +133,15 @@ public final class AstTokenModelBuilder {
         }
 
         MarkdownToken previous = tokens.get(tokens.size() - 1);
-        if (previous.getType() == next.getType() && previous.getEndOffset() == next.getStartOffset()) {
-            MarkdownToken merged = new MarkdownToken(
-                    previous.getType(),
-                    previous.getTokenId(),
-                    previous.getValue() + next.getValue(),
-                    previous.getStartOffset(),
-                    next.getEndOffset()
-            );
+        if (previous.getType() == next.getType()
+                && previous.getEndOffset() == next.getStartOffset()) {
+            MarkdownToken merged =
+                    new MarkdownToken(
+                            previous.getType(),
+                            previous.getTokenId(),
+                            previous.getValue() + next.getValue(),
+                            previous.getStartOffset(),
+                            next.getEndOffset());
             tokens.set(tokens.size() - 1, merged);
             return;
         }

@@ -1,52 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ML Markdown Translator Example</string>
-    <string name="sample_title">ML Markdown Translator Example</string>
-    <string name="status_idle">Status: idle</string>
-    <string name="source_markdown_label">Source markdown</string>
-    <string name="source_language_label">Source language</string>
-    <string name="target_language_label">Target language</string>
-    <string name="download_model">Download model</string>
-    <string name="delete_model">Delete model</string>
-    <string name="model_downloaded">Model downloaded</string>
-    <string name="model_downloaded_dialog_title">Model downloaded</string>
-    <string name="model_downloaded_dialog_message">Language model for %1$s is ready.</string>
-    <string name="delete_model_dialog_title">Delete downloaded model?</string>
-    <string name="delete_model_dialog_message">Remove downloaded model for %1$s from device?</string>
-    <string name="model_download_progress_title">Downloading model</string>
-    <string name="model_download_progress_message">Downloading language model for %1$s…</string>
-    <string name="cancel_download">Cancel download</string>
-    <string name="status_downloading_model">Status: downloading model for %1$s...</string>
-    <string name="status_model_ready">Status: model ready for %1$s</string>
-    <string name="status_model_download_failed">Status: model download failed - %1$s</string>
-    <string name="status_model_download_cancelled">Status: model download cancelled</string>
-    <string name="status_deleting_model">Status: deleting model for %1$s...</string>
-    <string name="status_model_deleted">Status: model deleted for %1$s</string>
-    <string name="status_model_delete_failed">Status: model delete failed - %1$s</string>
-    <string name="translate_markdown">Translate</string>
-    <string name="original_markdown_label">Original text</string>
-    <string name="translated_markdown_label">Translated text</string>
-    <string name="render_mode_switch">Render markdown (Markwon)</string>
-    <string name="fallback_mode_switch">Enable fallback mode</string>
-    <string name="default_markdown"># Welcome
+	<string name="app_name">ML Markdown Translator Example</string>
+	<string name="sample_title">ML Markdown Translator Example</string>
+	<string name="status_idle">Status: idle</string>
+	<string name="source_markdown_label">Source markdown</string>
+	<string name="source_language_label">Source language</string>
+	<string name="target_language_label">Target language</string>
+	<string name="download_model">Download model</string>
+	<string name="delete_model">Delete model</string>
+	<string name="model_downloaded">Model downloaded</string>
+	<string name="model_downloaded_dialog_title">Model downloaded</string>
+	<string name="model_downloaded_dialog_message">Language model for %1$s is ready.</string>
+	<string name="delete_model_dialog_title">Delete downloaded model?</string>
+	<string name="delete_model_dialog_message">Remove downloaded model for %1$s from device?</string>
+	<string name="model_download_progress_title">Downloading model</string>
+	<string name="model_download_progress_message">Downloading language model for %1$s…</string>
+	<string name="cancel_download">Cancel download</string>
+	<string name="status_downloading_model">Status: downloading model for %1$s...</string>
+	<string name="status_model_ready">Status: model ready for %1$s</string>
+	<string name="status_model_download_failed">Status: model download failed - %1$s</string>
+	<string name="status_model_download_cancelled">Status: model download cancelled</string>
+	<string name="status_deleting_model">Status: deleting model for %1$s...</string>
+	<string name="status_model_deleted">Status: model deleted for %1$s</string>
+	<string name="status_model_delete_failed">Status: model delete failed - %1$s</string>
+	<string name="translate_markdown">Translate</string>
+	<string name="original_markdown_label">Original text</string>
+	<string name="translated_markdown_label">Translated text</string>
+	<string name="render_mode_switch">Render markdown (Markwon)</string>
+	<string name="fallback_mode_switch">Enable fallback mode</string>
+	<string name="default_markdown"># Welcome
 
-- Translate this markdown
-- Keep `inline code` unchanged
+		- Translate this markdown
+		- Keep `inline
+		code` unchanged
 
-Visit &lt;https://example.com&gt;
+		Visit &lt;https://example.com&gt;
 
-```bash
-echo hello
-```</string>
+		```bash
+		echo hello
+		```</string>
 
-    <string-array name="language_codes">
-        <item>en</item>
-        <item>es</item>
-        <item>fr</item>
-        <item>de</item>
-        <item>pt</item>
-        <item>it</item>
-        <item>zh</item>
-        <item>ja</item>
-    </string-array>
+	<string-array name="language_codes">
+		<item>en</item>
+		<item>es</item>
+		<item>fr</item>
+		<item>de</item>
+		<item>pt</item>
+		<item>it</item>
+		<item>zh</item>
+		<item>ja</item>
+	</string-array>
 </resources>

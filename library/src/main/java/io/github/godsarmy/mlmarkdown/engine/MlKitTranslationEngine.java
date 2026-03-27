@@ -1,15 +1,12 @@
 package io.github.godsarmy.mlmarkdown.engine;
 
 import androidx.annotation.NonNull;
-
 import com.google.mlkit.nl.translate.TranslateLanguage;
 import com.google.mlkit.nl.translate.Translation;
 import com.google.mlkit.nl.translate.Translator;
 import com.google.mlkit.nl.translate.TranslatorOptions;
-
 import io.github.godsarmy.mlmarkdown.api.OperationCallback;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
-
 import java.io.Closeable;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,8 +28,7 @@ public class MlKitTranslationEngine implements TranslationEngine, Closeable {
             String text,
             String sourceLanguage,
             String targetLanguage,
-            TranslationCallback callback
-    ) {
+            TranslationCallback callback) {
         if (text == null) {
             callback.onFailure(new IllegalArgumentException("Text must not be null"));
             return;
@@ -51,17 +47,18 @@ public class MlKitTranslationEngine implements TranslationEngine, Closeable {
         }
 
         TranslatorClient translator = getOrCreateTranslator(normalizedSource, normalizedTarget);
-        translator.downloadModelIfNeeded(new OperationCallback() {
-            @Override
-            public void onSuccess() {
-                translator.translate(text, callback);
-            }
+        translator.downloadModelIfNeeded(
+                new OperationCallback() {
+                    @Override
+                    public void onSuccess() {
+                        translator.translate(text, callback);
+                    }
 
-            @Override
-            public void onFailure(Exception error) {
-                callback.onFailure(error);
-            }
-        });
+                    @Override
+                    public void onFailure(Exception error) {
+                        callback.onFailure(error);
+                    }
+                });
     }
 
     @Override
@@ -79,7 +76,8 @@ public class MlKitTranslationEngine implements TranslationEngine, Closeable {
             return existingTranslator;
         }
 
-        TranslatorClient createdTranslator = translatorClientFactory.create(sourceLanguage, targetLanguage);
+        TranslatorClient createdTranslator =
+                translatorClientFactory.create(sourceLanguage, targetLanguage);
         translatorsByLanguagePair.put(key, createdTranslator);
         return createdTranslator;
     }
@@ -122,10 +120,11 @@ public class MlKitTranslationEngine implements TranslationEngine, Closeable {
     private static final class DefaultTranslatorClientFactory implements TranslatorClientFactory {
         @Override
         public TranslatorClient create(String sourceLanguage, String targetLanguage) {
-            TranslatorOptions options = new TranslatorOptions.Builder()
-                    .setSourceLanguage(sourceLanguage)
-                    .setTargetLanguage(targetLanguage)
-                    .build();
+            TranslatorOptions options =
+                    new TranslatorOptions.Builder()
+                            .setSourceLanguage(sourceLanguage)
+                            .setTargetLanguage(targetLanguage)
+                            .build();
             return new MlKitTranslatorClient(Translation.getClient(options));
         }
     }
@@ -139,14 +138,16 @@ public class MlKitTranslationEngine implements TranslationEngine, Closeable {
 
         @Override
         public void downloadModelIfNeeded(OperationCallback callback) {
-            translator.downloadModelIfNeeded()
+            translator
+                    .downloadModelIfNeeded()
                     .addOnSuccessListener(unused -> callback.onSuccess())
                     .addOnFailureListener(error -> callback.onFailure(asException(error)));
         }
 
         @Override
         public void translate(String text, TranslationCallback callback) {
-            translator.translate(text)
+            translator
+                    .translate(text)
                     .addOnSuccessListener(callback::onSuccess)
                     .addOnFailureListener(error -> callback.onFailure(asException(error)));
         }

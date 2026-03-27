@@ -5,6 +5,5 @@ public interface MarkdownTranslator {
             String markdown,
             String sourceLanguage,
             String targetLanguage,
-            TranslationCallback callback
-    );
+            TranslationCallback callback);
 }

@@ -2,7 +2,6 @@ package io.github.godsarmy.mlmarkdown.model;
 
 import io.github.godsarmy.mlmarkdown.markdown.MarkdownToken;
 import io.github.godsarmy.mlmarkdown.markdown.MarkdownTokenType;
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
