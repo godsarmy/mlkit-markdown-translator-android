@@ -152,7 +152,7 @@ dependencies {
 }
 ```
 
-### Option B: JitPack (`v0.1.0`)
+### Option B: JitPack (`v0.1.1`)
 
 ```gradle
 repositories {
@@ -162,7 +162,7 @@ repositories {
 }
 
 dependencies {
-    implementation "com.github.godsarmy:mlkit-markdown-translator-android:v0.1.0"
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:v0.1.1"
 }
 ```
 
@@ -176,7 +176,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.godsarmy:mlkit-markdown-translator-android:v0.1.0")
+    implementation("com.github.godsarmy:mlkit-markdown-translator-android:v0.1.1")
 }
 ```
 
