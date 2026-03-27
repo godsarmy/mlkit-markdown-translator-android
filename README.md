@@ -20,11 +20,9 @@ See `docs/api.md` for the initial public API definition.
 
 ## Using from Android app
 
-### 1) Gradle setup
+### 1) Gradle setup (local module)
 
-Current recommended adoption is **local module / included build** while API stabilizes.
-
-If this repo is included in your project, add:
+If this repo is included as a local module in your Android project, add:
 
 ```gradle
 dependencies {
@@ -158,19 +156,35 @@ Current recommendation follows the roadmap:
 
 In short: start with local/submodule, then move to JitPack once the API is stable enough for broader reuse.
 
-### JitPack usage (when tags are published)
+### JitPack usage (release `0.1.0`)
 
 ```gradle
 repositories {
+    google()
+    mavenCentral()
     maven { url "https://jitpack.io" }
 }
 
 dependencies {
-    implementation "com.github.godsarmy:mlkit-markdown-translator-android:<tag>"
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:v0.1.0"
 }
 ```
 
-Project includes `jitpack.yml` for a library-focused JitPack build path.
+Kotlin DSL equivalent:
+
+```kotlin
+repositories {
+    google()
+    mavenCentral()
+    maven("https://jitpack.io")
+}
+
+dependencies {
+    implementation("com.github.godsarmy:mlkit-markdown-translator-android:v0.1.0")
+}
+```
+
+Project includes `jitpack.yml` for a library-focused JitPack build path and release tag compatibility.
 
 ## Limitations (v1)
 
