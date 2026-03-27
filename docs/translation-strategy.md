@@ -1,4 +1,4 @@
-# AST Translation Strategy (Step 6B)
+# AST Translation Strategy
 
 This document defines how Markdown is translated using `flexmark-java` while preserving syntax and layout.
 
@@ -71,8 +71,8 @@ These define markdown layout and delimiters and are never translated directly:
 
 ### Failure strategy
 
-- If translation fails for one token/chunk, fallback to original source text for that token.
-- Do not drop tokens or reflow document structure on failure.
+- If chunk marker parsing fails (markers missing/mutated after translation), fallback to per-token translation for that chunk.
+- If translation engine returns failure for a chunk/token call, propagate failure via callback.
 
 ## v1 implementation constraints
 
@@ -80,9 +80,9 @@ These define markdown layout and delimiters and are never translated directly:
 - Regex is allowed only for pre-normalization (for example `<block>...</block>` conversion) and targeted fallback edge cases.
 - Reconstruction fidelity is prioritized over aggressive text transformations.
 
-## Hybrid fallback mode (Step 6E)
+## Hybrid fallback mode
 
-v1 uses a practical hybrid path:
+v0.1.0 uses this implemented hybrid path:
 
 1. Normalize line endings and custom `<block>...</block>` tags.
 2. Try AST/token-stream preparation first.
@@ -93,8 +93,23 @@ Operational behavior:
 - Preferred mode: `AST_TOKEN_STREAM`
   - Source is tokenized by Flexmark-based model builder.
   - Reconstruction is driven by ordered tokens.
+  - Translation runs in chunks with token markers; if markers are lost/mutated by the translation engine,
+    the pipeline falls back to per-token translation for that chunk.
 - Fallback mode: `REGEX_FALLBACK`
-  - Legacy protection/restoration pipeline is used.
-  - Ensures translation still completes without dropping content.
+  - Triggered when AST/token model build throws at preparation stage.
+  - Legacy protection/restoration pipeline is used when regex fallback protection is enabled.
+  - If regex fallback protection is disabled, fallback uses normalized markdown text directly.
 
-This keeps the parser-first architecture while still providing safe operational fallback for edge cases.
+### Option-controlled behavior
+
+- `normalizeCustomBlockTags`:
+  - `true` (default): `<block>...</block>` is normalized to fenced code blocks before preparation.
+  - `false`: custom block tags are left unchanged.
+- `protectAutolinks`:
+  - controls whether autolinks are treated as protected spans in AST tokenization.
+- `enableRegexFallbackProtection`:
+  - `true` (default): regex protection/restoration pipeline runs in fallback mode.
+  - `false`: fallback mode skips regex token protection and passes normalized text directly.
+
+This keeps the parser-first architecture while still providing robust fallback behavior for edge cases and
+translation-engine marker drift.
