@@ -149,6 +149,7 @@ public class DefaultMarkdownTranslatorTest {
         assertEquals(0L, timingListener.lastReport.getRestorationDurationMs());
         assertEquals(12L, timingListener.lastReport.getTotalDurationMs());
         assertTrue(timingListener.lastReport.getTotalTokenCount() > 0);
+        assertEquals(1, timingListener.lastReport.getTotalChunkCount());
         assertNull(timingListener.lastReport.getError());
     }
 
@@ -179,6 +180,7 @@ public class DefaultMarkdownTranslatorTest {
         assertEquals(0L, timingListener.lastReport.getRestorationDurationMs());
         assertEquals(11L, timingListener.lastReport.getTotalDurationMs());
         assertTrue(timingListener.lastReport.getTotalTokenCount() > 0);
+        assertEquals(1, timingListener.lastReport.getTotalChunkCount());
         assertNotNull(timingListener.lastReport.getError());
         assertEquals("boom", timingListener.lastReport.getError().getMessage());
     }

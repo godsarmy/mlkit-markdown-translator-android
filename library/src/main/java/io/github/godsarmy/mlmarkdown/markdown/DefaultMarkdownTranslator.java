@@ -47,6 +47,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
         MarkdownPreparationResult preparationResult = preparationService.prepare(markdown);
         long preparationDurationMs = toMillis(nanoTimeProvider.nowNanos() - preparationStartNanos);
         int totalTokenCount = totalTokenCount(preparationResult);
+        int totalChunkCount = totalChunkCount(preparationResult);
 
         long translationStartNanos = nanoTimeProvider.nowNanos();
         if (preparationResult.getMode() == ProcessingMode.AST_TOKEN_STREAM
@@ -67,6 +68,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                     0,
                                     totalStartNanos,
                                     totalTokenCount,
+                                    totalChunkCount,
                                     true,
                                     null);
                             callback.onSuccess(translatedText);
@@ -83,6 +85,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                     0,
                                     totalStartNanos,
                                     totalTokenCount,
+                                    totalChunkCount,
                                     false,
                                     error);
                             callback.onFailure(error);
@@ -115,6 +118,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                     restorationDurationMs,
                                     totalStartNanos,
                                     totalTokenCount,
+                                    totalChunkCount,
                                     true,
                                     null);
                             callback.onSuccess(restored);
@@ -128,6 +132,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                 restorationDurationMs,
                                 totalStartNanos,
                                 totalTokenCount,
+                                totalChunkCount,
                                 true,
                                 null);
                         callback.onSuccess(translatedText);
@@ -144,6 +149,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                 0,
                                 totalStartNanos,
                                 totalTokenCount,
+                                totalChunkCount,
                                 false,
                                 error);
                         callback.onFailure(error);
@@ -158,6 +164,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             long restorationDurationMs,
             long totalStartNanos,
             int totalTokenCount,
+            int totalChunkCount,
             boolean successful,
             Exception error) {
         if (translationTimingListener == null) {
@@ -171,8 +178,24 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                         restorationDurationMs,
                         toMillis(nanoTimeProvider.nowNanos() - totalStartNanos),
                         totalTokenCount,
+                        totalChunkCount,
                         successful,
                         error));
+    }
+
+    private int totalChunkCount(MarkdownPreparationResult preparationResult) {
+        if (preparationResult.getMode() == ProcessingMode.AST_TOKEN_STREAM
+                && preparationResult.getTokenizedDocument() != null) {
+            return structureTranslator
+                    .chunkTranslatableTokens(preparationResult.getTokenizedDocument())
+                    .size();
+        }
+
+        if (preparationResult.getMode() == ProcessingMode.REGEX_FALLBACK) {
+            return 1;
+        }
+
+        return 0;
     }
 
     private static int totalTokenCount(MarkdownPreparationResult preparationResult) {

@@ -10,6 +10,7 @@ public final class TranslationTimingReport {
     private final long restorationDurationMs;
     private final long totalDurationMs;
     private final int totalTokenCount;
+    private final int totalChunkCount;
     private final boolean successful;
     @Nullable private final Exception error;
 
@@ -20,6 +21,7 @@ public final class TranslationTimingReport {
             long restorationDurationMs,
             long totalDurationMs,
             int totalTokenCount,
+            int totalChunkCount,
             boolean successful,
             @Nullable Exception error) {
         this.processingMode = processingMode;
@@ -28,6 +30,7 @@ public final class TranslationTimingReport {
         this.restorationDurationMs = restorationDurationMs;
         this.totalDurationMs = totalDurationMs;
         this.totalTokenCount = totalTokenCount;
+        this.totalChunkCount = totalChunkCount;
         this.successful = successful;
         this.error = error;
     }
@@ -54,6 +57,10 @@ public final class TranslationTimingReport {
 
     public int getTotalTokenCount() {
         return totalTokenCount;
+    }
+
+    public int getTotalChunkCount() {
+        return totalChunkCount;
     }
 
     public boolean isSuccessful() {

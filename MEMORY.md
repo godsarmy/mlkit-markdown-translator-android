@@ -16,3 +16,4 @@
 - Next performance-observability improvement is stage timing via optional listener (prepare/translate/restore/total), keeping API non-breaking and disabled by default.
 - Timing report now includes `totalTokenCount` (AST token count when tokenized document exists; fallback protected-token count when regex token store is used).
 - After cutting a new release tag, keep README dependency snippets/version labels aligned immediately (latest is `v0.1.2`).
+- Timing report now also includes `totalChunkCount` (AST chunk count from `chunkTranslatableTokens`; fallback reports one translation chunk).
