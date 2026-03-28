@@ -186,5 +186,12 @@
 				android:textColor="@color/mlkit_on_surface_variant" />
 		</LinearLayout>
 
+		<TextView android:id="@+id/translationResultText"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="8dp"
+			android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+			android:textColor="@color/mlkit_on_surface_variant"
+			android:visibility="gone" />
+
 	</LinearLayout>
 </ScrollView>

@@ -24,8 +24,12 @@ import io.noties.markwon.ext.tables.TablePlugin;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class MainActivity extends AppCompatActivity {
+    private static final Pattern NON_WHITESPACE_PATTERN = Pattern.compile("\\S+");
+
     private MlKitMarkdownTranslator translator;
     private Markwon markwon;
 
@@ -40,6 +44,7 @@ public final class MainActivity extends AppCompatActivity {
     private Spinner markdownSampleSpinner;
     private ImageButton translationErrorButton;
     private View translationProgressContainer;
+    private TextView translationResultText;
     private Button downloadModelButton;
     private Button translateButton;
 
@@ -77,6 +82,7 @@ public final class MainActivity extends AppCompatActivity {
         markdownSampleSpinner = findViewById(R.id.markdownSampleSpinner);
         translationErrorButton = findViewById(R.id.translationErrorButton);
         translationProgressContainer = findViewById(R.id.translationProgressContainer);
+        translationResultText = findViewById(R.id.translationResultText);
         downloadModelButton = findViewById(R.id.downloadModelButton);
         translateButton = findViewById(R.id.translateButton);
 
@@ -432,9 +438,13 @@ public final class MainActivity extends AppCompatActivity {
 
     private void translateMarkdown() {
         String markdown = originalMarkdownInput.getText().toString();
+        int tokenSize = countApproxTokenSize(markdown);
+        long startedAtNanos = System.nanoTime();
+
         isTranslating = true;
         setBusy(true);
         clearTranslationError();
+        clearTranslationResult();
 
         translator.translateMarkdown(
                 markdown,
@@ -450,6 +460,16 @@ public final class MainActivity extends AppCompatActivity {
                                         markwon.setMarkdown(
                                                 translatedMarkdownRendered, translatedText);
                                     }
+
+                                    long elapsedMs =
+                                            (System.nanoTime() - startedAtNanos) / 1_000_000L;
+                                    translationResultText.setText(
+                                            getString(
+                                                    R.string.translation_result_success,
+                                                    elapsedMs,
+                                                    tokenSize));
+                                    translationResultText.setVisibility(View.VISIBLE);
+
                                     clearTranslationError();
                                     isTranslating = false;
                                     setBusy(false);
@@ -460,7 +480,16 @@ public final class MainActivity extends AppCompatActivity {
                     public void onFailure(Exception error) {
                         runOnUiThread(
                                 () -> {
-                                    showTranslationError(error.getMessage());
+                                    String reason = error.getMessage();
+                                    if (reason == null || reason.isBlank()) {
+                                        reason = "Unknown error";
+                                    }
+
+                                    showTranslationError(reason);
+                                    translationResultText.setText(
+                                            getString(R.string.translation_result_failure, reason));
+                                    translationResultText.setVisibility(View.VISIBLE);
+
                                     isTranslating = false;
                                     setBusy(false);
                                 });
@@ -471,6 +500,11 @@ public final class MainActivity extends AppCompatActivity {
     private void clearTranslationError() {
         latestTranslationError = null;
         translationErrorButton.setVisibility(View.GONE);
+    }
+
+    private void clearTranslationResult() {
+        translationResultText.setText("");
+        translationResultText.setVisibility(View.GONE);
     }
 
     private void showTranslationError(String details) {
@@ -488,6 +522,15 @@ public final class MainActivity extends AppCompatActivity {
                 .setCancelable(true)
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
                 .show();
+    }
+
+    private static int countApproxTokenSize(String text) {
+        Matcher matcher = NON_WHITESPACE_PATTERN.matcher(text);
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
     }
 
     @Override
