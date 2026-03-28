@@ -430,6 +430,7 @@ public final class MainActivity extends AppCompatActivity {
 
     private void translateMarkdown() {
         String markdown = originalMarkdownInput.getText().toString();
+        int rawCharCount = markdown.length();
 
         isTranslating = true;
         latestTimingReport = null;
@@ -453,19 +454,19 @@ public final class MainActivity extends AppCompatActivity {
                                     }
 
                                     TranslationTimingReport report = latestTimingReport;
-                                    if (report != null) {
-                                        translationResultText.setText(
-                                                getString(
-                                                        R.string.translation_result_success,
-                                                        report.getTotalDurationMs(),
-                                                        report.getTotalTokenCount(),
-                                                        report.getTotalChunkCount()));
-                                    } else {
-                                        translationResultText.setText(
-                                                getString(
-                                                        R.string
-                                                                .translation_result_success_fallback));
-                                    }
+                                    long durationMs =
+                                            report != null ? report.getTotalDurationMs() : 0L;
+                                    int tokenCount =
+                                            report != null ? report.getTotalTokenCount() : 0;
+                                    int chunkCount =
+                                            report != null ? report.getTotalChunkCount() : 0;
+                                    translationResultText.setText(
+                                            getString(
+                                                    R.string.translation_result_success,
+                                                    rawCharCount,
+                                                    durationMs,
+                                                    tokenCount,
+                                                    chunkCount));
                                     translationResultText.setVisibility(View.VISIBLE);
 
                                     clearTranslationError();
