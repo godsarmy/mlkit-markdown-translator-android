@@ -17,6 +17,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.mlkit.common.model.DownloadConditions;
+import com.google.mlkit.common.model.RemoteModelManager;
+import com.google.mlkit.nl.translate.TranslateLanguage;
+import com.google.mlkit.nl.translate.TranslateRemoteModel;
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
@@ -28,6 +32,8 @@ import java.util.Set;
 
 public final class MainActivity extends AppCompatActivity {
     private MlKitMarkdownTranslator translator;
+    private final RemoteModelManager remoteModelManager = RemoteModelManager.getInstance();
+    private final DownloadConditions downloadConditions = new DownloadConditions.Builder().build();
     private Markwon markwon;
 
     private EditText originalMarkdownInput;
@@ -251,14 +257,14 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void updateDownloadButtonState() {
-        boolean downloaded = downloadedTargetModels.contains(targetLanguage());
-        downloadModelButton.setEnabled(!isBusy);
+        boolean downloaded = isTargetModelAvailable();
+        boolean builtIn = isBuiltInLanguage(targetLanguage());
+        downloadModelButton.setEnabled(!isBusy && !builtIn);
         downloadModelButton.setText(downloaded ? R.string.delete_model : R.string.download_model);
     }
 
     private void updateTranslateButtonState() {
-        boolean downloaded = downloadedTargetModels.contains(targetLanguage());
-        translateButton.setEnabled(!isBusy && downloaded);
+        translateButton.setEnabled(!isBusy && isTargetModelAvailable());
     }
 
     private String sourceLanguage() {
@@ -271,7 +277,10 @@ public final class MainActivity extends AppCompatActivity {
 
     private void onModelButtonClicked() {
         String language = targetLanguage();
-        if (downloadedTargetModels.contains(language)) {
+        if (isBuiltInLanguage(language)) {
+            return;
+        }
+        if (downloadedTargetModels.contains(normalizeLanguageCode(language))) {
             confirmDeleteModel(language);
             return;
         }
@@ -291,29 +300,34 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void deleteTargetModel(String languageCode) {
+        String normalizedLanguageCode = normalizeLanguageCode(languageCode);
+        if (normalizedLanguageCode == null || isBuiltInLanguage(languageCode)) {
+            return;
+        }
+
         setBusy(true);
 
-        translator.deleteLanguagePack(
-                languageCode,
-                new io.github.godsarmy.mlmarkdown.api.OperationCallback() {
-                    @Override
-                    public void onSuccess() {
-                        runOnUiThread(
-                                () -> {
-                                    downloadedTargetModels.remove(languageCode);
-                                    setBusy(false);
-                                });
-                    }
-
-                    @Override
-                    public void onFailure(Exception error) {
-                        runOnUiThread(() -> setBusy(false));
-                    }
-                });
+        TranslateRemoteModel model =
+                new TranslateRemoteModel.Builder(normalizedLanguageCode).build();
+        remoteModelManager
+                .deleteDownloadedModel(model)
+                .addOnSuccessListener(
+                        unused ->
+                                runOnUiThread(
+                                        () -> {
+                                            downloadedTargetModels.remove(normalizedLanguageCode);
+                                            setBusy(false);
+                                        }))
+                .addOnFailureListener(error -> runOnUiThread(() -> setBusy(false)));
     }
 
     private void downloadTargetModel(String languageCode) {
-        if (downloadedTargetModels.contains(languageCode)) {
+        String normalizedLanguageCode = normalizeLanguageCode(languageCode);
+        if (normalizedLanguageCode == null || isBuiltInLanguage(languageCode)) {
+            return;
+        }
+
+        if (downloadedTargetModels.contains(normalizedLanguageCode)) {
             updateDownloadButtonState();
             return;
         }
@@ -323,38 +337,35 @@ public final class MainActivity extends AppCompatActivity {
         int requestId = ++activeDownloadRequestId;
         showDownloadProgressDialog(languageCode, requestId);
 
-        translator.ensureLanguageModelDownloaded(
-                languageCode,
-                new io.github.godsarmy.mlmarkdown.api.OperationCallback() {
-                    @Override
-                    public void onSuccess() {
-                        runOnUiThread(
-                                () -> {
-                                    if (requestId != activeDownloadRequestId) {
-                                        return;
-                                    }
+        TranslateRemoteModel model =
+                new TranslateRemoteModel.Builder(normalizedLanguageCode).build();
+        remoteModelManager
+                .download(model, downloadConditions)
+                .addOnSuccessListener(
+                        unused ->
+                                runOnUiThread(
+                                        () -> {
+                                            if (requestId != activeDownloadRequestId) {
+                                                return;
+                                            }
 
-                                    activeDownloadRequestId = 0;
-                                    dismissDownloadProgressDialog();
-                                    downloadedTargetModels.add(languageCode);
-                                    setBusy(false);
-                                });
-                    }
+                                            activeDownloadRequestId = 0;
+                                            dismissDownloadProgressDialog();
+                                            downloadedTargetModels.add(normalizedLanguageCode);
+                                            setBusy(false);
+                                        }))
+                .addOnFailureListener(
+                        error ->
+                                runOnUiThread(
+                                        () -> {
+                                            if (requestId != activeDownloadRequestId) {
+                                                return;
+                                            }
 
-                    @Override
-                    public void onFailure(Exception error) {
-                        runOnUiThread(
-                                () -> {
-                                    if (requestId != activeDownloadRequestId) {
-                                        return;
-                                    }
-
-                                    activeDownloadRequestId = 0;
-                                    dismissDownloadProgressDialog();
-                                    setBusy(false);
-                                });
-                    }
-                });
+                                            activeDownloadRequestId = 0;
+                                            dismissDownloadProgressDialog();
+                                            setBusy(false);
+                                        }));
     }
 
     private void showDownloadProgressDialog(String languageCode, int requestId) {
@@ -404,28 +415,58 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void refreshDownloadedModelsAndButtonState() {
-        translator.getDownloadedLanguagePacks(
-                new io.github.godsarmy.mlmarkdown.api.LanguagePacksCallback() {
-                    @Override
-                    public void onSuccess(java.util.List<String> languageCodes) {
-                        runOnUiThread(
-                                () -> {
-                                    downloadedTargetModels.clear();
-                                    downloadedTargetModels.addAll(languageCodes);
-                                    updateDownloadButtonState();
-                                    updateTranslateButtonState();
-                                });
-                    }
+        remoteModelManager
+                .getDownloadedModels(TranslateRemoteModel.class)
+                .addOnSuccessListener(
+                        models ->
+                                runOnUiThread(
+                                        () -> {
+                                            downloadedTargetModels.clear();
+                                            for (TranslateRemoteModel model : models) {
+                                                downloadedTargetModels.add(model.getLanguage());
+                                            }
+                                            updateDownloadButtonState();
+                                            updateTranslateButtonState();
+                                        }))
+                .addOnFailureListener(
+                        error ->
+                                runOnUiThread(
+                                        () -> {
+                                            updateDownloadButtonState();
+                                            updateTranslateButtonState();
+                                        }));
+    }
 
-                    @Override
-                    public void onFailure(Exception error) {
-                        runOnUiThread(
-                                () -> {
-                                    updateDownloadButtonState();
-                                    updateTranslateButtonState();
-                                });
-                    }
-                });
+    private boolean isTargetModelAvailable() {
+        return isBuiltInLanguage(targetLanguage())
+                || downloadedTargetModels.contains(normalizeLanguageCode(targetLanguage()));
+    }
+
+    private static boolean isBuiltInLanguage(String languageCode) {
+        return TranslateLanguage.ENGLISH.equals(normalizeLanguageCode(languageCode));
+    }
+
+    @Nullable
+    private static String normalizeLanguageCode(String languageCode) {
+        if (languageCode == null || languageCode.trim().isEmpty()) {
+            return null;
+        }
+
+        String normalizedInput = languageCode.trim();
+        String translatedLanguage = TranslateLanguage.fromLanguageTag(normalizedInput);
+        if (translatedLanguage != null) {
+            return translatedLanguage;
+        }
+
+        int separatorIndex = normalizedInput.indexOf('-');
+        if (separatorIndex < 0) {
+            separatorIndex = normalizedInput.indexOf('_');
+        }
+        if (separatorIndex > 0) {
+            return TranslateLanguage.fromLanguageTag(normalizedInput.substring(0, separatorIndex));
+        }
+
+        return null;
     }
 
     private void translateMarkdown() {

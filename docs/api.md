@@ -19,10 +19,6 @@ public final class MlKitMarkdownTranslator implements Closeable {
       String targetLanguage,
       TranslationCallback callback);
 
-  public void ensureLanguageModelDownloaded(String targetLanguage, OperationCallback callback);
-  public void getDownloadedLanguagePacks(LanguagePacksCallback callback);
-  public void deleteLanguagePack(String languageCode, OperationCallback callback);
-
   @Override
   public void close();
 }
@@ -30,7 +26,8 @@ public final class MlKitMarkdownTranslator implements Closeable {
 
 ### Usage notes
 
-- Call `ensureLanguageModelDownloaded(...)` before first translation for a target language.
+- Manage ML Kit language models in app code via native ML Kit APIs (`RemoteModelManager`,
+  `TranslateRemoteModel`).
 - `translateMarkdown(...)` does not auto-download missing models; translation fails when the
   required pack is unavailable.
 - Reuse one `MlKitMarkdownTranslator` instance per screen/controller scope.
@@ -114,24 +111,6 @@ public final class TranslationException extends Exception {
 }
 ```
 
-### `OperationCallback`
-
-```java
-public interface OperationCallback {
-  void onSuccess();
-  void onFailure(Exception error);
-}
-```
-
-### `LanguagePacksCallback`
-
-```java
-public interface LanguagePacksCallback {
-  void onSuccess(List<String> languageCodes);
-  void onFailure(Exception error);
-}
-```
-
 ## Timing/metrics API
 
 ### `TranslationTimingListener`
@@ -164,5 +143,4 @@ These are part of implementation packages and may change:
 
 - `MlKitTranslationEngine`
 - `DefaultMarkdownTranslator`
-- `MlKitLanguageModelManager`
 - Markdown pipeline/tokenization classes under `markdown/`

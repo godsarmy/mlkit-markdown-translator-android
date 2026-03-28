@@ -43,34 +43,26 @@ dependencies {
 ```java
 MlKitMarkdownTranslator translator = new MlKitMarkdownTranslator();
 
-translator.ensureLanguageModelDownloaded("es", new OperationCallback() {
+translator.translateMarkdown(markdown, "en", "es", new TranslationCallback() {
     @Override
-    public void onSuccess() {
-        translator.translateMarkdown(markdown, "en", "es", new TranslationCallback() {
-            @Override
-            public void onSuccess(String translatedText) {
-                // update UI / state with translated markdown
-            }
-
-            @Override
-            public void onFailure(Exception error) {
-                // handle translation failure
-            }
-        });
+    public void onSuccess(String translatedText) {
+        // update UI / state with translated markdown
     }
 
     @Override
     public void onFailure(Exception error) {
-        // handle model download failure
+        // handle translation failure
     }
 });
 ```
+
+Model lifecycle (download/list/delete language packs) is managed in app code via native ML Kit
+APIs.
 
 ### Java quickstart (copy/paste)
 
 ```java
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
-import io.github.godsarmy.mlmarkdown.api.OperationCallback;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.api.TranslationErrorCode;
 import io.github.godsarmy.mlmarkdown.api.TranslationException;
@@ -79,31 +71,21 @@ public final class MarkdownTranslationController {
     private final MlKitMarkdownTranslator translator = new MlKitMarkdownTranslator();
 
     public void translate(String markdown) {
-        translator.ensureLanguageModelDownloaded("es", new OperationCallback() {
+        translator.translateMarkdown(markdown, "en", "es", new TranslationCallback() {
             @Override
-            public void onSuccess() {
-                translator.translateMarkdown(markdown, "en", "es", new TranslationCallback() {
-                    @Override
-                    public void onSuccess(String translatedText) {
-                        // update your Java UI layer
-                    }
-
-                    @Override
-                    public void onFailure(Exception error) {
-                        if (error instanceof TranslationException
-                                && ((TranslationException) error).getCode()
-                                        == TranslationErrorCode.MODEL_NOT_DOWNLOADED) {
-                            // prompt user to download model first
-                            return;
-                        }
-                        // show generic translation error state
-                    }
-                });
+            public void onSuccess(String translatedText) {
+                // update your Java UI layer
             }
 
             @Override
             public void onFailure(Exception error) {
-                // show model-download error state
+                if (error instanceof TranslationException
+                        && ((TranslationException) error).getCode()
+                                == TranslationErrorCode.MODEL_NOT_DOWNLOADED) {
+                    // prompt user to download model first
+                    return;
+                }
+                // show generic translation error state
             }
         });
     }
@@ -122,7 +104,7 @@ Lifecycle reminder for Java Activities/Fragments:
 
 Common failure handling recommendations:
 
-- model download failure: show retry action and keep source markdown intact
+- model download failure: handle it in app code where you call ML Kit model APIs
 - model missing at translation time: prompt user to download required language pack first
 - translation failure: preserve original markdown + show error UI state
 - unsupported language code: validate language selection before triggering translation
@@ -135,8 +117,8 @@ Additional Java repository-style example:
 
 - **Activity/Fragment**: owns UI state and triggers user actions.
 - **ViewModel**: coordinates language selection + calls into repository.
-- **Repository**: wraps `MlKitMarkdownTranslator` calls (`ensureLanguageModelDownloaded`,
-  `translateMarkdown`, `getDownloadedLanguagePacks`, `deleteLanguagePack`).
+- **Repository**: wraps `MlKitMarkdownTranslator.translateMarkdown(...)`.
+- **App model manager**: uses native ML Kit APIs to download/list/delete language models.
 
 This keeps app UI logic in app code while central markdown-translation logic stays in the library.
 
@@ -151,9 +133,8 @@ This keeps app UI logic in app code while central markdown-translation logic sta
 
 - **Threading**: callbacks can arrive asynchronously; marshal UI updates to main thread in Java apps.
 - **Model lifecycle**:
-  - call `ensureLanguageModelDownloaded(...)` before first translation for a target language
+  - download/list/delete language packs with native ML Kit model APIs in app code
   - `translateMarkdown(...)` will fail if model is missing (no implicit model download)
-  - use `getDownloadedLanguagePacks(...)` and `deleteLanguagePack(...)` for storage control
 - **Resource lifecycle**: call `translator.close()` from owner teardown (`onDestroy()` or equivalent).
 - **R8/ProGuard**: no custom keep rules are currently required for the public API surface; re-check if
   reflection-based integrations are added later.
