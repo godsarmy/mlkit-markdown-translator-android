@@ -26,159 +26,6 @@ See [`docs/api.md`](docs/api.md) for the current public API surface.
 
 See [`docs/architecture.md`](docs/architecture.md) for the markdown translation architecture and pipeline design.
 
-## Using from Android app
-
-### 1) Gradle setup (local module)
-
-If this repo is included as a local module in your Android project, add:
-
-```gradle
-dependencies {
-    implementation project(":library")
-}
-```
-
-### 2) Basic usage in app layer
-
-```java
-MlKitMarkdownTranslator translator = new MlKitMarkdownTranslator();
-
-translator.translateMarkdown(markdown, "en", "es", new TranslationCallback() {
-    @Override
-    public void onSuccess(String translatedText) {
-        // update UI / state with translated markdown
-    }
-
-    @Override
-    public void onFailure(Exception error) {
-        // handle translation failure
-    }
-});
-```
-
-Model lifecycle (download/list/delete language packs) is managed in app code via native ML Kit
-APIs.
-
-### Java quickstart (copy/paste)
-
-```java
-import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
-import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
-import io.github.godsarmy.mlmarkdown.api.TranslationErrorCode;
-import io.github.godsarmy.mlmarkdown.api.TranslationException;
-
-public final class MarkdownTranslationController {
-    private final MlKitMarkdownTranslator translator = new MlKitMarkdownTranslator();
-
-    public void translate(String markdown) {
-        translator.translateMarkdown(markdown, "en", "es", new TranslationCallback() {
-            @Override
-            public void onSuccess(String translatedText) {
-                // update your Java UI layer
-            }
-
-            @Override
-            public void onFailure(Exception error) {
-                if (error instanceof TranslationException
-                        && ((TranslationException) error).getCode()
-                                == TranslationErrorCode.MODEL_NOT_DOWNLOADED) {
-                    // prompt user to download model first
-                    return;
-                }
-                // show generic translation error state
-            }
-        });
-    }
-
-    public void close() {
-        translator.close();
-    }
-}
-```
-
-Lifecycle reminder for Java Activities/Fragments:
-
-- create one translator instance per screen/controller scope
-- call `close()` from `onDestroy()` (or equivalent owner teardown)
-- avoid creating a new translator per button click
-
-Common failure handling recommendations:
-
-- model download failure: handle it in app code where you call ML Kit model APIs
-- model missing at translation time: prompt user to download required language pack first
-- translation failure: preserve original markdown + show error UI state
-- unsupported language code: validate language selection before triggering translation
-
-Additional Java repository-style example:
-
-- `docs/examples/JavaMarkdownTranslationRepositoryExample.java`
-
-### 3) ViewModel/Repository split (recommended)
-
-- **Activity/Fragment**: owns UI state and triggers user actions.
-- **ViewModel**: coordinates language selection + calls into repository.
-- **Repository**: wraps `MlKitMarkdownTranslator.translateMarkdown(...)`.
-- **App model manager**: uses native ML Kit APIs to download/list/delete language models.
-
-This keeps app UI logic in app code while central markdown-translation logic stays in the library.
-
-### 4) Integration guardrails
-
-- **Android SDK**: current library module targets `minSdk 24`, `compileSdk 34`.
-- **Permissions**: host app should include network permission when model downloads are expected:
-
-  ```xml
-  <uses-permission android:name="android.permission.INTERNET" />
-  ```
-
-- **Threading**: callbacks can arrive asynchronously; marshal UI updates to main thread in Java apps.
-- **Model lifecycle**:
-  - download/list/delete language packs with native ML Kit model APIs in app code
-  - `translateMarkdown(...)` will fail if model is missing (no implicit model download)
-- **Resource lifecycle**: call `translator.close()` from owner teardown (`onDestroy()` or equivalent).
-- **R8/ProGuard**: no custom keep rules are currently required for the public API surface; re-check if
-  reflection-based integrations are added later.
-
-### 5) Specify ML Kit translate version
-
-This library defaults to `com.google.mlkit:translate:17.0.3`, but you can choose a different version.
-
-If integrating this repo as a **local module**, set in your root `gradle.properties`:
-
-```properties
-mlkitTranslateVersion=17.0.4
-```
-
-If integrating via **JitPack/artifact**, override in your app `dependencies`:
-
-```gradle
-dependencies {
-    implementation "com.github.godsarmy:mlkit-markdown-translator-android:v0.2.0"
-    implementation "com.google.mlkit:translate:17.0.4"
-}
-```
-
-### 6) Specify Flexmark version (local module integration)
-
-If you include this repo as a local module and need to align parser versions, set in root
-`gradle.properties`:
-
-```properties
-flexmarkVersion=0.64.8
-```
-
-You can also enforce with constraints:
-
-```gradle
-dependencies {
-    constraints {
-        implementation("com.google.mlkit:translate:17.0.4") {
-            because("Pin ML Kit version used by app")
-        }
-    }
-}
-```
-
 ## Installation
 
 ### Option A: Local module
@@ -218,6 +65,98 @@ dependencies {
     implementation("com.github.godsarmy:mlkit-markdown-translator-android:v0.2.0")
 }
 ```
+
+### Version alignment (optional)
+
+This library defaults to:
+
+- `com.google.mlkit:translate:17.0.3`
+- `com.vladsch.flexmark:flexmark:0.64.8`
+
+If integrating this repo as a **local module**, override in root `gradle.properties`:
+
+```properties
+mlkitTranslateVersion=17.0.4
+flexmarkVersion=0.64.8
+```
+
+If integrating via **JitPack/artifact**, pin ML Kit in app dependencies:
+
+```gradle
+dependencies {
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:v0.2.0"
+    implementation "com.google.mlkit:translate:17.0.4"
+}
+```
+
+## Using from Android app
+
+### 1) Basic translation call
+
+```java
+MlKitMarkdownTranslator translator = new MlKitMarkdownTranslator();
+
+translator.translateMarkdown(markdown, "en", "es", new TranslationCallback() {
+    @Override
+    public void onSuccess(String translatedText) {
+        // update UI / state with translated markdown
+    }
+
+    @Override
+    public void onFailure(Exception error) {
+        // handle translation failure
+    }
+});
+```
+
+### 2) Handle missing-model errors
+
+```java
+import io.github.godsarmy.mlmarkdown.api.TranslationErrorCode;
+import io.github.godsarmy.mlmarkdown.api.TranslationException;
+
+if (error instanceof TranslationException
+        && ((TranslationException) error).getCode() == TranslationErrorCode.MODEL_NOT_DOWNLOADED) {
+    // prompt user to download required language model first
+}
+```
+
+### 3) Manage model lifecycle in app code (native ML Kit)
+
+Use native ML Kit APIs in your app for model download/list/delete:
+
+- `RemoteModelManager`
+- `TranslateRemoteModel`
+- `DownloadConditions`
+
+`translateMarkdown(...)` does not auto-download missing models.
+
+### 4) Recommended app structure
+
+- **Activity/Fragment**: owns UI state and triggers user actions.
+- **ViewModel**: coordinates source/target language + intent handling.
+- **Repository**: wraps `MlKitMarkdownTranslator.translateMarkdown(...)`.
+- **App model manager**: wraps ML Kit model lifecycle APIs.
+
+Example repository-style wrapper:
+
+- `docs/examples/JavaMarkdownTranslationRepositoryExample.java`
+
+### 5) Integration guardrails
+
+- **Android SDK**: library targets `minSdk 24`, `compileSdk 34`.
+- **Permissions**: include internet permission when model downloads are expected:
+
+  ```xml
+  <uses-permission android:name="android.permission.INTERNET" />
+  ```
+
+- **Threading**: callbacks are async; post UI updates to main thread.
+- **Resource lifecycle**:
+  - create one translator instance per screen/controller scope
+  - call `close()` in `onDestroy()` (or equivalent)
+  - avoid creating new translator instances per click
+- **R8/ProGuard**: no custom keep rules required for current public API surface.
 
 ## Limitations (v1)
 
