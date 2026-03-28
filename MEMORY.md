@@ -15,3 +15,4 @@
 - ML Kit translate dependency is now configurable via root `gradle.properties` (`mlkitTranslateVersion`), and README documents app-level override strategies for artifact integrations.
 - Next performance-observability improvement is stage timing via optional listener (prepare/translate/restore/total), keeping API non-breaking and disabled by default.
 - Timing report now includes `totalTokenCount` (AST token count when tokenized document exists; fallback protected-token count when regex token store is used).
+- After cutting a new release tag, keep README dependency snippets/version labels aligned immediately (latest is `v0.1.2`).
