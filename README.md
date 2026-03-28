@@ -18,6 +18,10 @@ Active development with versioned releases via Git tags.
 
 See [`docs/api.md`](docs/api.md) for the current public API surface.
 
+## Architecture
+
+See [`docs/architecture.md`](docs/architecture.md) for the markdown translation architecture and pipeline design.
+
 ## Using from Android app
 
 ### 1) Gradle setup (local module)
