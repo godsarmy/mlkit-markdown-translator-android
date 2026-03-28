@@ -2,6 +2,10 @@
 
 <img src="docs/icon.svg" alt="ML Kit Markdown Translator icon" width="96" />
 
+## Example App Screenshot
+
+![Screenshot of the example app](screenshot-example.jpg)
+
 Reusable Android library for translating Markdown content with Google ML Kit while preserving Markdown structure (code blocks, links, headings, lists, and spacing) as much as possible.
 
 ## Project status
