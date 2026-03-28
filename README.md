@@ -72,6 +72,8 @@ translator.ensureLanguageModelDownloaded("es", new OperationCallback() {
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.OperationCallback;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
+import io.github.godsarmy.mlmarkdown.api.TranslationErrorCode;
+import io.github.godsarmy.mlmarkdown.api.TranslationException;
 
 public final class MarkdownTranslationController {
     private final MlKitMarkdownTranslator translator = new MlKitMarkdownTranslator();
@@ -88,7 +90,13 @@ public final class MarkdownTranslationController {
 
                     @Override
                     public void onFailure(Exception error) {
-                        // show translation error state
+                        if (error instanceof TranslationException
+                                && ((TranslationException) error).getCode()
+                                        == TranslationErrorCode.MODEL_NOT_DOWNLOADED) {
+                            // prompt user to download model first
+                            return;
+                        }
+                        // show generic translation error state
                     }
                 });
             }
@@ -115,6 +123,7 @@ Lifecycle reminder for Java Activities/Fragments:
 Common failure handling recommendations:
 
 - model download failure: show retry action and keep source markdown intact
+- model missing at translation time: prompt user to download required language pack first
 - translation failure: preserve original markdown + show error UI state
 - unsupported language code: validate language selection before triggering translation
 
@@ -143,6 +152,7 @@ This keeps app UI logic in app code while central markdown-translation logic sta
 - **Threading**: callbacks can arrive asynchronously; marshal UI updates to main thread in Java apps.
 - **Model lifecycle**:
   - call `ensureLanguageModelDownloaded(...)` before first translation for a target language
+  - `translateMarkdown(...)` will fail if model is missing (no implicit model download)
   - use `getDownloadedLanguagePacks(...)` and `deleteLanguagePack(...)` for storage control
 - **Resource lifecycle**: call `translator.close()` from owner teardown (`onDestroy()` or equivalent).
 - **R8/ProGuard**: no custom keep rules are currently required for the public API surface; re-check if

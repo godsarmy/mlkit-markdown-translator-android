@@ -5,10 +5,12 @@ import com.google.mlkit.nl.translate.TranslateLanguage;
 import com.google.mlkit.nl.translate.Translation;
 import com.google.mlkit.nl.translate.Translator;
 import com.google.mlkit.nl.translate.TranslatorOptions;
-import io.github.godsarmy.mlmarkdown.api.OperationCallback;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
+import io.github.godsarmy.mlmarkdown.api.TranslationErrorCode;
+import io.github.godsarmy.mlmarkdown.api.TranslationException;
 import java.io.Closeable;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class MlKitTranslationEngine implements TranslationEngine, Closeable {
@@ -47,16 +49,17 @@ public class MlKitTranslationEngine implements TranslationEngine, Closeable {
         }
 
         TranslatorClient translator = getOrCreateTranslator(normalizedSource, normalizedTarget);
-        translator.downloadModelIfNeeded(
-                new OperationCallback() {
+        translator.translate(
+                text,
+                new TranslationCallback() {
                     @Override
-                    public void onSuccess() {
-                        translator.translate(text, callback);
+                    public void onSuccess(String translatedText) {
+                        callback.onSuccess(translatedText);
                     }
 
                     @Override
                     public void onFailure(Exception error) {
-                        callback.onFailure(error);
+                        callback.onFailure(mapTranslationError(error));
                     }
                 });
     }
@@ -104,13 +107,33 @@ public class MlKitTranslationEngine implements TranslationEngine, Closeable {
         return null;
     }
 
+    private static Exception mapTranslationError(Exception error) {
+        if (isModelNotDownloadedError(error)) {
+            return new TranslationException(
+                    TranslationErrorCode.MODEL_NOT_DOWNLOADED,
+                    "Required language model is not downloaded",
+                    error);
+        }
+        return error;
+    }
+
+    private static boolean isModelNotDownloadedError(Exception error) {
+        String message = error.getMessage();
+        if (message == null) {
+            return false;
+        }
+        String normalizedMessage = message.toLowerCase(Locale.ROOT);
+        return normalizedMessage.contains("model")
+                && (normalizedMessage.contains("not downloaded")
+                        || normalizedMessage.contains("download the model")
+                        || normalizedMessage.contains("model unavailable"));
+    }
+
     interface TranslatorClientFactory {
         TranslatorClient create(String sourceLanguage, String targetLanguage);
     }
 
     interface TranslatorClient extends Closeable {
-        void downloadModelIfNeeded(OperationCallback callback);
-
         void translate(String text, TranslationCallback callback);
 
         @Override
@@ -134,14 +157,6 @@ public class MlKitTranslationEngine implements TranslationEngine, Closeable {
 
         private MlKitTranslatorClient(Translator translator) {
             this.translator = translator;
-        }
-
-        @Override
-        public void downloadModelIfNeeded(OperationCallback callback) {
-            translator
-                    .downloadModelIfNeeded()
-                    .addOnSuccessListener(unused -> callback.onSuccess())
-                    .addOnFailureListener(error -> callback.onFailure(asException(error)));
         }
 
         @Override

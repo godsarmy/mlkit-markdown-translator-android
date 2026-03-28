@@ -31,6 +31,8 @@ public final class MlKitMarkdownTranslator implements Closeable {
 ### Usage notes
 
 - Call `ensureLanguageModelDownloaded(...)` before first translation for a target language.
+- `translateMarkdown(...)` does not auto-download missing models; translation fails when the
+  required pack is unavailable.
 - Reuse one `MlKitMarkdownTranslator` instance per screen/controller scope.
 - Call `close()` when owner is destroyed.
 
@@ -86,6 +88,29 @@ public final class MarkdownTranslationOptions {
 public interface TranslationCallback {
   void onSuccess(String translatedText);
   void onFailure(Exception error);
+}
+```
+
+Failure note:
+
+- Translation failures may return `TranslationException`.
+- Use `TranslationException#getCode()` to branch on stable error categories like
+  `TranslationErrorCode.MODEL_NOT_DOWNLOADED`.
+
+### `TranslationErrorCode`
+
+```java
+public enum TranslationErrorCode {
+  MODEL_NOT_DOWNLOADED,
+  UNKNOWN
+}
+```
+
+### `TranslationException`
+
+```java
+public final class TranslationException extends Exception {
+  public TranslationErrorCode getCode();
 }
 ```
 
