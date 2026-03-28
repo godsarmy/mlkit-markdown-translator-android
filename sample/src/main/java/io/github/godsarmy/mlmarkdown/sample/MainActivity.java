@@ -19,17 +19,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
+import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
 import io.noties.markwon.Markwon;
 import io.noties.markwon.ext.tables.TablePlugin;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public final class MainActivity extends AppCompatActivity {
-    private static final Pattern NON_WHITESPACE_PATTERN = Pattern.compile("\\S+");
-
     private MlKitMarkdownTranslator translator;
     private Markwon markwon;
 
@@ -55,6 +52,7 @@ public final class MainActivity extends AppCompatActivity {
     private int activeDownloadRequestId;
     private AlertDialog downloadProgressDialog;
     private String latestTranslationError;
+    @Nullable private TranslationTimingReport latestTimingReport;
     private final Set<String> downloadedTargetModels = new HashSet<>();
 
     @Override
@@ -62,7 +60,7 @@ public final class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        translator = new MlKitMarkdownTranslator();
+        translator = createTranslator();
         markwon = Markwon.builder(this).usePlugin(TablePlugin.create(this)).build();
 
         bindViews();
@@ -403,12 +401,16 @@ public final class MainActivity extends AppCompatActivity {
 
     private void recreateTranslator() {
         translator.close();
-        translator =
-                new MlKitMarkdownTranslator(
-                        new MarkdownTranslationOptions.Builder()
-                                .setEnableRegexFallbackProtection(isFallbackModeEnabled)
-                                .build());
+        translator = createTranslator();
         refreshDownloadedModelsAndButtonState();
+    }
+
+    private MlKitMarkdownTranslator createTranslator() {
+        return new MlKitMarkdownTranslator(
+                new MarkdownTranslationOptions.Builder()
+                        .setEnableRegexFallbackProtection(isFallbackModeEnabled)
+                        .setTranslationTimingListener(report -> latestTimingReport = report)
+                        .build());
     }
 
     private void refreshDownloadedModelsAndButtonState() {
@@ -438,10 +440,9 @@ public final class MainActivity extends AppCompatActivity {
 
     private void translateMarkdown() {
         String markdown = originalMarkdownInput.getText().toString();
-        int tokenSize = countApproxTokenSize(markdown);
-        long startedAtNanos = System.nanoTime();
 
         isTranslating = true;
+        latestTimingReport = null;
         setBusy(true);
         clearTranslationError();
         clearTranslationResult();
@@ -461,13 +462,20 @@ public final class MainActivity extends AppCompatActivity {
                                                 translatedMarkdownRendered, translatedText);
                                     }
 
-                                    long elapsedMs =
-                                            (System.nanoTime() - startedAtNanos) / 1_000_000L;
-                                    translationResultText.setText(
-                                            getString(
-                                                    R.string.translation_result_success,
-                                                    elapsedMs,
-                                                    tokenSize));
+                                    TranslationTimingReport report = latestTimingReport;
+                                    if (report != null) {
+                                        translationResultText.setText(
+                                                getString(
+                                                        R.string.translation_result_success,
+                                                        report.getTotalDurationMs(),
+                                                        report.getTotalTokenCount(),
+                                                        report.getTotalChunkCount()));
+                                    } else {
+                                        translationResultText.setText(
+                                                getString(
+                                                        R.string
+                                                                .translation_result_success_fallback));
+                                    }
                                     translationResultText.setVisibility(View.VISIBLE);
 
                                     clearTranslationError();
@@ -522,15 +530,6 @@ public final class MainActivity extends AppCompatActivity {
                 .setCancelable(true)
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
                 .show();
-    }
-
-    private static int countApproxTokenSize(String text) {
-        Matcher matcher = NON_WHITESPACE_PATTERN.matcher(text);
-        int count = 0;
-        while (matcher.find()) {
-            count++;
-        }
-        return count;
     }
 
     @Override
