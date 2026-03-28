@@ -18,6 +18,26 @@ Active development with versioned releases via Git tags.
 - `sample/` — Android sample app for manual verification
 - `docs/` — design notes and API documentation
 
+## Build the Example App
+
+From repo root:
+
+```bash
+./gradlew :sample:assembleDebug
+```
+
+Generated APK:
+
+```text
+sample/build/outputs/apk/debug/sample-debug.apk
+```
+
+Optional install to a connected device:
+
+```bash
+adb install -r sample/build/outputs/apk/debug/sample-debug.apk
+```
+
 ## API reference
 
 See [`docs/api.md`](docs/api.md) for the current public API surface.
