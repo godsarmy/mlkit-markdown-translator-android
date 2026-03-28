@@ -6,7 +6,7 @@ Reusable Android library for translating Markdown content with Google ML Kit whi
 
 ## Project status
 
-This repository is being built incrementally from the TODO roadmap in `ML-markdown-lib.TODO.md`.
+Active development with versioned releases via Git tags.
 
 ## Planned modules
 
@@ -14,9 +14,9 @@ This repository is being built incrementally from the TODO roadmap in `ML-markdo
 - `sample/` — Android sample app for manual verification
 - `docs/` — design notes and API documentation
 
-## API draft
+## API reference
 
-See `docs/api.md` for the initial public API definition.
+See [`docs/api.md`](docs/api.md) for the current public API surface.
 
 ## Using from Android app
 
