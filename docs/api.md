@@ -67,6 +67,17 @@ public final class MarkdownTranslationOptions {
 }
 ```
 
+#### Option behavior notes
+
+- `normalizeCustomBlockTags`
+  - `true` (default): `<block>...</block>` is normalized to fenced code blocks before preparation.
+  - `false`: custom block tags are left unchanged.
+- `protectAutolinks`
+  - controls whether autolinks are treated as protected spans in AST tokenization.
+- `enableRegexFallbackProtection`
+  - `true` (default): regex protection/restoration pipeline runs in fallback mode.
+  - `false`: fallback mode skips regex token protection and passes normalized text directly.
+
 ## Callback contracts
 
 ### `TranslationCallback`

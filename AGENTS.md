@@ -6,14 +6,14 @@ Guidance for coding agents working in this repository.
 
 Build a reusable Android Java library that translates Markdown with Google ML Kit while preserving Markdown structure.
 
-Primary roadmap source: `ML-markdown-lib.TODO.md`
+Primary roadmap source: current docs under `docs/` (API, architecture, performance).
 
 ## Repository layout
 
 - `library/` — core Android library module (main deliverable)
 - `sample/` — Android app used for manual verification
-- `docs/api.md` — public API draft
-- `docs/translation-strategy.md` — AST/token translation strategy
+- `docs/api.md` — public API reference
+- `docs/architecture.md` — AST/token translation architecture
 
 ## Build, test, format
 
