@@ -158,7 +158,7 @@ If integrating via **JitPack/artifact**, override in your app `dependencies`:
 
 ```gradle
 dependencies {
-    implementation "com.github.godsarmy:mlkit-markdown-translator-android:v0.1.5"
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:v0.2.0"
     implementation "com.google.mlkit:translate:17.0.4"
 }
 ```
@@ -196,7 +196,7 @@ dependencies {
 }
 ```
 
-### Option B: JitPack (`v0.1.5`)
+### Option B: JitPack (`v0.2.0`)
 
 ```gradle
 repositories {
@@ -206,7 +206,7 @@ repositories {
 }
 
 dependencies {
-    implementation "com.github.godsarmy:mlkit-markdown-translator-android:v0.1.5"
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:v0.2.0"
 }
 ```
 
@@ -220,7 +220,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.godsarmy:mlkit-markdown-translator-android:v0.1.5")
+    implementation("com.github.godsarmy:mlkit-markdown-translator-android:v0.2.0")
 }
 ```
 
