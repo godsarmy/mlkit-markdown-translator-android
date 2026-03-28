@@ -10,8 +10,6 @@
 	<string name="download_model">Download model</string>
 	<string name="delete_model">Delete model</string>
 	<string name="model_downloaded">Model downloaded</string>
-	<string name="model_downloaded_dialog_title">Model downloaded</string>
-	<string name="model_downloaded_dialog_message">Language model for %1$s is ready.</string>
 	<string name="delete_model_dialog_title">Delete downloaded model?</string>
 	<string name="delete_model_dialog_message">Remove downloaded model for %1$s from device?</string>
 	<string name="model_download_progress_title">Downloading model</string>

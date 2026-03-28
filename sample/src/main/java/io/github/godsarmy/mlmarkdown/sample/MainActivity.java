@@ -337,7 +337,6 @@ public final class MainActivity extends AppCompatActivity {
                                     activeDownloadRequestId = 0;
                                     dismissDownloadProgressDialog();
                                     downloadedTargetModels.add(languageCode);
-                                    showModelDownloadedDialog(languageCode);
                                     setBusy(false);
                                 });
                     }
@@ -388,15 +387,6 @@ public final class MainActivity extends AppCompatActivity {
             downloadProgressDialog.dismiss();
         }
         downloadProgressDialog = null;
-    }
-
-    private void showModelDownloadedDialog(String languageCode) {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.model_downloaded_dialog_title)
-                .setMessage(getString(R.string.model_downloaded_dialog_message, languageCode))
-                .setCancelable(true)
-                .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
-                .show();
     }
 
     private void recreateTranslator() {
