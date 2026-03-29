@@ -28,9 +28,22 @@
 	<string name="translation_error_dialog_title">Translation failed</string>
 	<string name="translation_result_success">%1$d chars in %2$d ms • tokens: %3$d • chunks: %4$d</string>
 	<string name="translation_result_failure">Translation failed: %1$s</string>
+	<string name="explain_markdown">Explain</string>
+	<string name="explain_screen_title">Explain markdown result</string>
+	<string name="explain_loading">Preparing explain result...</string>
+	<string name="explain_mode_label">Processing mode</string>
+	<string name="explain_counts_label">Counts</string>
+	<string name="explain_counts_value">tokens: %1$d • chunks: %2$d • protected: %3$d</string>
+	<string name="explain_prepared_markdown_label">Prepared markdown</string>
+	<string name="explain_chunks_label">Chunks</string>
+	<string name="explain_tokens_label">Tokens</string>
+	<string name="explain_protected_segments_label">Protected segments</string>
+	<string name="explain_none">(none)</string>
+	<string name="explain_error_missing_markdown">No markdown provided.</string>
+	<string name="explain_error_template">Explain failed: %1$s</string>
 	<string name="original_markdown_label">Original text</string>
 	<string name="translated_markdown_label">Translated text</string>
-	<string name="render_mode_switch">Render markdown (Markwon)</string>
+	<string name="render_mode_switch">Render markdown</string>
 	<string name="fallback_mode_switch">Enable fallback mode</string>
 	<string name="default_markdown"># Hello Markdown
 

@@ -50,6 +50,7 @@ public final class MainActivity extends AppCompatActivity {
     private TextView translationResultText;
     private Button downloadModelButton;
     private Button translateButton;
+    private Button explainButton;
 
     private boolean isBusy;
     private boolean isTranslating;
@@ -89,6 +90,7 @@ public final class MainActivity extends AppCompatActivity {
         translationResultText = findViewById(R.id.translationResultText);
         downloadModelButton = findViewById(R.id.downloadModelButton);
         translateButton = findViewById(R.id.translateButton);
+        explainButton = findViewById(R.id.explainButton);
 
         originalMarkdownRendered.setMovementMethod(new ScrollingMovementMethod());
         translatedMarkdownRendered.setMovementMethod(new ScrollingMovementMethod());
@@ -129,6 +131,7 @@ public final class MainActivity extends AppCompatActivity {
     private void setupActions() {
         downloadModelButton.setOnClickListener(v -> onModelButtonClicked());
         translateButton.setOnClickListener(v -> translateMarkdown());
+        explainButton.setOnClickListener(v -> openExplainScreen());
 
         markdownSampleSpinner.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
@@ -184,12 +187,14 @@ public final class MainActivity extends AppCompatActivity {
                         if (isRenderMode) {
                             markwon.setMarkdown(originalMarkdownRendered, s.toString());
                         }
+                        updateExplainButtonState();
                     }
                 });
 
         refreshDownloadedModelsAndButtonState();
         loadSelectedMarkdownSample(markdownSampleSpinner.getSelectedItemPosition());
         applyRenderMode();
+        updateExplainButtonState();
     }
 
     private void loadSelectedMarkdownSample(int position) {
@@ -249,6 +254,7 @@ public final class MainActivity extends AppCompatActivity {
         isBusy = busy;
         updateDownloadButtonState();
         updateTranslateButtonState();
+        updateExplainButtonState();
         updateTranslationProgressState();
     }
 
@@ -265,6 +271,19 @@ public final class MainActivity extends AppCompatActivity {
 
     private void updateTranslateButtonState() {
         translateButton.setEnabled(!isBusy && isTargetModelAvailable());
+    }
+
+    private void updateExplainButtonState() {
+        String markdown = originalMarkdownInput.getText().toString();
+        explainButton.setEnabled(!isBusy && !markdown.trim().isEmpty());
+    }
+
+    private void openExplainScreen() {
+        String markdown = originalMarkdownInput.getText().toString();
+        if (markdown.trim().isEmpty()) {
+            return;
+        }
+        startActivity(ExplainMarkdownActivity.createIntent(this, markdown, isFallbackModeEnabled));
     }
 
     private String sourceLanguage() {
