@@ -103,6 +103,7 @@ public final class MarkdownTranslationOptions {
   public boolean protectAutolinks();
   public boolean enableRegexFallbackProtection();
   public boolean preserveWhitespaceAroundProtectedSegments();
+  public String tokenMarker();
   public @Nullable TranslationTimingListener translationTimingListener();
 
   public static final class Builder {
@@ -113,6 +114,7 @@ public final class MarkdownTranslationOptions {
     public Builder setProtectAutolinks(boolean value);
     public Builder setEnableRegexFallbackProtection(boolean value);
     public Builder setPreserveWhitespaceAroundProtectedSegments(boolean value);
+    public Builder setTokenMarker(String marker);
     public Builder setTranslationTimingListener(@Nullable TranslationTimingListener listener);
     public MarkdownTranslationOptions build();
   }
@@ -129,6 +131,10 @@ public final class MarkdownTranslationOptions {
 - `enableRegexFallbackProtection`
   - `true` (default): regex protection/restoration pipeline runs in fallback mode.
   - `false`: fallback mode skips regex token protection and passes normalized text directly.
+- `tokenMarker`
+  - marker fence used for AST chunk token boundaries.
+  - default: `@@` (markers look like `@@MLMD_TOKEN_<id>@@`).
+  - builder rejects empty string.
 
 ## Callback contracts
 

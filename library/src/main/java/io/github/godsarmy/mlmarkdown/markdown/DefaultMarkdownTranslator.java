@@ -38,7 +38,9 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
         this.preparationService = new HybridMarkdownPreparationService(options);
         this.structureTranslator =
                 new MarkdownStructureTranslator(
-                        translationEngine, options.preserveWhitespaceAroundProtectedSegments());
+                        translationEngine,
+                        options.preserveWhitespaceAroundProtectedSegments(),
+                        options.tokenMarker());
         this.restorer = new MarkdownRestorer();
         this.nanoTimeProvider = nanoTimeProvider;
         this.translationTimingListener = options.translationTimingListener();

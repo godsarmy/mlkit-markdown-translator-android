@@ -1,5 +1,6 @@
 package io.github.godsarmy.mlmarkdown.markdown;
 
+import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
@@ -11,15 +12,19 @@ import java.util.Map;
 
 public class MarkdownStructureTranslator {
     private static final int DEFAULT_MAX_CHUNK_LENGTH = 400;
-    private static final String TOKEN_MARKER_PREFIX = "@@MLMD_TOKEN_";
-    private static final String TOKEN_MARKER_SUFFIX = "@@";
+    private static final String TOKEN_MARKER_PREFIX = "MLMD_TOKEN_";
 
     private final TranslationEngine translationEngine;
     private final int maxChunkLength;
     private final boolean preserveWhitespaceAroundProtectedSegments;
+    private final String tokenMarker;
 
     public MarkdownStructureTranslator(TranslationEngine translationEngine) {
-        this(translationEngine, DEFAULT_MAX_CHUNK_LENGTH, true);
+        this(
+                translationEngine,
+                DEFAULT_MAX_CHUNK_LENGTH,
+                true,
+                MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER);
     }
 
     MarkdownStructureTranslator(
@@ -27,21 +32,49 @@ public class MarkdownStructureTranslator {
             boolean preserveWhitespaceAroundProtectedSegments) {
         this(
                 translationEngine,
+                preserveWhitespaceAroundProtectedSegments,
+                MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER);
+    }
+
+    MarkdownStructureTranslator(
+            TranslationEngine translationEngine,
+            boolean preserveWhitespaceAroundProtectedSegments,
+            String tokenMarker) {
+        this(
+                translationEngine,
                 DEFAULT_MAX_CHUNK_LENGTH,
-                preserveWhitespaceAroundProtectedSegments);
+                preserveWhitespaceAroundProtectedSegments,
+                tokenMarker);
     }
 
     MarkdownStructureTranslator(TranslationEngine translationEngine, int maxChunkLength) {
-        this(translationEngine, maxChunkLength, true);
+        this(
+                translationEngine,
+                maxChunkLength,
+                true,
+                MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER);
     }
 
     MarkdownStructureTranslator(
             TranslationEngine translationEngine,
             int maxChunkLength,
             boolean preserveWhitespaceAroundProtectedSegments) {
+        this(
+                translationEngine,
+                maxChunkLength,
+                preserveWhitespaceAroundProtectedSegments,
+                MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER);
+    }
+
+    MarkdownStructureTranslator(
+            TranslationEngine translationEngine,
+            int maxChunkLength,
+            boolean preserveWhitespaceAroundProtectedSegments,
+            String tokenMarker) {
         this.translationEngine = translationEngine;
         this.maxChunkLength = maxChunkLength;
         this.preserveWhitespaceAroundProtectedSegments = preserveWhitespaceAroundProtectedSegments;
+        this.tokenMarker = tokenMarker;
     }
 
     public void translate(
@@ -255,8 +288,8 @@ public class MarkdownStructureTranslator {
         return translations;
     }
 
-    private static String markerFor(String tokenId) {
-        return TOKEN_MARKER_PREFIX + tokenId + TOKEN_MARKER_SUFFIX;
+    private String markerFor(String tokenId) {
+        return tokenMarker + TOKEN_MARKER_PREFIX + tokenId + tokenMarker;
     }
 
     private String maybePreserveEdgeWhitespace(String sourceValue, String translatedValue) {
@@ -327,7 +360,7 @@ public class MarkdownStructureTranslator {
         }
     }
 
-    private static final class TranslationChunkBuilder {
+    private final class TranslationChunkBuilder {
         private final List<String> tokenIds = new ArrayList<>();
         private final List<String> tokenValues = new ArrayList<>();
         private final StringBuilder text = new StringBuilder();

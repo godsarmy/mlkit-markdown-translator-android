@@ -2,8 +2,11 @@ package io.github.godsarmy.mlmarkdown;
 
 import androidx.annotation.Nullable;
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
+import java.util.Objects;
 
 public final class MarkdownTranslationOptions {
+    public static final String DEFAULT_TOKEN_MARKER = "@@";
+
     private final boolean preserveNewlines;
     private final boolean preserveListPrefixes;
     private final boolean preserveBlockquotes;
@@ -11,6 +14,7 @@ public final class MarkdownTranslationOptions {
     private final boolean protectAutolinks;
     private final boolean enableRegexFallbackProtection;
     private final boolean preserveWhitespaceAroundProtectedSegments;
+    private final String tokenMarker;
     @Nullable private final TranslationTimingListener translationTimingListener;
 
     private MarkdownTranslationOptions(Builder builder) {
@@ -22,6 +26,7 @@ public final class MarkdownTranslationOptions {
         this.enableRegexFallbackProtection = builder.enableRegexFallbackProtection;
         this.preserveWhitespaceAroundProtectedSegments =
                 builder.preserveWhitespaceAroundProtectedSegments;
+        this.tokenMarker = builder.tokenMarker;
         this.translationTimingListener = builder.translationTimingListener;
     }
 
@@ -57,6 +62,10 @@ public final class MarkdownTranslationOptions {
         return preserveWhitespaceAroundProtectedSegments;
     }
 
+    public String tokenMarker() {
+        return tokenMarker;
+    }
+
     @Nullable
     public TranslationTimingListener translationTimingListener() {
         return translationTimingListener;
@@ -70,6 +79,7 @@ public final class MarkdownTranslationOptions {
         private boolean protectAutolinks = true;
         private boolean enableRegexFallbackProtection = true;
         private boolean preserveWhitespaceAroundProtectedSegments = true;
+        private String tokenMarker = DEFAULT_TOKEN_MARKER;
         @Nullable private TranslationTimingListener translationTimingListener;
 
         public Builder setPreserveNewlines(boolean preserveNewlines) {
@@ -106,6 +116,15 @@ public final class MarkdownTranslationOptions {
                 boolean preserveWhitespaceAroundProtectedSegments) {
             this.preserveWhitespaceAroundProtectedSegments =
                     preserveWhitespaceAroundProtectedSegments;
+            return this;
+        }
+
+        public Builder setTokenMarker(String tokenMarker) {
+            String value = Objects.requireNonNull(tokenMarker, "tokenMarker == null");
+            if (value.isEmpty()) {
+                throw new IllegalArgumentException("tokenMarker must not be empty");
+            }
+            this.tokenMarker = value;
             return this;
         }
 

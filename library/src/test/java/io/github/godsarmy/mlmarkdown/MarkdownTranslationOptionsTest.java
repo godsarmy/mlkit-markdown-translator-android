@@ -1,9 +1,11 @@
 package io.github.godsarmy.mlmarkdown;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
@@ -21,6 +23,7 @@ public class MarkdownTranslationOptionsTest {
         assertTrue(options.protectAutolinks());
         assertTrue(options.enableRegexFallbackProtection());
         assertTrue(options.preserveWhitespaceAroundProtectedSegments());
+        assertEquals(MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER, options.tokenMarker());
         assertNull(options.translationTimingListener());
     }
 
@@ -35,6 +38,7 @@ public class MarkdownTranslationOptionsTest {
                         .setProtectAutolinks(false)
                         .setEnableRegexFallbackProtection(false)
                         .setPreserveWhitespaceAroundProtectedSegments(false)
+                        .setTokenMarker("##")
                         .build();
 
         assertFalse(options.preserveNewlines());
@@ -44,7 +48,18 @@ public class MarkdownTranslationOptionsTest {
         assertFalse(options.protectAutolinks());
         assertFalse(options.enableRegexFallbackProtection());
         assertFalse(options.preserveWhitespaceAroundProtectedSegments());
+        assertEquals("##", options.tokenMarker());
         assertNull(options.translationTimingListener());
+    }
+
+    @Test
+    public void builder_rejectsEmptyTokenMarker() {
+        try {
+            new MarkdownTranslationOptions.Builder().setTokenMarker("");
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("tokenMarker must not be empty", expected.getMessage());
+        }
     }
 
     @Test

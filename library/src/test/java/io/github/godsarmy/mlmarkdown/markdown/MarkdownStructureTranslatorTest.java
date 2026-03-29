@@ -59,6 +59,24 @@ public class MarkdownStructureTranslatorTest {
     }
 
     @Test
+    public void chunkTranslatableTokens_usesConfiguredTokenMarker() {
+        MarkdownStructureTranslator translator =
+                new MarkdownStructureTranslator(new EchoTranslationEngine(), 200, true, "##");
+        TokenizedMarkdownDocument document =
+                new TokenizedMarkdownDocument(
+                        "first",
+                        List.of(
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T1", "first", 0, 5)));
+
+        List<MarkdownStructureTranslator.TranslationChunk> chunks =
+                translator.chunkTranslatableTokens(document);
+
+        assertEquals(1, chunks.size());
+        assertEquals("##MLMD_TOKEN_T1##first", chunks.get(0).getText());
+    }
+
+    @Test
     public void translate_returnsOriginalWhenNoTranslatableTokens() {
         RecordingTranslationEngine engine = new RecordingTranslationEngine();
         MarkdownStructureTranslator translator = new MarkdownStructureTranslator(engine, 100);
