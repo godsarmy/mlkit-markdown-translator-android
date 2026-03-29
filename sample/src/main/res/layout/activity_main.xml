@@ -109,7 +109,7 @@
 
 		<LinearLayout android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="12dp"
-			android:orientation="horizontal">
+			android:gravity="bottom" android:orientation="horizontal">
 
 			<LinearLayout android:layout_width="0dp"
 				android:layout_height="wrap_content" android:layout_weight="1"
@@ -142,6 +142,18 @@
 					android:layout_height="wrap_content"
 					android:entries="@array/language_codes" />
 			</LinearLayout>
+
+			<Space android:layout_width="10dp" android:layout_height="1dp" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/downloadModelButton" android:layout_width="52dp"
+				android:layout_height="52dp" android:elevation="0dp"
+				android:stateListAnimator="@null"
+				android:contentDescription="@string/download_model_icon_content_description"
+				app:backgroundTint="@color/mlkit_bg_elevated"
+				app:cornerRadius="14dp" app:icon="@drawable/ic_model_download"
+				app:iconPadding="0dp" app:iconTint="@color/mlkit_on_background"
+				app:strokeColor="@color/mlkit_outline" app:strokeWidth="1dp" />
 		</LinearLayout>
 
 		<LinearLayout android:layout_width="match_parent"
@@ -150,20 +162,9 @@
 			android:orientation="horizontal">
 
 			<com.google.android.material.button.MaterialButton
-				android:id="@+id/downloadModelButton" android:layout_width="0dp"
+				android:id="@+id/explainButton" android:layout_width="0dp"
 				android:layout_height="52dp" android:layout_weight="1"
-				android:elevation="0dp" android:stateListAnimator="@null"
-				android:text="@string/download_model" android:textAllCaps="false"
-				android:textColor="@color/mlkit_on_background"
-				app:backgroundTint="@color/mlkit_bg_elevated"
-				app:cornerRadius="14dp" app:strokeColor="@color/mlkit_outline"
-				app:strokeWidth="1dp" />
-
-			<Space android:layout_width="12dp" android:layout_height="1dp" />
-
-			<com.google.android.material.button.MaterialButton
-				android:id="@+id/explainButton" android:layout_width="wrap_content"
-				android:layout_height="52dp" android:insetLeft="0dp"
+				android:insetLeft="0dp"
 				android:insetRight="0dp" android:minWidth="0dp"
 				android:elevation="0dp" android:stateListAnimator="@null"
 				android:paddingStart="14dp" android:paddingEnd="14dp"

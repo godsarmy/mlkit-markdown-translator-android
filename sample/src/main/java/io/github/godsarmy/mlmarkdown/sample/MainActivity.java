@@ -16,6 +16,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.mlkit.common.model.DownloadConditions;
 import com.google.mlkit.common.model.RemoteModelManager;
@@ -48,7 +49,7 @@ public final class MainActivity extends AppCompatActivity {
     private ImageButton translationErrorButton;
     private View translationProgressContainer;
     private TextView translationResultText;
-    private Button downloadModelButton;
+    private MaterialButton downloadModelButton;
     private Button translateButton;
     private Button explainButton;
 
@@ -266,7 +267,13 @@ public final class MainActivity extends AppCompatActivity {
         boolean downloaded = isTargetModelAvailable();
         boolean builtIn = isBuiltInLanguage(targetLanguage());
         downloadModelButton.setEnabled(!isBusy && !builtIn);
-        downloadModelButton.setText(downloaded ? R.string.delete_model : R.string.download_model);
+        downloadModelButton.setIconResource(
+                downloaded ? R.drawable.ic_model_delete : R.drawable.ic_model_download);
+        downloadModelButton.setContentDescription(
+                getString(
+                        downloaded
+                                ? R.string.delete_model_icon_content_description
+                                : R.string.download_model_icon_content_description));
     }
 
     private void updateTranslateButtonState() {

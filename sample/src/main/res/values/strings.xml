@@ -9,6 +9,8 @@
 	<string name="target_language_label">Target language</string>
 	<string name="download_model">Download model</string>
 	<string name="delete_model">Delete model</string>
+	<string name="download_model_icon_content_description">Download model</string>
+	<string name="delete_model_icon_content_description">Delete model</string>
 	<string name="model_downloaded">Model downloaded</string>
 	<string name="delete_model_dialog_title">Delete downloaded model?</string>
 	<string name="delete_model_dialog_message">Remove downloaded model for %1$s from device?</string>
