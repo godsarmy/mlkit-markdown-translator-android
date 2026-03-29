@@ -2,11 +2,13 @@ package io.github.godsarmy.mlmarkdown.markdown;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
+import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownResult;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
@@ -183,6 +185,35 @@ public class DefaultMarkdownTranslatorTest {
         assertEquals(1, timingListener.lastReport.getTotalChunkCount());
         assertNotNull(timingListener.lastReport.getError());
         assertEquals("boom", timingListener.lastReport.getError().getMessage());
+    }
+
+    @Test
+    public void explainMarkdown_returnsChunkDiagnosticsWithoutCallingTranslationEngine() {
+        RecordingTranslationEngine engine = new RecordingTranslationEngine();
+        DefaultMarkdownTranslator translator = new DefaultMarkdownTranslator(engine);
+
+        ExplainMarkdownResult result =
+                translator.explainMarkdown(
+                        "# Title\n\nParagraph with [label](https://example.com) and `code`.\n");
+
+        assertEquals(ProcessingMode.AST_TOKEN_STREAM, result.getProcessingMode());
+        assertNotEquals(0, result.getTotalTokenCount());
+        assertNotEquals(0, result.getTotalChunkCount());
+        assertTrue(result.getChunks().get(0).getRawText().contains("@@MLMD_TOKEN_"));
+        assertEquals(0, engine.inputs.size());
+    }
+
+    @Test
+    public void explainMarkdown_includesTokenMetadataFromAstModel() {
+        DefaultMarkdownTranslator translator =
+                new DefaultMarkdownTranslator(new RecordingTranslationEngine());
+
+        ExplainMarkdownResult result = translator.explainMarkdown("# Hello");
+
+        assertEquals(ProcessingMode.AST_TOKEN_STREAM, result.getProcessingMode());
+        assertNotEquals(0, result.getTokens().size());
+        assertEquals(0, result.getProtectedSegments().size());
+        assertEquals("# Hello", result.getPreparedMarkdown());
     }
 
     private static class RecordingTranslationEngine implements TranslationEngine {

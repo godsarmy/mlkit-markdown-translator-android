@@ -1,5 +1,6 @@
 package io.github.godsarmy.mlmarkdown;
 
+import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownResult;
 import io.github.godsarmy.mlmarkdown.api.MarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.engine.MlKitTranslationEngine;
@@ -34,6 +35,10 @@ public final class MlKitMarkdownTranslator implements Closeable {
             String targetLanguage,
             TranslationCallback callback) {
         markdownTranslator.translateMarkdown(markdown, sourceLanguage, targetLanguage, callback);
+    }
+
+    public ExplainMarkdownResult explainMarkdown(String markdown) {
+        return markdownTranslator.explainMarkdown(markdown);
     }
 
     @Override

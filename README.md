@@ -129,6 +129,28 @@ translator.translateMarkdown(markdown, "en", "es", new TranslationCallback() {
 });
 ```
 
+### 1.1) Explain markdown structure/chunks
+
+```java
+import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownChunk;
+import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownResult;
+
+MlKitMarkdownTranslator translator = new MlKitMarkdownTranslator();
+ExplainMarkdownResult explain = translator.explainMarkdown(markdown);
+
+// Useful for debugging chunk boundaries and tokenization behavior.
+for (ExplainMarkdownChunk chunk : explain.getChunks()) {
+    Log.d("MLMD", "chunk #" + chunk.getIndex() + " raw=" + chunk.getRawText());
+}
+
+Log.d("MLMD", "mode=" + explain.getProcessingMode()
+        + " tokens=" + explain.getTotalTokenCount()
+        + " chunks=" + explain.getTotalChunkCount());
+```
+
+`explainMarkdown(...)` runs local preparation/chunking diagnostics and does not call the
+translation engine.
+
 ### 2) Handle missing-model errors
 
 ```java

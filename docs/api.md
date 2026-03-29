@@ -19,6 +19,8 @@ public final class MlKitMarkdownTranslator implements Closeable {
       String targetLanguage,
       TranslationCallback callback);
 
+  public ExplainMarkdownResult explainMarkdown(String markdown);
+
   @Override
   public void close();
 }
@@ -30,8 +32,59 @@ public final class MlKitMarkdownTranslator implements Closeable {
   `TranslateRemoteModel`).
 - `translateMarkdown(...)` does not auto-download missing models; translation fails when the
   required pack is unavailable.
+- `explainMarkdown(...)` is a fast, local preparation/chunking diagnostic path and does not call
+  the translation engine.
 - Reuse one `MlKitMarkdownTranslator` instance per screen/controller scope.
 - Call `close()` when owner is destroyed.
+
+## Explain/diagnostics API
+
+### `ExplainMarkdownResult`
+
+```java
+public final class ExplainMarkdownResult {
+  public ProcessingMode getProcessingMode();
+  public String getPreparedMarkdown();
+  public List<ExplainMarkdownToken> getTokens();
+  public List<ExplainMarkdownChunk> getChunks();
+  public List<ExplainProtectedSegment> getProtectedSegments();
+  public int getTotalTokenCount();
+  public int getTotalChunkCount();
+}
+```
+
+### `ExplainMarkdownToken`
+
+```java
+public final class ExplainMarkdownToken {
+  public MarkdownTokenType getType();
+  public @Nullable String getTokenId();
+  public String getValue();
+  public int getStartOffset();
+  public int getEndOffset();
+}
+```
+
+### `ExplainMarkdownChunk`
+
+```java
+public final class ExplainMarkdownChunk {
+  public int getIndex();
+  public String getRawText();
+  public List<String> getTokenIds();
+  public List<String> getTokenValues();
+  public int getPlainTextLength();
+}
+```
+
+### `ExplainProtectedSegment`
+
+```java
+public final class ExplainProtectedSegment {
+  public String getToken();
+  public String getOriginalText();
+}
+```
 
 ## Configuration
 

@@ -1,11 +1,15 @@
 package io.github.godsarmy.mlmarkdown;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownResult;
 import io.github.godsarmy.mlmarkdown.api.MarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
+import io.github.godsarmy.mlmarkdown.markdown.ProcessingMode;
 import java.io.Closeable;
+import java.util.List;
 import org.junit.Test;
 
 public class MlKitMarkdownTranslatorTest {
@@ -35,10 +39,24 @@ public class MlKitMarkdownTranslatorTest {
         assertTrue(closeable.closed);
     }
 
+    @Test
+    public void explainMarkdown_delegatesToMarkdownTranslator() {
+        FakeMarkdownTranslator markdownTranslator = new FakeMarkdownTranslator();
+        MlKitMarkdownTranslator facade =
+                new MlKitMarkdownTranslator(markdownTranslator, new FakeCloseable());
+
+        ExplainMarkdownResult result = facade.explainMarkdown("# Hello");
+
+        assertNotNull(result);
+        assertEquals("# Hello", markdownTranslator.explainedMarkdown);
+        assertEquals(ProcessingMode.AST_TOKEN_STREAM, result.getProcessingMode());
+    }
+
     private static final class FakeMarkdownTranslator implements MarkdownTranslator {
         private String markdown;
         private String sourceLanguage;
         private String targetLanguage;
+        private String explainedMarkdown;
 
         @Override
         public void translateMarkdown(
@@ -50,6 +68,13 @@ public class MlKitMarkdownTranslatorTest {
             this.sourceLanguage = sourceLanguage;
             this.targetLanguage = targetLanguage;
             callback.onSuccess("OK:" + markdown);
+        }
+
+        @Override
+        public ExplainMarkdownResult explainMarkdown(String markdown) {
+            this.explainedMarkdown = markdown;
+            return new ExplainMarkdownResult(
+                    ProcessingMode.AST_TOKEN_STREAM, markdown, List.of(), List.of(), List.of());
         }
     }
 

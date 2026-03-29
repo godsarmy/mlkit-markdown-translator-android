@@ -6,4 +6,6 @@ public interface MarkdownTranslator {
             String sourceLanguage,
             String targetLanguage,
             TranslationCallback callback);
+
+    ExplainMarkdownResult explainMarkdown(String markdown);
 }

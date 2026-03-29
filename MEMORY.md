@@ -22,3 +22,4 @@
 - Sample UX preference: after successful language-pack download, close the download dialog and update button state only; do not show an additional "ready to use" confirmation dialog.
 - Sample app theme now needs full token definitions in both `values/colors.xml` (light) and `values-night/colors.xml` (dark); otherwise DayNight won't visually switch palettes.
 - Sample translation result line should display raw markdown character count and total duration as `%d chars in %d ms`, while still keeping token and chunk counts.
+- Public API now includes `explainMarkdown(String)` returning `ExplainMarkdownResult` (processing mode + tokens/chunks/protected segments) for fast debugging without calling ML Kit translation engine.
