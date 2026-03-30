@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.library'
+    id 'maven-publish'
 }
 
 def mlkitTranslateVersion = project.findProperty('mlkitTranslateVersion') ?: '17.0.3'
@@ -25,6 +26,24 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+    }
+
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.godsarmy'
+                artifactId = 'mlkit-markdown-translator-android'
+            }
+        }
     }
 }
 
