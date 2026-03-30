@@ -79,14 +79,14 @@ Use this flow to publish a new version on JitPack.
    - `jitpack.yml` runs `./gradlew clean :library:publishReleasePublicationToMavenLocal`
 4. Commit release-related changes to `main` and push.
 5. Create and push a new tag:
-   - `git tag -a vX.Y.Z -m "Release vX.Y.Z"`
-   - `git push origin vX.Y.Z`
+   - `git tag -a X.Y.Z -m "Release X.Y.Z"`
+   - `git push origin X.Y.Z`
 6. Trigger/verify JitPack build:
    - Open `https://jitpack.io/#godsarmy/mlkit-markdown-translator-android`
-   - Select tag `vX.Y.Z` and wait for success
-   - Optional log URL: `https://jitpack.io/com/github/godsarmy/mlkit-markdown-translator-android/vX.Y.Z/build.log`
+   - Select tag `X.Y.Z` and wait for success
+   - Optional log URL: `https://jitpack.io/com/github/godsarmy/mlkit-markdown-translator-android/X.Y.Z/build.log`
 
 Notes:
 
-- Prefer creating a new tag (for example `v0.8.1`) instead of reusing/moving an existing tag.
+- Prefer creating a new tag (for example `0.8.2`) instead of reusing/moving an existing tag.
 - JitPack tags are effectively immutable for consumers; retagging can cause confusion/caching issues.
