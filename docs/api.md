@@ -104,6 +104,7 @@ public final class MarkdownTranslationOptions {
   public boolean enableRegexFallbackProtection();
   public boolean preserveWhitespaceAroundProtectedSegments();
   public String tokenMarker();
+  public int maxCharsPerChunk();
   public @Nullable TranslationTimingListener translationTimingListener();
 
   public static final class Builder {
@@ -115,6 +116,7 @@ public final class MarkdownTranslationOptions {
     public Builder setEnableRegexFallbackProtection(boolean value);
     public Builder setPreserveWhitespaceAroundProtectedSegments(boolean value);
     public Builder setTokenMarker(String marker);
+    public Builder setMaxCharsPerChunk(int value);
     public Builder setTranslationTimingListener(@Nullable TranslationTimingListener listener);
     public MarkdownTranslationOptions build();
   }
@@ -135,6 +137,10 @@ public final class MarkdownTranslationOptions {
   - marker fence used for AST chunk token boundaries.
   - default: `@@` (markers look like `@@MLMD_TOKEN_<id>@@`).
   - builder rejects empty string.
+- `maxCharsPerChunk`
+  - maximum number of plaintext characters included in each chunk sent to the translation engine.
+  - default: `400`; the number matches the chunking behavior prior to exposing this option.
+  - builder rejects values that are not greater than zero.
 
 ## Callback contracts
 

@@ -6,6 +6,7 @@ import java.util.Objects;
 
 public final class MarkdownTranslationOptions {
     public static final String DEFAULT_TOKEN_MARKER = "@@";
+    public static final int DEFAULT_MAX_CHARS_PER_CHUNK = 400;
 
     private final boolean preserveNewlines;
     private final boolean preserveListPrefixes;
@@ -15,6 +16,7 @@ public final class MarkdownTranslationOptions {
     private final boolean enableRegexFallbackProtection;
     private final boolean preserveWhitespaceAroundProtectedSegments;
     private final String tokenMarker;
+    private final int maxCharsPerChunk;
     @Nullable private final TranslationTimingListener translationTimingListener;
 
     private MarkdownTranslationOptions(Builder builder) {
@@ -27,6 +29,7 @@ public final class MarkdownTranslationOptions {
         this.preserveWhitespaceAroundProtectedSegments =
                 builder.preserveWhitespaceAroundProtectedSegments;
         this.tokenMarker = builder.tokenMarker;
+        this.maxCharsPerChunk = builder.maxCharsPerChunk;
         this.translationTimingListener = builder.translationTimingListener;
     }
 
@@ -66,6 +69,10 @@ public final class MarkdownTranslationOptions {
         return tokenMarker;
     }
 
+    public int maxCharsPerChunk() {
+        return maxCharsPerChunk;
+    }
+
     @Nullable
     public TranslationTimingListener translationTimingListener() {
         return translationTimingListener;
@@ -80,6 +87,7 @@ public final class MarkdownTranslationOptions {
         private boolean enableRegexFallbackProtection = true;
         private boolean preserveWhitespaceAroundProtectedSegments = true;
         private String tokenMarker = DEFAULT_TOKEN_MARKER;
+        private int maxCharsPerChunk = DEFAULT_MAX_CHARS_PER_CHUNK;
         @Nullable private TranslationTimingListener translationTimingListener;
 
         public Builder setPreserveNewlines(boolean preserveNewlines) {
@@ -125,6 +133,14 @@ public final class MarkdownTranslationOptions {
                 throw new IllegalArgumentException("tokenMarker must not be empty");
             }
             this.tokenMarker = value;
+            return this;
+        }
+
+        public Builder setMaxCharsPerChunk(int maxCharsPerChunk) {
+            if (maxCharsPerChunk <= 0) {
+                throw new IllegalArgumentException("maxCharsPerChunk must be positive");
+            }
+            this.maxCharsPerChunk = maxCharsPerChunk;
             return this;
         }
 

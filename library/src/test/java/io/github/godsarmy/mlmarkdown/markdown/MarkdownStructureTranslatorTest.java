@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
@@ -41,6 +42,29 @@ public class MarkdownStructureTranslatorTest {
     public void chunkTranslatableTokens_splitsWhenChunkExceedsMaxLength() {
         MarkdownStructureTranslator translator =
                 new MarkdownStructureTranslator(new EchoTranslationEngine(), 5);
+        TokenizedMarkdownDocument document =
+                new TokenizedMarkdownDocument(
+                        "alphabeta",
+                        List.of(
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T1", "alpha", 0, 5),
+                                new MarkdownToken(
+                                        MarkdownTokenType.TRANSLATABLE, "T2", "beta", 5, 9)));
+
+        List<MarkdownStructureTranslator.TranslationChunk> chunks =
+                translator.chunkTranslatableTokens(document);
+
+        assertEquals(2, chunks.size());
+        assertEquals(List.of("T1"), chunks.get(0).getTokenIds());
+        assertEquals(List.of("T2"), chunks.get(1).getTokenIds());
+    }
+
+    @Test
+    public void chunkTranslatableTokens_respectsMaxCharsPerChunkOption() {
+        MarkdownStructureTranslator translator =
+                new MarkdownStructureTranslator(
+                        new EchoTranslationEngine(),
+                        new MarkdownTranslationOptions.Builder().setMaxCharsPerChunk(5).build());
         TokenizedMarkdownDocument document =
                 new TokenizedMarkdownDocument(
                         "alphabeta",

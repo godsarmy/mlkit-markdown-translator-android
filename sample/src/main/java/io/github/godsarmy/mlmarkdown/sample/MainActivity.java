@@ -1,5 +1,6 @@
 package io.github.godsarmy.mlmarkdown.sample;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -13,6 +14,8 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,7 +45,7 @@ public final class MainActivity extends AppCompatActivity {
     private TextView originalMarkdownRendered;
     private TextView translatedMarkdownRendered;
     private SwitchMaterial renderModeSwitch;
-    private SwitchMaterial fallbackModeSwitch;
+    private MaterialButton advancedParametersButton;
     private Spinner sourceLanguageSpinner;
     private Spinner targetLanguageSpinner;
     private Spinner markdownSampleSpinner;
@@ -56,12 +59,21 @@ public final class MainActivity extends AppCompatActivity {
     private boolean isBusy;
     private boolean isTranslating;
     private boolean isRenderMode;
-    private boolean isFallbackModeEnabled = true;
+    private boolean preserveNewlines = true;
+    private boolean preserveListPrefixes = true;
+    private boolean preserveBlockquotes = true;
+    private boolean normalizeCustomBlockTags = true;
+    private boolean protectAutolinks = true;
+    private boolean enableRegexFallbackProtection = true;
+    private boolean preserveWhitespaceAroundProtectedSegments = true;
+    private String tokenMarker = MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER;
+    private int maxCharsPerChunk = MarkdownTranslationOptions.DEFAULT_MAX_CHARS_PER_CHUNK;
     private int activeDownloadRequestId;
     private AlertDialog downloadProgressDialog;
     private String latestTranslationError;
     @Nullable private TranslationTimingReport latestTimingReport;
     private final Set<String> downloadedTargetModels = new HashSet<>();
+    private ActivityResultLauncher<Intent> translationOptionsLauncher;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,6 +84,7 @@ public final class MainActivity extends AppCompatActivity {
         markwon = Markwon.builder(this).usePlugin(TablePlugin.create(this)).build();
 
         bindViews();
+        registerTranslationOptionsLauncher();
         setupLanguageSpinners();
         setupActions();
     }
@@ -82,7 +95,7 @@ public final class MainActivity extends AppCompatActivity {
         originalMarkdownRendered = findViewById(R.id.originalMarkdownRendered);
         translatedMarkdownRendered = findViewById(R.id.translatedMarkdownRendered);
         renderModeSwitch = findViewById(R.id.renderModeSwitch);
-        fallbackModeSwitch = findViewById(R.id.fallbackModeSwitch);
+        advancedParametersButton = findViewById(R.id.advancedParametersButton);
         sourceLanguageSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetLanguageSpinner = findViewById(R.id.targetLanguageSpinner);
         markdownSampleSpinner = findViewById(R.id.markdownSampleSpinner);
@@ -168,11 +181,11 @@ public final class MainActivity extends AppCompatActivity {
                     applyRenderMode();
                 });
 
-        fallbackModeSwitch.setOnCheckedChangeListener(
-                (buttonView, isChecked) -> {
-                    isFallbackModeEnabled = isChecked;
-                    recreateTranslator();
-                });
+        advancedParametersButton.setOnClickListener(
+                v ->
+                        translationOptionsLauncher.launch(
+                                TranslationOptionsActivity.createIntent(
+                                        this, translationOptionsBuilder().build())));
 
         originalMarkdownInput.addTextChangedListener(
                 new TextWatcher() {
@@ -290,7 +303,9 @@ public final class MainActivity extends AppCompatActivity {
         if (markdown.trim().isEmpty()) {
             return;
         }
-        startActivity(ExplainMarkdownActivity.createIntent(this, markdown, isFallbackModeEnabled));
+        startActivity(
+                ExplainMarkdownActivity.createIntent(
+                        this, markdown, translationOptionsBuilder().build()));
     }
 
     private String sourceLanguage() {
@@ -434,10 +449,54 @@ public final class MainActivity extends AppCompatActivity {
 
     private MlKitMarkdownTranslator createTranslator() {
         return new MlKitMarkdownTranslator(
-                new MarkdownTranslationOptions.Builder()
-                        .setEnableRegexFallbackProtection(isFallbackModeEnabled)
+                translationOptionsBuilder()
                         .setTranslationTimingListener(report -> latestTimingReport = report)
                         .build());
+    }
+
+    private MarkdownTranslationOptions.Builder translationOptionsBuilder() {
+        return new MarkdownTranslationOptions.Builder()
+                .setPreserveNewlines(preserveNewlines)
+                .setPreserveListPrefixes(preserveListPrefixes)
+                .setPreserveBlockquotes(preserveBlockquotes)
+                .setNormalizeCustomBlockTags(normalizeCustomBlockTags)
+                .setProtectAutolinks(protectAutolinks)
+                .setEnableRegexFallbackProtection(enableRegexFallbackProtection)
+                .setPreserveWhitespaceAroundProtectedSegments(
+                        preserveWhitespaceAroundProtectedSegments)
+                .setMaxCharsPerChunk(maxCharsPerChunk)
+                .setTokenMarker(tokenMarker);
+    }
+
+    private void registerTranslationOptionsLauncher() {
+        translationOptionsLauncher =
+                registerForActivityResult(
+                        new ActivityResultContracts.StartActivityForResult(),
+                        result -> {
+                            if (result.getResultCode() != RESULT_OK) {
+                                return;
+                            }
+                            Intent data = result.getData();
+                            if (data == null) {
+                                return;
+                            }
+                            applyTranslationOptions(
+                                    TranslationOptionsActivity.extractOptions(data));
+                            recreateTranslator();
+                        });
+    }
+
+    private void applyTranslationOptions(MarkdownTranslationOptions options) {
+        preserveNewlines = options.preserveNewlines();
+        preserveListPrefixes = options.preserveListPrefixes();
+        preserveBlockquotes = options.preserveBlockquotes();
+        normalizeCustomBlockTags = options.normalizeCustomBlockTags();
+        protectAutolinks = options.protectAutolinks();
+        enableRegexFallbackProtection = options.enableRegexFallbackProtection();
+        preserveWhitespaceAroundProtectedSegments =
+                options.preserveWhitespaceAroundProtectedSegments();
+        tokenMarker = options.tokenMarker();
+        maxCharsPerChunk = options.maxCharsPerChunk();
     }
 
     private void refreshDownloadedModelsAndButtonState() {

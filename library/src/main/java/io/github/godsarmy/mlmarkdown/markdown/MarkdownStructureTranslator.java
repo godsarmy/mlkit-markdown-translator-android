@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 public class MarkdownStructureTranslator {
-    private static final int DEFAULT_MAX_CHUNK_LENGTH = 400;
+    private static final int DEFAULT_MAX_CHUNK_LENGTH =
+            MarkdownTranslationOptions.DEFAULT_MAX_CHARS_PER_CHUNK;
     private static final String TOKEN_MARKER_PREFIX = "MLMD_TOKEN_";
 
     private final TranslationEngine translationEngine;
@@ -25,6 +26,15 @@ public class MarkdownStructureTranslator {
                 DEFAULT_MAX_CHUNK_LENGTH,
                 true,
                 MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER);
+    }
+
+    public MarkdownStructureTranslator(
+            TranslationEngine translationEngine, MarkdownTranslationOptions options) {
+        this(
+                translationEngine,
+                options.maxCharsPerChunk(),
+                options.preserveWhitespaceAroundProtectedSegments(),
+                options.tokenMarker());
     }
 
     MarkdownStructureTranslator(

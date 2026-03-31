@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent" android:orientation="vertical"
+	android:padding="16dp">
+
+	<TextView android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/translation_options_title"
+		android:textAppearance="?attr/textAppearanceHeadline6"
+		android:textColor="@color/mlkit_on_background"
+		android:layout_marginBottom="8dp" />
+
+	<ScrollView android:layout_width="match_parent"
+		android:layout_height="0dp" android:layout_weight="1"
+		android:fillViewport="true">
+
+		<LinearLayout android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:orientation="vertical">
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/switchPreserveNewlines"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/label_preserve_newlines"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/switchPreserveListPrefixes"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="8dp"
+				android:text="@string/label_preserve_list_prefixes"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/switchPreserveBlockquotes"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="8dp"
+				android:text="@string/label_preserve_blockquotes"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/switchNormalizeCustomBlockTags"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="8dp"
+				android:text="@string/label_normalize_custom_block_tags"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/switchProtectAutolinks"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="8dp"
+				android:text="@string/label_protect_autolinks"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/switchEnableRegexFallbackProtection"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="8dp"
+				android:text="@string/label_enable_regex_fallback_protection"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/switchPreserveWhitespaceAroundProtectedSegments"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="8dp"
+				android:text="@string/label_preserve_whitespace_around_protected_segments"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
+
+			<com.google.android.material.textfield.TextInputLayout
+				android:id="@+id/maxCharsPerChunkInputLayout"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				app:boxBackgroundMode="outline" app:errorEnabled="true"
+				android:hint="@string/max_chars_per_chunk_label">
+
+				<com.google.android.material.textfield.TextInputEditText
+					android:id="@+id/maxCharsPerChunkInput"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:hint="@string/max_chars_per_chunk_hint"
+					android:inputType="number" />
+			</com.google.android.material.textfield.TextInputLayout>
+
+			<com.google.android.material.textfield.TextInputLayout
+				android:id="@+id/tokenMarkerInputLayout"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				app:boxBackgroundMode="outline"
+				app:boxBackgroundColor="@color/mlkit_bg_elevated"
+				app:boxStrokeColor="@color/mlkit_primary"
+				app:helperText="@string/token_marker_helper" app:errorEnabled="true"
+				android:hint="@string/token_marker_label">
+
+				<com.google.android.material.textfield.TextInputEditText
+					android:id="@+id/tokenMarkerInput"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content" android:fontFamily="monospace"
+					android:hint="@string/token_marker_hint" android:inputType="text"
+					android:maxLength="12" android:singleLine="true"
+					android:textColor="@color/mlkit_on_background"
+					android:textColorHint="@color/mlkit_on_surface_variant" />
+			</com.google.android.material.textfield.TextInputLayout>
+		</LinearLayout>
+	</ScrollView>
+
+	<LinearLayout android:layout_width="match_parent"
+		android:layout_height="wrap_content" android:layout_marginTop="16dp"
+		android:gravity="end" android:orientation="horizontal">
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/translationOptionsCancelButton"
+			style="?attr/materialButtonOutlinedStyle"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:layout_marginEnd="8dp"
+			android:text="@string/translation_options_cancel" />
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/translationOptionsSaveButton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/translation_options_save" />
+	</LinearLayout>
+</LinearLayout>

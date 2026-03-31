@@ -19,7 +19,18 @@ import java.util.concurrent.Executors;
 
 public final class ExplainMarkdownActivity extends AppCompatActivity {
     private static final String EXTRA_MARKDOWN = "extra_markdown";
-    private static final String EXTRA_FALLBACK_ENABLED = "extra_fallback_enabled";
+    private static final String EXTRA_PRESERVE_NEWLINES = "extra_preserve_newlines";
+    private static final String EXTRA_PRESERVE_LIST_PREFIXES = "extra_preserve_list_prefixes";
+    private static final String EXTRA_PRESERVE_BLOCKQUOTES = "extra_preserve_blockquotes";
+    private static final String EXTRA_NORMALIZE_CUSTOM_BLOCK_TAGS =
+            "extra_normalize_custom_block_tags";
+    private static final String EXTRA_PROTECT_AUTOLINKS = "extra_protect_autolinks";
+    private static final String EXTRA_ENABLE_REGEX_FALLBACK_PROTECTION =
+            "extra_enable_regex_fallback_protection";
+    private static final String EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS =
+            "extra_preserve_whitespace_around_protected_segments";
+    private static final String EXTRA_TOKEN_MARKER = "extra_token_marker";
+    private static final String EXTRA_MAX_CHARS_PER_CHUNK = "extra_max_chars_per_chunk";
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -34,10 +45,21 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
     private TextView protectedSegmentsValue;
 
     public static Intent createIntent(
-            Context context, String markdown, boolean fallbackModeEnabled) {
+            Context context, String markdown, MarkdownTranslationOptions options) {
         Intent intent = new Intent(context, ExplainMarkdownActivity.class);
         intent.putExtra(EXTRA_MARKDOWN, markdown);
-        intent.putExtra(EXTRA_FALLBACK_ENABLED, fallbackModeEnabled);
+        intent.putExtra(EXTRA_PRESERVE_NEWLINES, options.preserveNewlines());
+        intent.putExtra(EXTRA_PRESERVE_LIST_PREFIXES, options.preserveListPrefixes());
+        intent.putExtra(EXTRA_PRESERVE_BLOCKQUOTES, options.preserveBlockquotes());
+        intent.putExtra(EXTRA_NORMALIZE_CUSTOM_BLOCK_TAGS, options.normalizeCustomBlockTags());
+        intent.putExtra(EXTRA_PROTECT_AUTOLINKS, options.protectAutolinks());
+        intent.putExtra(
+                EXTRA_ENABLE_REGEX_FALLBACK_PROTECTION, options.enableRegexFallbackProtection());
+        intent.putExtra(
+                EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS,
+                options.preserveWhitespaceAroundProtectedSegments());
+        intent.putExtra(EXTRA_TOKEN_MARKER, options.tokenMarker());
+        intent.putExtra(EXTRA_MAX_CHARS_PER_CHUNK, options.maxCharsPerChunk());
         return intent;
     }
 
@@ -47,12 +69,39 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
         setContentView(R.layout.activity_explain_markdown);
 
         bindViews();
-        String markdown = getIntent().getStringExtra(EXTRA_MARKDOWN);
-        boolean fallbackEnabled = getIntent().getBooleanExtra(EXTRA_FALLBACK_ENABLED, true);
+        Intent intent = getIntent();
+        String markdown = intent.getStringExtra(EXTRA_MARKDOWN);
+        boolean preserveNewlines = intent.getBooleanExtra(EXTRA_PRESERVE_NEWLINES, true);
+        boolean preserveListPrefixes = intent.getBooleanExtra(EXTRA_PRESERVE_LIST_PREFIXES, true);
+        boolean preserveBlockquotes = intent.getBooleanExtra(EXTRA_PRESERVE_BLOCKQUOTES, true);
+        boolean normalizeCustomBlockTags =
+                intent.getBooleanExtra(EXTRA_NORMALIZE_CUSTOM_BLOCK_TAGS, true);
+        boolean protectAutolinks = intent.getBooleanExtra(EXTRA_PROTECT_AUTOLINKS, true);
+        boolean enableRegexFallbackProtection =
+                intent.getBooleanExtra(EXTRA_ENABLE_REGEX_FALLBACK_PROTECTION, true);
+        boolean preserveWhitespaceAroundProtectedSegments =
+                intent.getBooleanExtra(EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS, true);
+        String tokenMarker = intent.getStringExtra(EXTRA_TOKEN_MARKER);
+        if (tokenMarker == null || tokenMarker.isEmpty()) {
+            tokenMarker = MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER;
+        }
+        int maxCharsPerChunk =
+                intent.getIntExtra(
+                        EXTRA_MAX_CHARS_PER_CHUNK,
+                        MarkdownTranslationOptions.DEFAULT_MAX_CHARS_PER_CHUNK);
         translator =
                 new MlKitMarkdownTranslator(
                         new MarkdownTranslationOptions.Builder()
-                                .setEnableRegexFallbackProtection(fallbackEnabled)
+                                .setPreserveNewlines(preserveNewlines)
+                                .setPreserveListPrefixes(preserveListPrefixes)
+                                .setPreserveBlockquotes(preserveBlockquotes)
+                                .setNormalizeCustomBlockTags(normalizeCustomBlockTags)
+                                .setProtectAutolinks(protectAutolinks)
+                                .setEnableRegexFallbackProtection(enableRegexFallbackProtection)
+                                .setPreserveWhitespaceAroundProtectedSegments(
+                                        preserveWhitespaceAroundProtectedSegments)
+                                .setTokenMarker(tokenMarker)
+                                .setMaxCharsPerChunk(maxCharsPerChunk)
                                 .build());
 
         if (markdown == null) {

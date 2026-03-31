@@ -99,13 +99,29 @@
 			android:textColor="@color/mlkit_on_background"
 			app:useMaterialThemeColors="true" />
 
-		<com.google.android.material.switchmaterial.SwitchMaterial
-			android:id="@+id/fallbackModeSwitch"
-			android:layout_width="wrap_content"
+		<LinearLayout android:id="@+id/advancedParametersRow"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="8dp"
-			android:checked="true" android:text="@string/fallback_mode_switch"
-			android:textColor="@color/mlkit_on_background"
-			app:useMaterialThemeColors="true" />
+			android:gravity="center_vertical" android:orientation="horizontal">
+
+			<TextView android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:layout_weight="1"
+				android:text="@string/advanced_parameters_label"
+				android:textColor="@color/mlkit_on_background" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/advancedParametersButton"
+				android:layout_width="48dp" android:layout_height="48dp"
+				android:contentDescription="@string/advanced_parameters_icon_content_description"
+				android:elevation="0dp" android:insetTop="0dp"
+				android:insetBottom="0dp" android:minWidth="48dp"
+				android:minHeight="48dp" android:stateListAnimator="@null"
+				app:backgroundTint="@android:color/transparent"
+				app:cornerRadius="24dp" app:icon="@drawable/ic_advanced_parameters"
+				app:iconPadding="0dp" app:iconSize="24dp"
+				app:iconTint="@color/mlkit_primary"
+				app:rippleColor="@color/mlkit_primary" app:strokeWidth="0dp" />
+		</LinearLayout>
 
 		<LinearLayout android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="12dp"

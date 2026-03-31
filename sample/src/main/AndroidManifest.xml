@@ -12,6 +12,9 @@
 		android:theme="@style/Theme.MlMarkdownSample">
 		<activity android:name=".ExplainMarkdownActivity"
 			android:exported="false" android:label="@string/explain_screen_title" />
+		<activity android:name=".TranslationOptionsActivity"
+			android:exported="false"
+			android:label="@string/translation_options_title" />
 		<activity android:name=".MainActivity"
 			android:exported="true">
 			<intent-filter>
