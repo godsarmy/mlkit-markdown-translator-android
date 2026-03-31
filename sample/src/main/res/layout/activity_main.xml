@@ -172,10 +172,9 @@
 				android:stateListAnimator="@null" android:paddingStart="14dp"
 				android:paddingEnd="14dp" android:text="@string/explain_markdown"
 				android:textAllCaps="false"
-				android:textColor="@color/mlkit_on_background"
-				app:backgroundTint="@color/mlkit_bg_elevated"
-				app:cornerRadius="14dp" app:strokeColor="@color/mlkit_outline"
-				app:strokeWidth="1dp" />
+				android:textColor="@color/primary_button_text_color"
+				app:backgroundTint="@color/primary_button_background_tint"
+				app:cornerRadius="14dp" />
 
 			<Space android:layout_width="10dp" android:layout_height="1dp" />
 
@@ -184,8 +183,10 @@
 				android:layout_height="52dp" android:layout_weight="1"
 				android:elevation="0dp" android:stateListAnimator="@null"
 				android:text="@string/translate_markdown"
-				android:textAllCaps="false" android:textColor="@android:color/white"
-				app:backgroundTint="@color/mlkit_primary" app:cornerRadius="14dp" />
+				android:textAllCaps="false"
+				android:textColor="@color/primary_button_text_color"
+				app:backgroundTint="@color/primary_button_background_tint"
+				app:cornerRadius="14dp" />
 		</LinearLayout>
 
 		<LinearLayout
