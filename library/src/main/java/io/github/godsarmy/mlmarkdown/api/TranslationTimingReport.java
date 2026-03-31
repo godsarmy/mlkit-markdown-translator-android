@@ -13,6 +13,7 @@ public final class TranslationTimingReport {
     private final int totalChunkCount;
     private final boolean successful;
     @Nullable private final Exception error;
+    private final int chunkParseRecoveryCount;
 
     public TranslationTimingReport(
             ProcessingMode processingMode,
@@ -23,7 +24,8 @@ public final class TranslationTimingReport {
             int totalTokenCount,
             int totalChunkCount,
             boolean successful,
-            @Nullable Exception error) {
+            @Nullable Exception error,
+            int chunkParseRecoveryCount) {
         this.processingMode = processingMode;
         this.preparationDurationMs = preparationDurationMs;
         this.translationDurationMs = translationDurationMs;
@@ -33,6 +35,7 @@ public final class TranslationTimingReport {
         this.totalChunkCount = totalChunkCount;
         this.successful = successful;
         this.error = error;
+        this.chunkParseRecoveryCount = chunkParseRecoveryCount;
     }
 
     public ProcessingMode getProcessingMode() {
@@ -70,5 +73,9 @@ public final class TranslationTimingReport {
     @Nullable
     public Exception getError() {
         return error;
+    }
+
+    public int getChunkParseRecoveryCount() {
+        return chunkParseRecoveryCount;
     }
 }

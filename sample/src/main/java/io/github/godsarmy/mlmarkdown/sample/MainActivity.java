@@ -527,13 +527,18 @@ public final class MainActivity extends AppCompatActivity {
                                             report != null ? report.getTotalTokenCount() : 0;
                                     int chunkCount =
                                             report != null ? report.getTotalChunkCount() : 0;
+                                    int chunkRecoveryCount =
+                                            report != null
+                                                    ? report.getChunkParseRecoveryCount()
+                                                    : 0;
                                     translationResultText.setText(
                                             getString(
                                                     R.string.translation_result_success,
                                                     rawCharCount,
                                                     durationMs,
                                                     tokenCount,
-                                                    chunkCount));
+                                                    chunkCount,
+                                                    chunkRecoveryCount));
                                     translationResultText.setVisibility(View.VISIBLE);
 
                                     clearTranslationError();

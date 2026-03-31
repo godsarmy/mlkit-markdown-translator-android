@@ -191,6 +191,7 @@ public final class TranslationTimingReport {
   public long getTotalDurationMs();
   public int getTotalTokenCount();
   public int getTotalChunkCount();
+  public int getChunkParseRecoveryCount();
   public boolean isSuccessful();
   public @Nullable Exception getError();
 }

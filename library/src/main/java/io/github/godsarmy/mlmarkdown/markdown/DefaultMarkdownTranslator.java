@@ -66,9 +66,9 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                     preparationResult.getTokenizedDocument(),
                     sourceLanguage,
                     targetLanguage,
-                    new TranslationCallback() {
+                    new MarkdownStructureTranslator.TokenizedTranslationCallback() {
                         @Override
-                        public void onSuccess(String translatedText) {
+                        public void onSuccess(String translatedText, int chunkParseRecoveryCount) {
                             long translationDurationMs =
                                     toMillis(nanoTimeProvider.nowNanos() - translationStartNanos);
                             notifyTiming(
@@ -79,13 +79,14 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                     totalStartNanos,
                                     totalTokenCount,
                                     totalChunkCount,
+                                    chunkParseRecoveryCount,
                                     true,
                                     null);
                             callback.onSuccess(translatedText);
                         }
 
                         @Override
-                        public void onFailure(Exception error) {
+                        public void onFailure(Exception error, int chunkParseRecoveryCount) {
                             long translationDurationMs =
                                     toMillis(nanoTimeProvider.nowNanos() - translationStartNanos);
                             notifyTiming(
@@ -96,6 +97,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                     totalStartNanos,
                                     totalTokenCount,
                                     totalChunkCount,
+                                    chunkParseRecoveryCount,
                                     false,
                                     error);
                             callback.onFailure(error);
@@ -129,6 +131,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                     totalStartNanos,
                                     totalTokenCount,
                                     totalChunkCount,
+                                    0,
                                     true,
                                     null);
                             callback.onSuccess(restored);
@@ -143,6 +146,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                 totalStartNanos,
                                 totalTokenCount,
                                 totalChunkCount,
+                                0,
                                 true,
                                 null);
                         callback.onSuccess(translatedText);
@@ -160,6 +164,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                 totalStartNanos,
                                 totalTokenCount,
                                 totalChunkCount,
+                                0,
                                 false,
                                 error);
                         callback.onFailure(error);
@@ -204,6 +209,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             long totalStartNanos,
             int totalTokenCount,
             int totalChunkCount,
+            int chunkParseRecoveryCount,
             boolean successful,
             Exception error) {
         if (translationTimingListener == null) {
@@ -219,7 +225,8 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                         totalTokenCount,
                         totalChunkCount,
                         successful,
-                        error));
+                        error,
+                        chunkParseRecoveryCount));
     }
 
     private int totalChunkCount(MarkdownPreparationResult preparationResult) {

@@ -90,9 +90,31 @@ public class MarkdownStructureTranslator {
             String sourceLanguage,
             String targetLanguage,
             TranslationCallback callback) {
+        translate(
+                tokenizedDocument,
+                sourceLanguage,
+                targetLanguage,
+                new TokenizedTranslationCallback() {
+                    @Override
+                    public void onSuccess(String translatedText, int chunkParseRecoveryCount) {
+                        callback.onSuccess(translatedText);
+                    }
+
+                    @Override
+                    public void onFailure(Exception error, int chunkParseRecoveryCount) {
+                        callback.onFailure(error);
+                    }
+                });
+    }
+
+    void translate(
+            TokenizedMarkdownDocument tokenizedDocument,
+            String sourceLanguage,
+            String targetLanguage,
+            TokenizedTranslationCallback callback) {
         List<TranslationChunk> chunks = chunkTranslatableTokens(tokenizedDocument);
         if (chunks.isEmpty()) {
-            callback.onSuccess(tokenizedDocument.reconstruct());
+            callback.onSuccess(tokenizedDocument.reconstruct(), 0);
             return;
         }
 
@@ -102,7 +124,8 @@ public class MarkdownStructureTranslator {
                 new LinkedHashMap<>(),
                 sourceLanguage,
                 targetLanguage,
-                callback);
+                callback,
+                0);
     }
 
     List<TranslationChunk> chunkTranslatableTokens(TokenizedMarkdownDocument tokenizedDocument) {
@@ -139,9 +162,12 @@ public class MarkdownStructureTranslator {
             Map<String, String> translations,
             String sourceLanguage,
             String targetLanguage,
-            TranslationCallback callback) {
+            TokenizedTranslationCallback callback,
+            int chunkParseRecoveryCount) {
         if (!iterator.hasNext()) {
-            callback.onSuccess(tokenizedDocument.reconstructWithTranslations(translations));
+            callback.onSuccess(
+                    tokenizedDocument.reconstructWithTranslations(translations),
+                    chunkParseRecoveryCount);
             return;
         }
 
@@ -161,7 +187,8 @@ public class MarkdownStructureTranslator {
                                     translations,
                                     sourceLanguage,
                                     targetLanguage,
-                                    callback);
+                                    callback,
+                                    chunkParseRecoveryCount);
                         } catch (IllegalStateException parseError) {
                             translateChunkIndividually(
                                     tokenizedDocument,
@@ -170,13 +197,14 @@ public class MarkdownStructureTranslator {
                                     translations,
                                     sourceLanguage,
                                     targetLanguage,
-                                    callback);
+                                    callback,
+                                    chunkParseRecoveryCount + 1);
                         }
                     }
 
                     @Override
                     public void onFailure(Exception error) {
-                        callback.onFailure(error);
+                        callback.onFailure(error, chunkParseRecoveryCount);
                     }
                 });
     }
@@ -188,7 +216,8 @@ public class MarkdownStructureTranslator {
             Map<String, String> translations,
             String sourceLanguage,
             String targetLanguage,
-            TranslationCallback callback) {
+            TokenizedTranslationCallback callback,
+            int chunkParseRecoveryCount) {
         translateChunkTokenAt(
                 tokenizedDocument,
                 chunk,
@@ -197,6 +226,7 @@ public class MarkdownStructureTranslator {
                 sourceLanguage,
                 targetLanguage,
                 callback,
+                chunkParseRecoveryCount,
                 0);
     }
 
@@ -207,7 +237,8 @@ public class MarkdownStructureTranslator {
             Map<String, String> translations,
             String sourceLanguage,
             String targetLanguage,
-            TranslationCallback callback,
+            TokenizedTranslationCallback callback,
+            int chunkParseRecoveryCount,
             int index) {
         if (index >= chunk.getTokenIds().size()) {
             translateChunks(
@@ -216,7 +247,8 @@ public class MarkdownStructureTranslator {
                     translations,
                     sourceLanguage,
                     targetLanguage,
-                    callback);
+                    callback,
+                    chunkParseRecoveryCount);
             return;
         }
 
@@ -239,14 +271,21 @@ public class MarkdownStructureTranslator {
                                 sourceLanguage,
                                 targetLanguage,
                                 callback,
+                                chunkParseRecoveryCount,
                                 index + 1);
                     }
 
                     @Override
                     public void onFailure(Exception error) {
-                        callback.onFailure(error);
+                        callback.onFailure(error, chunkParseRecoveryCount);
                     }
                 });
+    }
+
+    interface TokenizedTranslationCallback {
+        void onSuccess(String translatedText, int chunkParseRecoveryCount);
+
+        void onFailure(Exception error, int chunkParseRecoveryCount);
     }
 
     private static boolean containsLineBoundary(MarkdownToken token) {

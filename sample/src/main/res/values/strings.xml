@@ -28,7 +28,8 @@
 	<string name="translate_markdown">Translate</string>
 	<string name="translation_error_icon_content_description">Show translation error details</string>
 	<string name="translation_error_dialog_title">Translation failed</string>
-	<string name="translation_result_success">%1$d chars in %2$d ms • tokens: %3$d • chunks: %4$d</string>
+	<string name="translation_result_success">%1$d chars in %2$d ms • tokens: %3$d • chunks: %4$d
+		• chunk recoveries: %5$d</string>
 	<string name="translation_result_failure">Translation failed: %1$s</string>
 	<string name="explain_markdown">Explain</string>
 	<string name="explain_screen_title">Explain markdown result</string>
