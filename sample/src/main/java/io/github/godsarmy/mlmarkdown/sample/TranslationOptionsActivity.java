@@ -3,14 +3,11 @@ package io.github.godsarmy.mlmarkdown.sample;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.widget.EditText;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import java.util.Objects;
 
@@ -35,10 +32,8 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
     private SwitchMaterial protectAutolinksSwitch;
     private SwitchMaterial enableRegexFallbackProtectionSwitch;
     private SwitchMaterial preserveWhitespaceAroundProtectedSegmentsSwitch;
-    private TextInputLayout tokenMarkerInputLayout;
-    private TextInputEditText tokenMarkerInput;
-    private TextInputLayout maxCharsPerChunkInputLayout;
-    private TextInputEditText maxCharsPerChunkInput;
+    private EditText tokenMarkerInput;
+    private EditText maxCharsPerChunkInput;
 
     public static Intent createIntent(Context context, MarkdownTranslationOptions options) {
         return withOptions(new Intent(context, TranslationOptionsActivity.class), options);
@@ -112,9 +107,7 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                 findViewById(R.id.switchEnableRegexFallbackProtection);
         preserveWhitespaceAroundProtectedSegmentsSwitch =
                 findViewById(R.id.switchPreserveWhitespaceAroundProtectedSegments);
-        tokenMarkerInputLayout = findViewById(R.id.tokenMarkerInputLayout);
         tokenMarkerInput = findViewById(R.id.tokenMarkerInput);
-        maxCharsPerChunkInputLayout = findViewById(R.id.maxCharsPerChunkInputLayout);
         maxCharsPerChunkInput = findViewById(R.id.maxCharsPerChunkInput);
     }
 
@@ -133,35 +126,6 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
     }
 
     private void setupActions() {
-        tokenMarkerInput.addTextChangedListener(
-                new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(
-                            CharSequence s, int start, int count, int after) {}
-
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        tokenMarkerInputLayout.setError(null);
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable s) {}
-                });
-        maxCharsPerChunkInput.addTextChangedListener(
-                new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(
-                            CharSequence s, int start, int count, int after) {}
-
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        maxCharsPerChunkInputLayout.setError(null);
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable s) {}
-                });
-
         MaterialButton cancelButton = findViewById(R.id.translationOptionsCancelButton);
         MaterialButton saveButton = findViewById(R.id.translationOptionsSaveButton);
 
@@ -175,8 +139,11 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                                     .toString()
                                     .trim();
 
+                    tokenMarkerInput.setError(null);
+                    maxCharsPerChunkInput.setError(null);
+
                     if (maxCharsText.isEmpty()) {
-                        maxCharsPerChunkInputLayout.setError(
+                        maxCharsPerChunkInput.setError(
                                 getString(R.string.max_chars_per_chunk_required_error));
                         return;
                     }
@@ -184,18 +151,17 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                     try {
                         parsedMaxChars = Integer.parseInt(maxCharsText);
                     } catch (NumberFormatException numberFormatException) {
-                        maxCharsPerChunkInputLayout.setError(
+                        maxCharsPerChunkInput.setError(
                                 getString(R.string.max_chars_per_chunk_positive_error));
                         return;
                     }
                     if (parsedMaxChars <= 0) {
-                        maxCharsPerChunkInputLayout.setError(
+                        maxCharsPerChunkInput.setError(
                                 getString(R.string.max_chars_per_chunk_positive_error));
                         return;
                     }
                     if (enteredTokenMarker.isEmpty()) {
-                        tokenMarkerInputLayout.setError(
-                                getString(R.string.token_marker_required_error));
+                        tokenMarkerInput.setError(getString(R.string.token_marker_required_error));
                         return;
                     }
 

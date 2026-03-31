@@ -76,50 +76,32 @@
 				android:textColor="@color/mlkit_on_background"
 				app:useMaterialThemeColors="true" />
 
-			<com.google.android.material.textfield.TextInputLayout
-				android:id="@+id/maxCharsPerChunkInputLayout"
-				android:layout_width="match_parent"
+			<TextView android:layout_width="match_parent"
 				android:layout_height="wrap_content" android:layout_marginTop="20dp"
-				app:boxBackgroundMode="outline"
-				app:boxBackgroundColor="?attr/colorSurface"
-				app:boxCornerRadiusTopStart="14dp" app:boxCornerRadiusTopEnd="14dp"
-				app:boxCornerRadiusBottomStart="14dp"
-				app:boxCornerRadiusBottomEnd="14dp"
-				app:boxStrokeColor="?attr/colorPrimary" app:endIconMode="clear_text"
-				app:errorEnabled="true"
-				app:suffixText="@string/max_chars_per_chunk_suffix"
-				android:hint="@string/max_chars_per_chunk_label">
+				android:text="@string/max_chars_per_chunk_label"
+				android:textColor="@color/mlkit_on_surface_variant" />
 
-				<com.google.android.material.textfield.TextInputEditText
-					android:id="@+id/maxCharsPerChunkInput"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:hint="@string/max_chars_per_chunk_hint"
-					android:inputType="number" android:singleLine="true" />
-			</com.google.android.material.textfield.TextInputLayout>
-
-			<com.google.android.material.textfield.TextInputLayout
-				android:id="@+id/tokenMarkerInputLayout"
+			<EditText android:id="@+id/maxCharsPerChunkInput"
 				android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:layout_marginTop="12dp"
-				app:boxBackgroundMode="outline"
-				app:boxBackgroundColor="?attr/colorSurface"
-				app:boxCornerRadiusTopStart="14dp" app:boxCornerRadiusTopEnd="14dp"
-				app:boxCornerRadiusBottomStart="14dp"
-				app:boxCornerRadiusBottomEnd="14dp"
-				app:boxStrokeColor="?attr/colorPrimary" app:counterEnabled="true"
-				app:counterMaxLength="12" app:endIconMode="clear_text"
-				app:errorEnabled="true" android:hint="@string/token_marker_label">
+				android:layout_height="wrap_content" android:layout_marginTop="4dp"
+				android:hint="@string/max_chars_per_chunk_hint"
+				android:inputType="number" android:singleLine="true"
+				android:textColor="@color/mlkit_on_background"
+				android:textColorHint="@color/mlkit_on_surface_variant" />
 
-				<com.google.android.material.textfield.TextInputEditText
-					android:id="@+id/tokenMarkerInput"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content" android:fontFamily="monospace"
-					android:hint="@string/token_marker_hint" android:inputType="text"
-					android:maxLength="12" android:singleLine="true"
-					android:textColor="@color/mlkit_on_background"
-					android:textColorHint="@color/mlkit_on_surface_variant" />
-			</com.google.android.material.textfield.TextInputLayout>
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:text="@string/token_marker_label"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<EditText android:id="@+id/tokenMarkerInput"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="4dp"
+				android:fontFamily="monospace"
+				android:hint="@string/token_marker_hint" android:inputType="text"
+				android:maxLength="12" android:singleLine="true"
+				android:textColor="@color/mlkit_on_background"
+				android:textColorHint="@color/mlkit_on_surface_variant" />
 		</LinearLayout>
 	</ScrollView>
 
