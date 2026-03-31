@@ -170,7 +170,7 @@ public final class TranslationException extends Exception {
 }
 ```
 
-## Timing/metrics API
+## Translation metrics API
 
 ### `TranslationTimingListener`
 
