@@ -13,6 +13,7 @@ import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
+import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -153,6 +154,7 @@ public class DefaultMarkdownTranslatorTest {
         assertTrue(timingListener.lastReport.getTotalTokenCount() > 0);
         assertEquals(1, timingListener.lastReport.getTotalChunkCount());
         assertEquals(1, timingListener.lastReport.getChunkParseRecoveryCount());
+        assertFalse(timingListener.lastReport.isRegexFallbackTriggered());
         assertNull(timingListener.lastReport.getError());
     }
 
@@ -185,8 +187,49 @@ public class DefaultMarkdownTranslatorTest {
         assertTrue(timingListener.lastReport.getTotalTokenCount() > 0);
         assertEquals(1, timingListener.lastReport.getTotalChunkCount());
         assertEquals(0, timingListener.lastReport.getChunkParseRecoveryCount());
+        assertFalse(timingListener.lastReport.isRegexFallbackTriggered());
         assertNotNull(timingListener.lastReport.getError());
         assertEquals("boom", timingListener.lastReport.getError().getMessage());
+    }
+
+    @Test
+    public void translateMarkdown_reportsRegexFallbackTriggeredInTimingReport() {
+        RecordingTimingListener timingListener = new RecordingTimingListener();
+        FakeNanoTimeProvider nanoTimeProvider =
+                new FakeNanoTimeProvider(
+                        0L,
+                        1_000_000L,
+                        2_000_000L,
+                        3_000_000L,
+                        4_000_000L,
+                        5_000_000L,
+                        7_000_000L,
+                        10_000_000L);
+        HybridMarkdownPreparationService preparationService =
+                new HybridMarkdownPreparationService() {
+                    @Override
+                    TokenizedMarkdownDocument buildTokenModel(String markdown) {
+                        throw new IllegalStateException("forced fallback");
+                    }
+                };
+        DefaultMarkdownTranslator translator =
+                new DefaultMarkdownTranslator(
+                        new MarkerStrippingTranslationEngine(),
+                        new MarkdownTranslationOptions.Builder()
+                                .setTranslationTimingListener(timingListener)
+                                .build(),
+                        nanoTimeProvider,
+                        preparationService);
+
+        TestTranslationCallback callback = new TestTranslationCallback();
+        translator.translateMarkdown("Paragraph with `code`", "en", "es", callback);
+
+        assertNotNull(callback.translatedText);
+        assertNull(callback.error);
+        assertNotNull(timingListener.lastReport);
+        assertTrue(timingListener.lastReport.isRegexFallbackTriggered());
+        assertEquals(ProcessingMode.REGEX_FALLBACK, timingListener.lastReport.getProcessingMode());
+        assertTrue(timingListener.lastReport.getRestorationDurationMs() > 0);
     }
 
     @Test

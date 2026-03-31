@@ -35,7 +35,19 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             TranslationEngine translationEngine,
             MarkdownTranslationOptions options,
             NanoTimeProvider nanoTimeProvider) {
-        this.preparationService = new HybridMarkdownPreparationService(options);
+        this(
+                translationEngine,
+                options,
+                nanoTimeProvider,
+                new HybridMarkdownPreparationService(options));
+    }
+
+    DefaultMarkdownTranslator(
+            TranslationEngine translationEngine,
+            MarkdownTranslationOptions options,
+            NanoTimeProvider nanoTimeProvider,
+            HybridMarkdownPreparationService preparationService) {
+        this.preparationService = preparationService;
         this.structureTranslator =
                 new MarkdownStructureTranslator(
                         translationEngine,
@@ -58,6 +70,8 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
         long preparationDurationMs = toMillis(nanoTimeProvider.nowNanos() - preparationStartNanos);
         int totalTokenCount = totalTokenCount(preparationResult);
         int totalChunkCount = totalChunkCount(preparationResult);
+        final boolean regexFallbackTriggered =
+                preparationResult.getMode() == ProcessingMode.REGEX_FALLBACK;
 
         long translationStartNanos = nanoTimeProvider.nowNanos();
         if (preparationResult.getMode() == ProcessingMode.AST_TOKEN_STREAM
@@ -80,6 +94,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                     totalTokenCount,
                                     totalChunkCount,
                                     chunkParseRecoveryCount,
+                                    regexFallbackTriggered,
                                     true,
                                     null);
                             callback.onSuccess(translatedText);
@@ -98,6 +113,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                     totalTokenCount,
                                     totalChunkCount,
                                     chunkParseRecoveryCount,
+                                    regexFallbackTriggered,
                                     false,
                                     error);
                             callback.onFailure(error);
@@ -132,6 +148,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                     totalTokenCount,
                                     totalChunkCount,
                                     0,
+                                    regexFallbackTriggered,
                                     true,
                                     null);
                             callback.onSuccess(restored);
@@ -147,6 +164,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                 totalTokenCount,
                                 totalChunkCount,
                                 0,
+                                regexFallbackTriggered,
                                 true,
                                 null);
                         callback.onSuccess(translatedText);
@@ -165,6 +183,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                 totalTokenCount,
                                 totalChunkCount,
                                 0,
+                                regexFallbackTriggered,
                                 false,
                                 error);
                         callback.onFailure(error);
@@ -210,6 +229,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             int totalTokenCount,
             int totalChunkCount,
             int chunkParseRecoveryCount,
+            boolean regexFallbackTriggered,
             boolean successful,
             Exception error) {
         if (translationTimingListener == null) {
@@ -226,7 +246,8 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                         totalChunkCount,
                         successful,
                         error,
-                        chunkParseRecoveryCount));
+                        chunkParseRecoveryCount,
+                        regexFallbackTriggered));
     }
 
     private int totalChunkCount(MarkdownPreparationResult preparationResult) {

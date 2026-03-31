@@ -14,6 +14,7 @@ public final class TranslationTimingReport {
     private final boolean successful;
     @Nullable private final Exception error;
     private final int chunkParseRecoveryCount;
+    private final boolean regexFallbackTriggered;
 
     public TranslationTimingReport(
             ProcessingMode processingMode,
@@ -25,7 +26,8 @@ public final class TranslationTimingReport {
             int totalChunkCount,
             boolean successful,
             @Nullable Exception error,
-            int chunkParseRecoveryCount) {
+            int chunkParseRecoveryCount,
+            boolean regexFallbackTriggered) {
         this.processingMode = processingMode;
         this.preparationDurationMs = preparationDurationMs;
         this.translationDurationMs = translationDurationMs;
@@ -36,6 +38,7 @@ public final class TranslationTimingReport {
         this.successful = successful;
         this.error = error;
         this.chunkParseRecoveryCount = chunkParseRecoveryCount;
+        this.regexFallbackTriggered = regexFallbackTriggered;
     }
 
     public ProcessingMode getProcessingMode() {
@@ -77,5 +80,9 @@ public final class TranslationTimingReport {
 
     public int getChunkParseRecoveryCount() {
         return chunkParseRecoveryCount;
+    }
+
+    public boolean isRegexFallbackTriggered() {
+        return regexFallbackTriggered;
     }
 }

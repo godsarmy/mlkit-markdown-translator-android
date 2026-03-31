@@ -531,6 +531,8 @@ public final class MainActivity extends AppCompatActivity {
                                             report != null
                                                     ? report.getChunkParseRecoveryCount()
                                                     : 0;
+                                    boolean regexFallbackTriggered =
+                                            report != null && report.isRegexFallbackTriggered();
                                     translationResultText.setText(
                                             getString(
                                                     R.string.translation_result_success,
@@ -538,7 +540,8 @@ public final class MainActivity extends AppCompatActivity {
                                                     durationMs,
                                                     tokenCount,
                                                     chunkCount,
-                                                    chunkRecoveryCount));
+                                                    chunkRecoveryCount,
+                                                    regexFallbackTriggered));
                                     translationResultText.setVisibility(View.VISIBLE);
 
                                     clearTranslationError();

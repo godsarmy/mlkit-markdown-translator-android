@@ -192,6 +192,7 @@ public final class TranslationTimingReport {
   public int getTotalTokenCount();
   public int getTotalChunkCount();
   public int getChunkParseRecoveryCount();
+  public boolean isRegexFallbackTriggered();
   public boolean isSuccessful();
   public @Nullable Exception getError();
 }
