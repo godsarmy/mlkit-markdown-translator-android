@@ -79,8 +79,15 @@
 			<com.google.android.material.textfield.TextInputLayout
 				android:id="@+id/maxCharsPerChunkInputLayout"
 				android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:layout_marginTop="16dp"
-				app:boxBackgroundMode="outline" app:errorEnabled="true"
+				android:layout_height="wrap_content" android:layout_marginTop="20dp"
+				app:boxBackgroundMode="outline"
+				app:boxBackgroundColor="?attr/colorSurface"
+				app:boxCornerRadiusTopStart="14dp" app:boxCornerRadiusTopEnd="14dp"
+				app:boxCornerRadiusBottomStart="14dp"
+				app:boxCornerRadiusBottomEnd="14dp"
+				app:boxStrokeColor="?attr/colorPrimary" app:endIconMode="clear_text"
+				app:errorEnabled="true"
+				app:suffixText="@string/max_chars_per_chunk_suffix"
 				android:hint="@string/max_chars_per_chunk_label">
 
 				<com.google.android.material.textfield.TextInputEditText
@@ -88,18 +95,21 @@
 					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
 					android:hint="@string/max_chars_per_chunk_hint"
-					android:inputType="number" />
+					android:inputType="number" android:singleLine="true" />
 			</com.google.android.material.textfield.TextInputLayout>
 
 			<com.google.android.material.textfield.TextInputLayout
 				android:id="@+id/tokenMarkerInputLayout"
 				android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:layout_height="wrap_content" android:layout_marginTop="12dp"
 				app:boxBackgroundMode="outline"
-				app:boxBackgroundColor="@color/mlkit_bg_elevated"
-				app:boxStrokeColor="@color/mlkit_primary"
-				app:helperText="@string/token_marker_helper" app:errorEnabled="true"
-				android:hint="@string/token_marker_label">
+				app:boxBackgroundColor="?attr/colorSurface"
+				app:boxCornerRadiusTopStart="14dp" app:boxCornerRadiusTopEnd="14dp"
+				app:boxCornerRadiusBottomStart="14dp"
+				app:boxCornerRadiusBottomEnd="14dp"
+				app:boxStrokeColor="?attr/colorPrimary" app:counterEnabled="true"
+				app:counterMaxLength="12" app:endIconMode="clear_text"
+				app:errorEnabled="true" android:hint="@string/token_marker_label">
 
 				<com.google.android.material.textfield.TextInputEditText
 					android:id="@+id/tokenMarkerInput"
