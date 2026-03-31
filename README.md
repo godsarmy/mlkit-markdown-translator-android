@@ -60,6 +60,8 @@ dependencies {
 
 ### Option B: JitPack (`0.8.3`)
 
+JitPack page: https://jitpack.io/#godsarmy/mlkit-markdown-translator-android
+
 ```gradle
 repositories {
     google()
