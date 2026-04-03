@@ -227,6 +227,7 @@ public final class MainActivity extends AppCompatActivity {
                         new MarkdownSample("markdown/simple.md"),
                         new MarkdownSample("markdown/large-prose.md"),
                         new MarkdownSample("markdown/complex-structure.md"),
+                        new MarkdownSample("markdown/basic-syntax-edge-cases.md"),
                         new MarkdownSample("markdown/mixed-worst-case.md"),
                         new MarkdownSample("markdown/huge-document.md"));
         if (position < 0 || position >= samples.size()) {

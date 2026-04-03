@@ -82,6 +82,7 @@
 		<item>simple.md</item>
 		<item>large-prose.md</item>
 		<item>complex-structure.md</item>
+		<item>basic-syntax-edge-cases.md</item>
 		<item>mixed-worst-case.md</item>
 		<item>huge-document.md</item>
 	</string-array>
