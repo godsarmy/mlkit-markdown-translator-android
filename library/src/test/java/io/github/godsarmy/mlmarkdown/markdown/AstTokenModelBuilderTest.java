@@ -117,4 +117,27 @@ public class AstTokenModelBuilderTest {
         assertTrue(reconstructed.contains("[TR(link)](https://example.com)"));
         assertTrue(reconstructed.contains("| TR(Bob) | TR(plain text) |"));
     }
+
+    @Test
+    public void build_preservesSetextHardBreakHrReferenceCodeAndEscapedCharacters() {
+        AstTokenModelBuilder builder = new AstTokenModelBuilder();
+        String markdown =
+                "Setext Heading H1\n"
+                        + "=================\n\n"
+                        + "Setext Heading H2\n"
+                        + "-----------------\n\n"
+                        + "Paragraph with hard break  \n"
+                        + "continuation line\n\n"
+                        + "***\n"
+                        + "---\n"
+                        + "___\n\n"
+                        + "Reference [text label][ref]\n\n"
+                        + "[ref]: https://example.com \"Example Title\"\n\n"
+                        + "    indented code block line\n\n"
+                        + "Escaped literal \\* and \\[ should stay literal\n";
+
+        TokenizedMarkdownDocument document = builder.build(markdown);
+
+        assertEquals(markdown, document.reconstruct());
+    }
 }
