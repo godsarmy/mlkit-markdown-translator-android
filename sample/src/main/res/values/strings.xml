@@ -16,6 +16,13 @@
 	<string name="source_url_hint">https://example.com/readme.md</string>
 	<string name="source_mode_invalid_url">Enter a valid http(s) URL</string>
 	<string name="source_selector_load_url">Load from URL</string>
+	<string name="left_menu_content_description">Open navigation menu</string>
+	<string name="help_feedback_label">Help &amp; feedback</string>
+	<string name="version_label">Version</string>
+	<string name="version_format">Version %1$s</string>
+	<string name="feedback_email_subject">ML Markdown Translator feedback</string>
+	<string name="feedback_email_chooser">Send feedback</string>
+	<string name="feedback_not_available">No email app available</string>
 	<string name="source_selector_action_content_description">Source selector action</string>
 	<string name="load_url_icon_content_description">Load markdown from URL</string>
 	<string name="source_mode_url_load_failed">Unable to load markdown from URL</string>

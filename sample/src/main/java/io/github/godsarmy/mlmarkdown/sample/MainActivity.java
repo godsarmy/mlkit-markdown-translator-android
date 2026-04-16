@@ -1,6 +1,8 @@
 package io.github.godsarmy.mlmarkdown.sample;
 
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,6 +11,7 @@ import android.text.InputType;
 import android.text.TextWatcher;
 import android.text.method.KeyListener;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +34,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
+import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.mlkit.common.model.DownloadConditions;
 import com.google.mlkit.common.model.RemoteModelManager;
@@ -72,7 +80,9 @@ public final class MainActivity extends AppCompatActivity {
     private WebView inputRenderedHtml;
     private WebView outputRenderedHtml;
     private SwitchMaterial renderModeToggle;
-    private MaterialButton advancedParametersButton;
+    private ImageButton leftMenuButton;
+    private DrawerLayout mainDrawerLayout;
+    private NavigationView leftNavigationView;
     private Spinner sourceLanguageSpinner;
     private Spinner targetLanguageSpinner;
     private AppCompatAutoCompleteTextView sampleAssetInput;
@@ -128,7 +138,9 @@ public final class MainActivity extends AppCompatActivity {
         inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
         outputRenderedHtml = findViewById(R.id.outputRenderedHtml);
         renderModeToggle = findViewById(R.id.renderModeToggle);
-        advancedParametersButton = findViewById(R.id.advancedParametersButton);
+        leftMenuButton = findViewById(R.id.leftMenuButton);
+        mainDrawerLayout = findViewById(R.id.mainDrawerLayout);
+        leftNavigationView = findViewById(R.id.leftNavigationView);
         sourceLanguageSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetLanguageSpinner = findViewById(R.id.targetLanguageSpinner);
         sampleAssetInput = findViewById(R.id.sampleAssetInput);
@@ -150,6 +162,27 @@ public final class MainActivity extends AppCompatActivity {
 
         translationErrorButton.setOnClickListener(v -> showTranslationErrorDialog());
         sampleAssetInputKeyListener = sampleAssetInput.getKeyListener();
+        applyDrawerHeaderInsets();
+    }
+
+    private void applyDrawerHeaderInsets() {
+        if (leftNavigationView.getHeaderCount() == 0) {
+            return;
+        }
+        View header = leftNavigationView.getHeaderView(0);
+        int initialTopPadding = header.getPaddingTop();
+        ViewCompat.setOnApplyWindowInsetsListener(
+                header,
+                (view, insets) -> {
+                    int statusBarInset = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                    view.setPadding(
+                            view.getPaddingLeft(),
+                            initialTopPadding + statusBarInset,
+                            view.getPaddingRight(),
+                            view.getPaddingBottom());
+                    return insets;
+                });
+        ViewCompat.requestApplyInsets(header);
     }
 
     private static void enableNestedScrollWithinPage(View scrollableView) {
@@ -256,6 +289,9 @@ public final class MainActivity extends AppCompatActivity {
         downloadModelButton.setOnClickListener(v -> onModelButtonClicked());
         translateButton.setOnClickListener(v -> translateMarkdown());
         explainButton.setOnClickListener(v -> openExplainScreen());
+        leftMenuButton.setOnClickListener(v -> mainDrawerLayout.openDrawer(GravityCompat.START));
+        leftNavigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
+        updateVersionMenuItemTitle();
 
         setupSourceSelector();
 
@@ -334,12 +370,6 @@ public final class MainActivity extends AppCompatActivity {
                     @Override
                     public void afterTextChanged(Editable s) {}
                 });
-
-        advancedParametersButton.setOnClickListener(
-                v ->
-                        translationOptionsLauncher.launch(
-                                TranslationOptionsActivity.createIntent(
-                                        this, translationOptionsBuilder().build())));
 
         originalMarkdownInput.addTextChangedListener(
                 new TextWatcher() {
@@ -467,6 +497,59 @@ public final class MainActivity extends AppCompatActivity {
         }
         updateSourceSelectorDrawables(loadUrlSelected);
         exampleSourceContainer.setVisibility(View.VISIBLE);
+    }
+
+    private boolean onDrawerItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_advanced_parameters) {
+            mainDrawerLayout.closeDrawer(GravityCompat.START);
+            translationOptionsLauncher.launch(
+                    TranslationOptionsActivity.createIntent(
+                            this, translationOptionsBuilder().build()));
+            return true;
+        }
+        if (itemId == R.id.menu_help_feedback) {
+            mainDrawerLayout.closeDrawer(GravityCompat.START);
+            openHelpAndFeedback();
+            return true;
+        }
+        if (itemId == R.id.menu_version) {
+            mainDrawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+        return false;
+    }
+
+    private void updateVersionMenuItemTitle() {
+        MenuItem versionItem = leftNavigationView.getMenu().findItem(R.id.menu_version);
+        if (versionItem == null) {
+            return;
+        }
+        versionItem.setTitle(getString(R.string.version_format, resolveVersionName()));
+    }
+
+    private String resolveVersionName() {
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            if (packageInfo.versionName != null && !packageInfo.versionName.isBlank()) {
+                return packageInfo.versionName;
+            }
+        } catch (PackageManager.NameNotFoundException ignored) {
+        }
+        return "unknown";
+    }
+
+    private void openHelpAndFeedback() {
+        Intent emailIntent =
+                new Intent(Intent.ACTION_SENDTO)
+                        .setData(Uri.parse("mailto:"))
+                        .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.feedback_email_subject));
+        if (emailIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(
+                    Intent.createChooser(emailIntent, getString(R.string.feedback_email_chooser)));
+            return;
+        }
+        Toast.makeText(this, R.string.feedback_not_available, Toast.LENGTH_SHORT).show();
     }
 
     private void updateSourceSelectorDrawables(boolean loadUrlSelected) {
