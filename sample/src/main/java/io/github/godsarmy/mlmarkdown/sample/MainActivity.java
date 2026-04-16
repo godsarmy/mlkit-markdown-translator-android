@@ -57,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -207,9 +208,30 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private String wrapHtmlDocument(String body) {
-        return "<html><head><meta charset='utf-8' /><style>body{color:#1D1B20;font-family:sans-serif;padding:0;margin:0;}pre{white-space:pre-wrap;}code{white-space:pre-wrap;}</style></head><body>"
+        String textColor = toCssColor(getColor(R.color.mlkit_on_background));
+        String linkColor = toCssColor(getColor(R.color.mlkit_primary));
+        String codeBackground = toCssColor(getColor(R.color.mlkit_surface));
+        String codeText = toCssColor(getColor(R.color.mlkit_on_surface_variant));
+        return "<html><head><meta charset='utf-8' /><meta name='color-scheme' content='light dark' /><style>"
+                + "body{color:"
+                + textColor
+                + ";font-family:sans-serif;padding:0;margin:0;background:transparent;}"
+                + "a{color:"
+                + linkColor
+                + ";}"
+                + "pre,code{white-space:pre-wrap;background:"
+                + codeBackground
+                + ";color:"
+                + codeText
+                + ";border-radius:8px;}"
+                + "pre{padding:8px;}"
+                + "</style></head><body>"
                 + body
                 + "</body></html>";
+    }
+
+    private static String toCssColor(int colorInt) {
+        return String.format(Locale.US, "#%06X", 0xFFFFFF & colorInt);
     }
 
     private boolean isValidHttpUrl(String value) {
