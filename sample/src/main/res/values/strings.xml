@@ -94,7 +94,7 @@
 	<string name="translated_markdown_label">Translated text</string>
 	<string name="render_mode_switch">Render markdown</string>
 	<string name="advanced_parameters_label">Advanced parameters</string>
-	<string name="manage_models_label">Manage models</string>
+	<string name="manage_models_label">Manage language models</string>
 	<string name="model_management_title">Model management</string>
 	<string name="download_target_model_button">Download target model</string>
 	<string name="delete_target_model_button">Delete target model</string>
@@ -104,13 +104,14 @@
 	<string name="model_download_failed_message">Failed to download model for %1$s</string>
 	<string name="model_delete_success_message">Deleted model for %1$s</string>
 	<string name="model_delete_failed_message">Failed to delete model for %1$s</string>
-	<string name="available_models_label">Available models</string>
-	<string name="downloaded_models_label">Downloaded models</string>
-	<string name="available_models_empty">No models available to download</string>
-	<string name="downloaded_models_empty">No downloaded models</string>
-	<string name="download_model_button">Download selected model</string>
-	<string name="delete_model_button">Delete selected model</string>
-	<string name="model_management_status">Downloaded: %1$d • Available: %2$d</string>
+	<string name="available_models_label">Available to download</string>
+	<string name="downloaded_models_label">Installed on this device</string>
+	<string name="available_models_empty">All supported models are already installed.</string>
+	<string name="downloaded_models_empty">No models installed yet. Select a language above to
+		download.</string>
+	<string name="download_model_button">Download selected language</string>
+	<string name="delete_model_button">Delete selected language</string>
+	<string name="model_management_status">%1$d installed · %2$d available</string>
 	<string name="no_downloaded_models_message">No downloaded language models. Open Manage models
 		to download at least one language.</string>
 	<string name="advanced_parameters_icon_content_description">Open advanced parameters</string>

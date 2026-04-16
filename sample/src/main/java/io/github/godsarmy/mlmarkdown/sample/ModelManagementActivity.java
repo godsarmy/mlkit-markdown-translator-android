@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.mlkit.common.model.DownloadConditions;
 import com.google.mlkit.common.model.RemoteModelManager;
 import com.google.mlkit.nl.translate.TranslateLanguage;
@@ -58,6 +59,8 @@ public final class ModelManagementActivity extends AppCompatActivity {
     }
 
     private void bindViews() {
+        MaterialToolbar toolbar = findViewById(R.id.modelManagementToolbar);
+        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         availableModelsListView = findViewById(R.id.availableModelsList);
         downloadedModelsListView = findViewById(R.id.downloadedModelsList);
         downloadButton = findViewById(R.id.downloadTargetModelButton);
