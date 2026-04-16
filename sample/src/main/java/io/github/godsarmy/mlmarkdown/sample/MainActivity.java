@@ -540,16 +540,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void openHelpAndFeedback() {
-        Intent emailIntent =
-                new Intent(Intent.ACTION_SENDTO)
-                        .setData(Uri.parse("mailto:"))
-                        .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.feedback_email_subject));
-        if (emailIntent.resolveActivity(getPackageManager()) != null) {
-            startActivity(
-                    Intent.createChooser(emailIntent, getString(R.string.feedback_email_chooser)));
-            return;
-        }
-        Toast.makeText(this, R.string.feedback_not_available, Toast.LENGTH_SHORT).show();
+        startActivity(HelpActivity.createIntent(this));
     }
 
     private void updateSourceSelectorDrawables(boolean loadUrlSelected) {

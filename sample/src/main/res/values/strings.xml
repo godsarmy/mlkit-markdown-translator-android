@@ -23,6 +23,24 @@
 	<string name="feedback_email_subject">ML Markdown Translator feedback</string>
 	<string name="feedback_email_chooser">Send feedback</string>
 	<string name="feedback_not_available">No email app available</string>
+	<string name="help_title">Help &amp; Feedback</string>
+	<string name="help_intro">This sample demonstrates Markdown translation with
+		ML Kit while preserving Markdown structure.</string>
+	<string name="help_how_it_works_title">How translation works</string>
+	<string name="help_how_it_works_body">• Parses Markdown into an AST/token stream\n•
+		Translates only human-readable text\n• Preserves code blocks, links,
+		URLs, and layout\n• Rebuilds Markdown in original structure\n• Falls
+		back to regex protection when AST preparation fails</string>
+	<string name="help_api_notes_title">API notes</string>
+	<string name="help_api_notes_body">• Use one MlKitMarkdownTranslator instance per
+		screen scope\n• Download language models before translation\n•
+		explainMarkdown() is local diagnostics and does not call
+		translation\n• close() translator when owner is destroyed</string>
+	<string name="help_project_title">Project page</string>
+	<string name="project_page_url">https://github.com/godsarmy/mlkit-markdown-translator-android</string>
+	<string name="open_project_page">Open project page</string>
+	<string name="project_page_not_available">No browser app available</string>
+	<string name="help_send_feedback">Send feedback</string>
 	<string name="source_selector_action_content_description">Source selector action</string>
 	<string name="load_url_icon_content_description">Load markdown from URL</string>
 	<string name="source_mode_url_load_failed">Unable to load markdown from URL</string>
