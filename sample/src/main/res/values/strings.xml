@@ -4,7 +4,28 @@
 	<string name="sample_title">ML Markdown Translator Example</string>
 	<string name="status_idle">Status: idle</string>
 	<string name="source_markdown_label">Source markdown</string>
+	<string name="label_output_markdown">Translated markdown</string>
 	<string name="markdown_sample_label">Markdown sample</string>
+	<string name="source_mode_button">Source</string>
+	<string name="source_mode_example">Example markdown</string>
+	<string name="source_mode_file">Local File</string>
+	<string name="source_mode_url">URL</string>
+	<string name="source_action_pick">Pick</string>
+	<string name="source_action_load">Load</string>
+	<string name="source_file_none">No file selected</string>
+	<string name="source_url_hint">https://example.com/readme.md</string>
+	<string name="source_mode_invalid_url">Enter a valid http(s) URL</string>
+	<string name="source_selector_load_url">Load from URL</string>
+	<string name="source_selector_action_content_description">Source selector action</string>
+	<string name="load_url_icon_content_description">Load markdown from URL</string>
+	<string name="source_mode_url_load_failed">Unable to load markdown from URL</string>
+	<string name="load_markdown_file">Load markdown file</string>
+	<string name="markdown_url_hint">https://example.com/readme.md</string>
+	<string name="load_markdown_url">Load markdown from URL</string>
+	<string name="error_markdown_file_empty">Selected file is empty.</string>
+	<string name="error_markdown_file_load">Unable to read markdown file.</string>
+	<string name="error_markdown_url_empty">Enter a markdown URL.</string>
+	<string name="error_markdown_url_load">Unable to load markdown from URL.</string>
 	<string name="source_language_label">Source language</string>
 	<string name="target_language_label">Target language</string>
 	<string name="download_model">Download model</string>
@@ -85,6 +106,7 @@
 		<item>basic-syntax-edge-cases.md</item>
 		<item>mixed-worst-case.md</item>
 		<item>huge-document.md</item>
+		<item>full-markdown.md</item>
 	</string-array>
 
 	<string-array name="language_codes">

@@ -1,24 +1,36 @@
 package io.github.godsarmy.mlmarkdown.sample;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
-import android.text.method.ScrollingMovementMethod;
+import android.text.method.KeyListener;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.mlkit.common.model.DownloadConditions;
@@ -28,27 +40,43 @@ import com.google.mlkit.nl.translate.TranslateRemoteModel;
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
-import io.noties.markwon.Markwon;
-import io.noties.markwon.ext.tables.TablePlugin;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 
 public final class MainActivity extends AppCompatActivity {
+    private enum SourceEntryType {
+        SAMPLE,
+        LOAD_URL
+    }
+
     private MlKitMarkdownTranslator translator;
     private final RemoteModelManager remoteModelManager = RemoteModelManager.getInstance();
     private final DownloadConditions downloadConditions = new DownloadConditions.Builder().build();
-    private Markwon markwon;
 
     private EditText originalMarkdownInput;
     private EditText translatedMarkdownRaw;
-    private TextView originalMarkdownRendered;
-    private TextView translatedMarkdownRendered;
-    private SwitchMaterial renderModeSwitch;
+    private WebView inputRenderedHtml;
+    private WebView outputRenderedHtml;
+    private SwitchMaterial renderModeToggle;
     private MaterialButton advancedParametersButton;
     private Spinner sourceLanguageSpinner;
     private Spinner targetLanguageSpinner;
-    private Spinner markdownSampleSpinner;
+    private AppCompatAutoCompleteTextView sampleAssetInput;
+    private View exampleSourceContainer;
     private ImageButton translationErrorButton;
     private View translationProgressContainer;
     private TextView translationResultText;
@@ -73,7 +101,14 @@ public final class MainActivity extends AppCompatActivity {
     private String latestTranslationError;
     @Nullable private TranslationTimingReport latestTimingReport;
     private final Set<String> downloadedTargetModels = new HashSet<>();
+    private final ExecutorService sourceLoaderExecutor = Executors.newSingleThreadExecutor();
     private ActivityResultLauncher<Intent> translationOptionsLauncher;
+    private boolean isSourceLoading;
+    private final List<SourceSelectorEntry> sourceEntries = new ArrayList<>();
+    private int selectedSourcePosition;
+    @Nullable private KeyListener sampleAssetInputKeyListener;
+    private final Parser markdownParser = Parser.builder().build();
+    private final HtmlRenderer htmlRenderer = HtmlRenderer.builder().build();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -81,8 +116,6 @@ public final class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         translator = createTranslator();
-        markwon = Markwon.builder(this).usePlugin(TablePlugin.create(this)).build();
-
         bindViews();
         registerTranslationOptionsLauncher();
         setupLanguageSpinners();
@@ -92,13 +125,14 @@ public final class MainActivity extends AppCompatActivity {
     private void bindViews() {
         originalMarkdownInput = findViewById(R.id.originalMarkdownInput);
         translatedMarkdownRaw = findViewById(R.id.translatedMarkdownRaw);
-        originalMarkdownRendered = findViewById(R.id.originalMarkdownRendered);
-        translatedMarkdownRendered = findViewById(R.id.translatedMarkdownRendered);
-        renderModeSwitch = findViewById(R.id.renderModeSwitch);
+        inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
+        outputRenderedHtml = findViewById(R.id.outputRenderedHtml);
+        renderModeToggle = findViewById(R.id.renderModeToggle);
         advancedParametersButton = findViewById(R.id.advancedParametersButton);
         sourceLanguageSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetLanguageSpinner = findViewById(R.id.targetLanguageSpinner);
-        markdownSampleSpinner = findViewById(R.id.markdownSampleSpinner);
+        sampleAssetInput = findViewById(R.id.sampleAssetInput);
+        exampleSourceContainer = findViewById(R.id.exampleSourceContainer);
         translationErrorButton = findViewById(R.id.translationErrorButton);
         translationProgressContainer = findViewById(R.id.translationProgressContainer);
         translationResultText = findViewById(R.id.translationResultText);
@@ -106,15 +140,16 @@ public final class MainActivity extends AppCompatActivity {
         translateButton = findViewById(R.id.translateButton);
         explainButton = findViewById(R.id.explainButton);
 
-        originalMarkdownRendered.setMovementMethod(new ScrollingMovementMethod());
-        translatedMarkdownRendered.setMovementMethod(new ScrollingMovementMethod());
+        setupWebView(inputRenderedHtml);
+        setupWebView(outputRenderedHtml);
 
         enableNestedScrollWithinPage(originalMarkdownInput);
         enableNestedScrollWithinPage(translatedMarkdownRaw);
-        enableNestedScrollWithinPage(originalMarkdownRendered);
-        enableNestedScrollWithinPage(translatedMarkdownRendered);
+        enableNestedScrollWithinPage(inputRenderedHtml);
+        enableNestedScrollWithinPage(outputRenderedHtml);
 
         translationErrorButton.setOnClickListener(v -> showTranslationErrorDialog());
+        sampleAssetInputKeyListener = sampleAssetInput.getKeyListener();
     }
 
     private static void enableNestedScrollWithinPage(View scrollableView) {
@@ -130,6 +165,38 @@ public final class MainActivity extends AppCompatActivity {
                 });
     }
 
+    private void setupWebView(WebView webView) {
+        webView.setBackgroundColor(0x00000000);
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(false);
+        settings.setDomStorageEnabled(false);
+    }
+
+    private void renderMarkdownToWebView(WebView webView, String markdown) {
+        Node node = markdownParser.parse(markdown == null ? "" : markdown);
+        String html = htmlRenderer.render(node);
+        webView.loadDataWithBaseURL(null, wrapHtmlDocument(html), "text/html", "utf-8", null);
+    }
+
+    private String wrapHtmlDocument(String body) {
+        return "<html><head><meta charset='utf-8' /><style>body{color:#1D1B20;font-family:sans-serif;padding:0;margin:0;}pre{white-space:pre-wrap;}code{white-space:pre-wrap;}</style></head><body>"
+                + body
+                + "</body></html>";
+    }
+
+    private boolean isValidHttpUrl(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return false;
+        }
+        try {
+            Uri uri = Uri.parse(value);
+            String scheme = uri.getScheme();
+            return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
     private void setupLanguageSpinners() {
         ArrayAdapter<CharSequence> adapter =
                 ArrayAdapter.createFromResource(
@@ -142,23 +209,92 @@ public final class MainActivity extends AppCompatActivity {
         targetLanguageSpinner.setSelection(1); // es
     }
 
+    private void setupSourceSelector() {
+        sourceEntries.clear();
+        String[] sampleLabels = getResources().getStringArray(R.array.markdown_sample_options);
+        for (int i = 0; i < sampleLabels.length; i++) {
+            sourceEntries.add(
+                    new SourceSelectorEntry(
+                            sampleLabels[i],
+                            R.drawable.ic_source_sample,
+                            SourceEntryType.SAMPLE,
+                            i));
+        }
+        sourceEntries.add(
+                new SourceSelectorEntry(
+                        getString(R.string.source_selector_load_url),
+                        R.drawable.ic_source_url,
+                        SourceEntryType.LOAD_URL,
+                        -1));
+        SourceSelectorAdapter adapter = new SourceSelectorAdapter();
+        sampleAssetInput.setAdapter(adapter);
+        sampleAssetInput.setOnItemClickListener(
+                (parent, view, position, id) -> {
+                    selectedSourcePosition = position;
+                    SourceSelectorEntry entry = sourceEntryAt(position);
+                    if (entry.type == SourceEntryType.SAMPLE && entry.sampleIndex >= 0) {
+                        loadSelectedMarkdownSample(entry.sampleIndex);
+                    } else if (entry.type == SourceEntryType.LOAD_URL) {
+                        sampleAssetInput.setText("", false);
+                    }
+                    updateSourceInputState();
+                });
+    }
+
+    private SourceSelectorEntry sourceEntryAt(int position) {
+        if (position < 0 || position >= sourceEntries.size()) {
+            return sourceEntries.get(0);
+        }
+        return sourceEntries.get(position);
+    }
+
+    private boolean isLoadUrlSelected() {
+        return sourceEntryAt(selectedSourcePosition).type == SourceEntryType.LOAD_URL;
+    }
+
     private void setupActions() {
         downloadModelButton.setOnClickListener(v -> onModelButtonClicked());
         translateButton.setOnClickListener(v -> translateMarkdown());
         explainButton.setOnClickListener(v -> openExplainScreen());
 
-        markdownSampleSpinner.setOnItemSelectedListener(
-                new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(
-                            AdapterView<?> parent, View view, int position, long id) {
-                        loadSelectedMarkdownSample(position);
-                    }
+        setupSourceSelector();
 
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-                        // no-op
+        sampleAssetInput.setOnTouchListener(
+                (v, event) -> {
+                    if (event.getAction() != MotionEvent.ACTION_UP) {
+                        return false;
                     }
+                    if (isTapOnEndDrawable(sampleAssetInput, event)) {
+                        sampleAssetInput.showDropDown();
+                        return true;
+                    }
+                    if (isLoadUrlSelected() && isTapOnStartDrawable(sampleAssetInput, event)) {
+                        loadMarkdownFromUrlInput();
+                        return true;
+                    }
+                    return false;
+                });
+
+        sampleAssetInput.setOnClickListener(
+                v -> {
+                    if (!isLoadUrlSelected()) {
+                        sampleAssetInput.showDropDown();
+                    }
+                });
+
+        sampleAssetInput.setOnEditorActionListener(
+                (v, actionId, event) -> {
+                    if (!isLoadUrlSelected()) {
+                        return false;
+                    }
+                    if (actionId == EditorInfo.IME_ACTION_GO
+                            || actionId == EditorInfo.IME_ACTION_DONE
+                            || actionId == EditorInfo.IME_ACTION_SEND
+                            || actionId == EditorInfo.IME_NULL) {
+                        loadMarkdownFromUrlInput();
+                        return true;
+                    }
+                    return false;
                 });
 
         targetLanguageSpinner.setOnItemSelectedListener(
@@ -175,10 +311,28 @@ public final class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        renderModeSwitch.setOnCheckedChangeListener(
+        renderModeToggle.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> {
                     isRenderMode = isChecked;
                     applyRenderMode();
+                });
+
+        sampleAssetInput.addTextChangedListener(
+                new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(
+                            CharSequence s, int start, int count, int after) {}
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        if (isLoadUrlSelected()) {
+                            sampleAssetInput.dismissDropDown();
+                        }
+                        updateSourceInputState();
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {}
                 });
 
         advancedParametersButton.setOnClickListener(
@@ -199,25 +353,28 @@ public final class MainActivity extends AppCompatActivity {
                     @Override
                     public void afterTextChanged(Editable s) {
                         if (isRenderMode) {
-                            markwon.setMarkdown(originalMarkdownRendered, s.toString());
+                            renderMarkdownToWebView(inputRenderedHtml, s.toString());
                         }
                         updateExplainButtonState();
                     }
                 });
 
         refreshDownloadedModelsAndButtonState();
-        loadSelectedMarkdownSample(markdownSampleSpinner.getSelectedItemPosition());
+        selectedSourcePosition = 0;
+        sampleAssetInput.setText(sourceEntryAt(selectedSourcePosition).label, false);
+        loadSelectedMarkdownSample(0);
         applyRenderMode();
         updateExplainButtonState();
+        updateSourceInputState();
     }
 
     private void loadSelectedMarkdownSample(int position) {
         String markdown = markdownSampleAt(position).load(this);
         originalMarkdownInput.setText(markdown);
         translatedMarkdownRaw.setText("");
-        translatedMarkdownRendered.setText("");
         if (isRenderMode) {
-            markwon.setMarkdown(originalMarkdownRendered, markdown);
+            renderMarkdownToWebView(inputRenderedHtml, markdown);
+            renderMarkdownToWebView(outputRenderedHtml, "");
         }
     }
 
@@ -229,7 +386,8 @@ public final class MainActivity extends AppCompatActivity {
                         new MarkdownSample("markdown/complex-structure.md"),
                         new MarkdownSample("markdown/basic-syntax-edge-cases.md"),
                         new MarkdownSample("markdown/mixed-worst-case.md"),
-                        new MarkdownSample("markdown/huge-document.md"));
+                        new MarkdownSample("markdown/huge-document.md"),
+                        new MarkdownSample("markdown/full-markdown.md"));
         if (position < 0 || position >= samples.size()) {
             return samples.get(0);
         }
@@ -245,13 +403,13 @@ public final class MainActivity extends AppCompatActivity {
             originalMarkdownInput.setFocusable(false);
             originalMarkdownInput.setFocusableInTouchMode(false);
             originalMarkdownInput.setVisibility(View.GONE);
-            originalMarkdownRendered.setVisibility(View.VISIBLE);
+            inputRenderedHtml.setVisibility(View.VISIBLE);
 
             translatedMarkdownRaw.setVisibility(View.GONE);
-            translatedMarkdownRendered.setVisibility(View.VISIBLE);
+            outputRenderedHtml.setVisibility(View.VISIBLE);
 
-            markwon.setMarkdown(originalMarkdownRendered, original);
-            markwon.setMarkdown(translatedMarkdownRendered, translated);
+            renderMarkdownToWebView(inputRenderedHtml, original);
+            renderMarkdownToWebView(outputRenderedHtml, translated);
             return;
         }
 
@@ -259,10 +417,10 @@ public final class MainActivity extends AppCompatActivity {
         originalMarkdownInput.setFocusable(true);
         originalMarkdownInput.setFocusableInTouchMode(true);
         originalMarkdownInput.setVisibility(View.VISIBLE);
-        originalMarkdownRendered.setVisibility(View.GONE);
+        inputRenderedHtml.setVisibility(View.GONE);
 
         translatedMarkdownRaw.setVisibility(View.VISIBLE);
-        translatedMarkdownRendered.setVisibility(View.GONE);
+        outputRenderedHtml.setVisibility(View.GONE);
     }
 
     private void setBusy(boolean busy) {
@@ -271,6 +429,75 @@ public final class MainActivity extends AppCompatActivity {
         updateTranslateButtonState();
         updateExplainButtonState();
         updateTranslationProgressState();
+        updateSourceInputState();
+    }
+
+    private void setSourceLoading(boolean loading) {
+        isSourceLoading = loading;
+        updateSourceInputState();
+    }
+
+    private void updateSourceInputState() {
+        boolean enabled = !isBusy && !isSourceLoading;
+        boolean loadUrlSelected = isLoadUrlSelected();
+        sampleAssetInput.setEnabled(enabled);
+        sampleAssetInput.setFocusable(loadUrlSelected && enabled);
+        sampleAssetInput.setFocusableInTouchMode(loadUrlSelected && enabled);
+        sampleAssetInput.setCursorVisible(loadUrlSelected && enabled);
+        sampleAssetInput.setKeyListener(loadUrlSelected ? sampleAssetInputKeyListener : null);
+        sampleAssetInput.setThreshold(loadUrlSelected ? Integer.MAX_VALUE : 0);
+        sampleAssetInput.setInputType(
+                loadUrlSelected
+                        ? InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI
+                        : InputType.TYPE_NULL);
+        if (loadUrlSelected) {
+            sampleAssetInput.setHint(R.string.source_url_hint);
+            sampleAssetInput.setImeOptions(EditorInfo.IME_ACTION_GO);
+            sampleAssetInput.setImeActionLabel(
+                    getString(R.string.source_action_load), EditorInfo.IME_ACTION_GO);
+        } else {
+            sampleAssetInput.dismissDropDown();
+            sampleAssetInput.setHint(null);
+            sampleAssetInput.setImeActionLabel(null, EditorInfo.IME_ACTION_NONE);
+            sampleAssetInput.setImeOptions(EditorInfo.IME_ACTION_NONE);
+            String label = sourceEntryAt(selectedSourcePosition).label;
+            if (!label.contentEquals(sampleAssetInput.getText())) {
+                sampleAssetInput.setText(label, false);
+            }
+        }
+        updateSourceSelectorDrawables(loadUrlSelected);
+        exampleSourceContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void updateSourceSelectorDrawables(boolean loadUrlSelected) {
+        SourceSelectorEntry entry = sourceEntryAt(selectedSourcePosition);
+        int leftIcon = loadUrlSelected ? R.drawable.ic_source_url : entry.iconRes;
+        int rightIcon = R.drawable.ic_source_dropdown;
+        sampleAssetInput.setCompoundDrawablesRelativeWithIntrinsicBounds(leftIcon, 0, rightIcon, 0);
+        sampleAssetInput.setCompoundDrawableTintList(
+                ColorStateList.valueOf(getColor(R.color.mlkit_on_surface_variant)));
+    }
+
+    private static boolean isTapOnStartDrawable(TextView textView, MotionEvent event) {
+        android.graphics.drawable.Drawable[] drawables = textView.getCompoundDrawablesRelative();
+        android.graphics.drawable.Drawable startDrawable = drawables[0];
+        if (startDrawable == null) {
+            return false;
+        }
+        int drawableWidth = startDrawable.getBounds().width();
+        int drawableEnd = textView.getPaddingStart() + drawableWidth;
+        return event.getX() <= drawableEnd;
+    }
+
+    private static boolean isTapOnEndDrawable(TextView textView, MotionEvent event) {
+        android.graphics.drawable.Drawable[] drawables = textView.getCompoundDrawablesRelative();
+        android.graphics.drawable.Drawable endDrawable = drawables[2];
+        if (endDrawable == null) {
+            return false;
+        }
+        int drawableWidth = endDrawable.getBounds().width();
+        int drawableStart = textView.getWidth() - textView.getPaddingEnd() - drawableWidth;
+        return event.getX() >= drawableStart;
     }
 
     private void updateTranslationProgressState() {
@@ -487,6 +714,97 @@ public final class MainActivity extends AppCompatActivity {
                         });
     }
 
+    private void loadMarkdownFromUrlInput() {
+        String url = sampleAssetInput.getText().toString().trim();
+        if (!isValidHttpUrl(url)) {
+            Toast.makeText(this, R.string.source_mode_invalid_url, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        setSourceLoading(true);
+        sourceLoaderExecutor.execute(
+                () -> {
+                    try {
+                        String markdown = readUrlContent(url);
+                        if (markdown.isBlank()) {
+                            throw new IOException(getString(R.string.error_markdown_url_load));
+                        }
+                        runOnUiThread(() -> applyLoadedMarkdown(markdown));
+                    } catch (IOException e) {
+                        runOnUiThread(
+                                () ->
+                                        Toast.makeText(
+                                                        this,
+                                                        readErrorMessage(
+                                                                e,
+                                                                R.string.error_markdown_url_load),
+                                                        Toast.LENGTH_SHORT)
+                                                .show());
+                    } finally {
+                        runOnUiThread(() -> setSourceLoading(false));
+                    }
+                });
+    }
+
+    private void applyLoadedMarkdown(String markdown) {
+        originalMarkdownInput.setText(markdown);
+        translatedMarkdownRaw.setText("");
+        if (isRenderMode) {
+            renderMarkdownToWebView(inputRenderedHtml, markdown);
+            renderMarkdownToWebView(outputRenderedHtml, "");
+        }
+        clearTranslationError();
+        clearTranslationResult();
+    }
+
+    private String readUrlContent(String urlValue) throws IOException {
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL(urlValue);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(15000);
+            connection.connect();
+
+            int statusCode = connection.getResponseCode();
+            if (statusCode < 200 || statusCode >= 300) {
+                throw new IOException("HTTP " + statusCode);
+            }
+
+            try (InputStream inputStream = connection.getInputStream()) {
+                return readText(inputStream).trim();
+            }
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    private static String readText(InputStream inputStream) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        try (BufferedReader reader =
+                new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (builder.length() > 0) {
+                    builder.append('\n');
+                }
+                builder.append(line);
+            }
+        }
+        return builder.toString();
+    }
+
+    private String readErrorMessage(IOException error, int fallbackResId) {
+        String message = error.getMessage();
+        if (message == null || message.isBlank()) {
+            return getString(fallbackResId);
+        }
+        return message;
+    }
+
     private void applyTranslationOptions(MarkdownTranslationOptions options) {
         preserveNewlines = options.preserveNewlines();
         preserveListPrefixes = options.preserveListPrefixes();
@@ -576,8 +894,7 @@ public final class MainActivity extends AppCompatActivity {
                                 () -> {
                                     translatedMarkdownRaw.setText(translatedText);
                                     if (isRenderMode) {
-                                        markwon.setMarkdown(
-                                                translatedMarkdownRendered, translatedText);
+                                        renderMarkdownToWebView(outputRenderedHtml, translatedText);
                                     }
 
                                     TranslationTimingReport report = latestTimingReport;
@@ -661,8 +978,87 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         dismissDownloadProgressDialog();
+        sourceLoaderExecutor.shutdownNow();
         super.onDestroy();
         translator.close();
+    }
+
+    private static final class SourceSelectorEntry {
+        private final String label;
+        private final int iconRes;
+        private final SourceEntryType type;
+        private final int sampleIndex;
+
+        private SourceSelectorEntry(
+                String label, int iconRes, SourceEntryType type, int sampleIndex) {
+            this.label = label;
+            this.iconRes = iconRes;
+            this.type = type;
+            this.sampleIndex = sampleIndex;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
+    private final class SourceSelectorAdapter extends ArrayAdapter<SourceSelectorEntry>
+            implements ListAdapter {
+        private final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+
+        private SourceSelectorAdapter() {
+            super(MainActivity.this, R.layout.item_source_selector_selected, sourceEntries);
+        }
+
+        @Override
+        public int getCount() {
+            return sourceEntries.size();
+        }
+
+        @Override
+        public SourceSelectorEntry getItem(int position) {
+            return sourceEntryAt(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view =
+                    convertView != null
+                            ? convertView
+                            : inflater.inflate(
+                                    R.layout.item_source_selector_dropdown, parent, false);
+            bindRow(view, sourceEntryAt(position), position == sourceEntries.size() - 1);
+            return view;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            View view =
+                    convertView != null
+                            ? convertView
+                            : inflater.inflate(
+                                    R.layout.item_source_selector_dropdown, parent, false);
+            bindRow(view, sourceEntryAt(position), position == sourceEntries.size() - 1);
+            return view;
+        }
+
+        private void bindRow(View row, SourceSelectorEntry entry, boolean showDivider) {
+            ImageView icon = row.findViewById(R.id.sourceSelectorIcon);
+            TextView text = row.findViewById(R.id.sourceSelectorText);
+            icon.setImageResource(entry.iconRes);
+            text.setText(entry.label);
+
+            View divider = row.findViewById(R.id.sourceSelectorDivider);
+            if (divider != null) {
+                divider.setVisibility(showDivider ? View.VISIBLE : View.GONE);
+            }
+        }
     }
 
     private static final class MarkdownSample {
