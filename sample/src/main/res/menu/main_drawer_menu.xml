@@ -4,6 +4,10 @@
 		android:icon="@drawable/ic_marker_config"
 		android:title="@string/advanced_parameters_label" />
 
+	<item android:id="@+id/menu_manage_models"
+		android:icon="@drawable/ic_model_download"
+		android:title="@string/manage_models_label" />
+
 	<item android:id="@+id/menu_help_feedback"
 		android:icon="@drawable/ic_help_feedback"
 		android:title="@string/help_feedback_label" />

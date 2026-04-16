@@ -17,6 +17,9 @@
 		<activity android:name=".TranslationOptionsActivity"
 			android:exported="false"
 			android:label="@string/translation_options_title" />
+		<activity android:name=".ModelManagementActivity"
+			android:exported="false"
+			android:label="@string/model_management_title" />
 		<activity android:name=".MainActivity"
 			android:exported="true">
 			<intent-filter>
