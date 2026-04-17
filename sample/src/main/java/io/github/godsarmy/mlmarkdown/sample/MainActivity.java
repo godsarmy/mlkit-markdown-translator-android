@@ -201,6 +201,9 @@ public final class MainActivity extends AppCompatActivity {
 
     private void setupWebView(WebView webView) {
         webView.setBackgroundColor(0x00000000);
+        webView.setVerticalScrollBarEnabled(false);
+        webView.setHorizontalScrollBarEnabled(false);
+        webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(false);
         settings.setDomStorageEnabled(false);
@@ -605,7 +608,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void updateTranslationProgressState() {
-        translationProgressContainer.setVisibility(isTranslating ? View.VISIBLE : View.GONE);
+        translationProgressContainer.setVisibility(isTranslating ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void updateTranslateButtonState() {
@@ -976,7 +979,7 @@ public final class MainActivity extends AppCompatActivity {
 
     private void clearTranslationResult() {
         translationResultText.setText("");
-        translationResultText.setVisibility(View.GONE);
+        translationResultText.setVisibility(View.INVISIBLE);
     }
 
     private void showTranslationError(String details) {
