@@ -58,7 +58,7 @@ dependencies {
 }
 ```
 
-### Option B: JitPack (`0.8.6`)
+### Option B: JitPack (`0.8.7`)
 
 JitPack page: https://jitpack.io/#godsarmy/mlkit-markdown-translator-android
 
@@ -70,7 +70,7 @@ repositories {
 }
 
 dependencies {
-    implementation "com.github.godsarmy:mlkit-markdown-translator-android:0.8.6"
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:0.8.7"
 }
 ```
 
@@ -84,7 +84,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.godsarmy:mlkit-markdown-translator-android:0.8.6")
+    implementation("com.github.godsarmy:mlkit-markdown-translator-android:0.8.7")
 }
 ```
 
@@ -106,7 +106,7 @@ If integrating via **JitPack/artifact**, pin ML Kit in app dependencies:
 
 ```gradle
 dependencies {
-    implementation "com.github.godsarmy:mlkit-markdown-translator-android:0.8.6"
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:0.8.7"
     implementation "com.google.mlkit:translate:17.0.4"
 }
 ```
