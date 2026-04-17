@@ -61,6 +61,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.commonmark.Extension;
+import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
@@ -114,8 +116,11 @@ public final class MainActivity extends AppCompatActivity {
     private final List<SourceSelectorEntry> sourceEntries = new ArrayList<>();
     private int selectedSourcePosition;
     @Nullable private KeyListener sampleAssetInputKeyListener;
-    private final Parser markdownParser = Parser.builder().build();
-    private final HtmlRenderer htmlRenderer = HtmlRenderer.builder().build();
+    private static final List<Extension> MARKDOWN_EXTENSIONS =
+            Collections.singletonList(TablesExtension.create());
+    private final Parser markdownParser = Parser.builder().extensions(MARKDOWN_EXTENSIONS).build();
+    private final HtmlRenderer htmlRenderer =
+            HtmlRenderer.builder().extensions(MARKDOWN_EXTENSIONS).build();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -212,6 +217,8 @@ public final class MainActivity extends AppCompatActivity {
         String linkColor = toCssColor(getColor(R.color.mlkit_primary));
         String codeBackground = toCssColor(getColor(R.color.mlkit_code_block_bg));
         String codeText = toCssColor(getColor(R.color.mlkit_on_surface_variant));
+        String tableBorder = toCssColor(getColor(R.color.mlkit_outline));
+        String tableHeaderBackground = toCssColor(getColor(R.color.mlkit_surface));
         return "<html><head><meta charset='utf-8' /><meta name='color-scheme' content='light dark' /><style>"
                 + "body{color:"
                 + textColor
@@ -226,6 +233,13 @@ public final class MainActivity extends AppCompatActivity {
                 + ";border-radius:8px;}"
                 + "code{padding:0.15em 0.35em;}"
                 + "pre{padding:8px;}"
+                + "table{border-collapse:collapse;width:100%;margin:8px 0;display:block;overflow-x:auto;}"
+                + "th,td{border:1px solid "
+                + tableBorder
+                + ";padding:6px 8px;text-align:left;}"
+                + "th{background:"
+                + tableHeaderBackground
+                + ";}"
                 + "</style></head><body>"
                 + body
                 + "</body></html>";
