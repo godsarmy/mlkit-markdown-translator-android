@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -20,9 +21,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public final class ModelManagementActivity extends AppCompatActivity {
+    private static final String BUILT_IN_LANGUAGE = TranslateLanguage.ENGLISH;
+
     private final RemoteModelManager remoteModelManager = RemoteModelManager.getInstance();
     private final DownloadConditions downloadConditions = new DownloadConditions.Builder().build();
     private final List<String> supportedLanguages = new ArrayList<>();
@@ -77,14 +81,82 @@ public final class ModelManagementActivity extends AppCompatActivity {
     private void setupLanguageLists() {
         availableModelsAdapter =
                 new ArrayAdapter<>(
-                        this, android.R.layout.simple_list_item_single_choice, availableModels);
+                        this, android.R.layout.simple_list_item_single_choice, availableModels) {
+                    @Override
+                    public View getView(
+                            int position, @Nullable View convertView, ViewGroup parent) {
+                        View view = super.getView(position, convertView, parent);
+                        bindDisplayLabel(view, getItem(position));
+                        return view;
+                    }
+
+                    @Override
+                    public View getDropDownView(
+                            int position, @Nullable View convertView, ViewGroup parent) {
+                        View view = super.getDropDownView(position, convertView, parent);
+                        bindDisplayLabel(view, getItem(position));
+                        return view;
+                    }
+                };
         downloadedModelsAdapter =
                 new ArrayAdapter<>(
                         this,
                         android.R.layout.simple_list_item_single_choice,
-                        downloadedModelsList);
+                        downloadedModelsList) {
+                    @Override
+                    public boolean areAllItemsEnabled() {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isEnabled(int position) {
+                        String language = getItem(position);
+                        return !BUILT_IN_LANGUAGE.equals(normalizeLanguageCode(language));
+                    }
+
+                    @Override
+                    public View getView(
+                            int position, @Nullable View convertView, ViewGroup parent) {
+                        View view = super.getView(position, convertView, parent);
+                        bindDisplayLabel(view, getItem(position));
+                        boolean enabled = isEnabled(position);
+                        view.setEnabled(enabled);
+                        view.setAlpha(enabled ? 1f : 0.45f);
+                        return view;
+                    }
+
+                    @Override
+                    public View getDropDownView(
+                            int position, @Nullable View convertView, ViewGroup parent) {
+                        View view = super.getDropDownView(position, convertView, parent);
+                        bindDisplayLabel(view, getItem(position));
+                        boolean enabled = isEnabled(position);
+                        view.setEnabled(enabled);
+                        view.setAlpha(enabled ? 1f : 0.45f);
+                        return view;
+                    }
+                };
         availableModelsListView.setAdapter(availableModelsAdapter);
         downloadedModelsListView.setAdapter(downloadedModelsAdapter);
+    }
+
+    private void bindDisplayLabel(View view, @Nullable String language) {
+        if (!(view instanceof TextView) || language == null) {
+            return;
+        }
+        ((TextView) view).setText(formatLanguageLabel(language));
+    }
+
+    private String formatLanguageLabel(String languageCode) {
+        String normalized = normalizeLanguageCode(languageCode);
+        if (normalized == null) {
+            return languageCode;
+        }
+        String displayName = new Locale(normalized).getDisplayLanguage(Locale.getDefault());
+        if (displayName == null || displayName.trim().isEmpty()) {
+            return languageCode;
+        }
+        return displayName + " (" + languageCode + ")";
     }
 
     private void setupActions() {
@@ -133,7 +205,9 @@ public final class ModelManagementActivity extends AppCompatActivity {
 
         for (String language : supportedLanguages) {
             String normalized = normalizeLanguageCode(language);
-            if (normalized != null && downloadedModels.contains(normalized)) {
+            if (BUILT_IN_LANGUAGE.equals(normalized)) {
+                downloadedModelsList.add(language);
+            } else if (normalized != null && downloadedModels.contains(normalized)) {
                 downloadedModelsList.add(language);
             } else {
                 availableModels.add(language);
@@ -146,8 +220,9 @@ public final class ModelManagementActivity extends AppCompatActivity {
         }
         if (selectedDownloadedLanguage == null
                 || !downloadedModelsList.contains(selectedDownloadedLanguage)) {
-            selectedDownloadedLanguage =
-                    downloadedModelsList.isEmpty() ? null : downloadedModelsList.get(0);
+            selectedDownloadedLanguage = firstDeletableDownloadedLanguage();
+        } else if (BUILT_IN_LANGUAGE.equals(normalizeLanguageCode(selectedDownloadedLanguage))) {
+            selectedDownloadedLanguage = firstDeletableDownloadedLanguage();
         }
 
         availableModelsAdapter.notifyDataSetChanged();
@@ -155,6 +230,16 @@ public final class ModelManagementActivity extends AppCompatActivity {
         updateListSelection(availableModelsListView, availableModels, selectedAvailableLanguage);
         updateListSelection(
                 downloadedModelsListView, downloadedModelsList, selectedDownloadedLanguage);
+    }
+
+    @Nullable
+    private String firstDeletableDownloadedLanguage() {
+        for (String language : downloadedModelsList) {
+            if (!BUILT_IN_LANGUAGE.equals(normalizeLanguageCode(language))) {
+                return language;
+            }
+        }
+        return null;
     }
 
     private static void updateListSelection(
@@ -176,7 +261,10 @@ public final class ModelManagementActivity extends AppCompatActivity {
 
     private void updateUiState() {
         boolean hasAvailableSelection = selectedAvailableLanguage != null;
-        boolean hasDownloadedSelection = selectedDownloadedLanguage != null;
+        boolean hasDownloadedSelection =
+                selectedDownloadedLanguage != null
+                        && !BUILT_IN_LANGUAGE.equals(
+                                normalizeLanguageCode(selectedDownloadedLanguage));
 
         operationProgress.setVisibility(isBusy ? View.VISIBLE : View.GONE);
         availableModelsListView.setEnabled(!isBusy);
@@ -248,6 +336,10 @@ public final class ModelManagementActivity extends AppCompatActivity {
         String language = selectedDownloadedLanguage;
         String normalizedLanguageCode = normalizeLanguageCode(language);
         if (normalizedLanguageCode == null) {
+            return;
+        }
+        if (BUILT_IN_LANGUAGE.equals(normalizedLanguageCode)) {
+            Toast.makeText(this, R.string.model_built_in_not_deletable, Toast.LENGTH_SHORT).show();
             return;
         }
 
