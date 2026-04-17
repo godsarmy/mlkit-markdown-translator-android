@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">ML Markdown Translator Example</string>
+	<string name="app_name">ML Markdown Translator</string>
 	<string name="sample_title">ML Markdown Translator Example</string>
 	<string name="status_idle">Status: idle</string>
 	<string name="source_markdown_label">Source markdown</string>
