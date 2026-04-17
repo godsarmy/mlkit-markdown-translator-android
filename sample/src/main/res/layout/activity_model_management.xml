@@ -9,10 +9,12 @@
 		android:id="@+id/modelManagementToolbar"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:background="@color/mlkit_surface"
+		android:background="@android:color/transparent"
 		android:contentInsetStartWithNavigation="0dp"
 		android:paddingHorizontal="16dp"
 		app:navigationIcon="?attr/homeAsUpIndicator"
+		app:titleMarginStart="8dp"
+		app:titleTextAppearance="@style/TextAppearance.MlMarkdown.ToolbarTitle"
 		app:title="@string/manage_models_label" />
 
 	<LinearLayout android:layout_width="match_parent"
