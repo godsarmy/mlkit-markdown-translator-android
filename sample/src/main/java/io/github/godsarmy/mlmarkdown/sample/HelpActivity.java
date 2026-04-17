@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 
 public final class HelpActivity extends AppCompatActivity {
@@ -19,12 +20,18 @@ public final class HelpActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_help);
+        setupToolbar();
 
         MaterialButton openProjectPageButton = findViewById(R.id.openProjectPageButton);
         MaterialButton sendFeedbackButton = findViewById(R.id.sendFeedbackButton);
 
         openProjectPageButton.setOnClickListener(v -> openProjectPage());
         sendFeedbackButton.setOnClickListener(v -> sendFeedback());
+    }
+
+    private void setupToolbar() {
+        MaterialToolbar toolbar = findViewById(R.id.helpToolbar);
+        toolbar.setNavigationOnClickListener(v -> finish());
     }
 
     private void openProjectPage() {

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.widget.EditText;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
@@ -92,9 +93,15 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_translation_options);
+        setupToolbar();
         bindViews();
         populateInitialValues();
         setupActions();
+    }
+
+    private void setupToolbar() {
+        MaterialToolbar toolbar = findViewById(R.id.translationOptionsToolbar);
+        toolbar.setNavigationOnClickListener(v -> finish());
     }
 
     private void bindViews() {

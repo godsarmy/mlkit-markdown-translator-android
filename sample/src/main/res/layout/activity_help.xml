@@ -1,72 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:background="@color/mlkit_bg_canvas" android:fillViewport="true">
+	android:background="@color/mlkit_bg_canvas"
+	android:orientation="vertical">
 
-	<LinearLayout android:layout_width="match_parent"
-		android:layout_height="wrap_content" android:orientation="vertical"
-		android:padding="16dp">
+	<com.google.android.material.appbar.MaterialToolbar
+		android:id="@+id/helpToolbar" android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:background="@android:color/transparent"
+		android:contentInsetStartWithNavigation="0dp"
+		android:paddingHorizontal="16dp"
+		app:navigationIcon="?attr/homeAsUpIndicator"
+		app:title="@string/help_title" app:titleMarginStart="8dp"
+		app:titleTextAppearance="@style/TextAppearance.MlMarkdown.ToolbarTitle" />
 
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:text="@string/help_title"
-			android:textColor="@color/mlkit_on_background"
-			android:textSize="22sp" android:textStyle="bold" />
+	<ScrollView android:layout_width="match_parent"
+		android:layout_height="match_parent" android:fillViewport="true">
 
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="8dp"
-			android:text="@string/help_intro"
-			android:textColor="@color/mlkit_on_surface_variant" />
+		<LinearLayout android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:orientation="vertical"
+			android:paddingHorizontal="16dp" android:paddingBottom="16dp">
 
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="16dp"
-			android:text="@string/help_how_it_works_title"
-			android:textColor="@color/mlkit_on_background"
-			android:textStyle="bold" />
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="8dp"
+				android:text="@string/help_intro"
+				android:textColor="@color/mlkit_on_surface_variant" />
 
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="6dp"
-			android:text="@string/help_how_it_works_body"
-			android:textColor="@color/mlkit_on_surface_variant" />
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:text="@string/help_how_it_works_title"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
 
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="16dp"
-			android:text="@string/help_api_notes_title"
-			android:textColor="@color/mlkit_on_background"
-			android:textStyle="bold" />
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="6dp"
+				android:text="@string/help_how_it_works_body"
+				android:textColor="@color/mlkit_on_surface_variant" />
 
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="6dp"
-			android:text="@string/help_api_notes_body"
-			android:textColor="@color/mlkit_on_surface_variant" />
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:text="@string/help_api_notes_title"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
 
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="16dp"
-			android:text="@string/help_project_title"
-			android:textColor="@color/mlkit_on_background"
-			android:textStyle="bold" />
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="6dp"
+				android:text="@string/help_api_notes_body"
+				android:textColor="@color/mlkit_on_surface_variant" />
 
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="6dp"
-			android:text="@string/project_page_url"
-			android:textColor="@color/mlkit_primary" />
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:text="@string/help_project_title"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
 
-		<com.google.android.material.button.MaterialButton
-			android:id="@+id/openProjectPageButton"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="10dp"
-			android:text="@string/open_project_page" android:textAllCaps="false"
-			app:cornerRadius="12dp" />
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="6dp"
+				android:text="@string/project_page_url"
+				android:textColor="@color/mlkit_primary" />
 
-		<com.google.android.material.button.MaterialButton
-			android:id="@+id/sendFeedbackButton"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="10dp"
-			android:text="@string/help_send_feedback" android:textAllCaps="false"
-			app:cornerRadius="12dp" />
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/openProjectPageButton"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:text="@string/open_project_page" android:textAllCaps="false"
+				app:cornerRadius="12dp" />
 
-	</LinearLayout>
-</ScrollView>
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/sendFeedbackButton"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:text="@string/help_send_feedback"
+				android:textAllCaps="false" app:cornerRadius="12dp" />
+
+		</LinearLayout>
+	</ScrollView>
+</LinearLayout>

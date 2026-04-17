@@ -116,7 +116,7 @@
 	<string name="no_downloaded_models_message">No downloaded language models. Open Manage models
 		to download at least one language.</string>
 	<string name="advanced_parameters_icon_content_description">Open advanced parameters</string>
-	<string name="translation_options_title">Advanced translation parameters</string>
+	<string name="translation_options_title">Advanced parameters</string>
 	<string name="translation_options_cancel">Cancel</string>
 	<string name="translation_options_save">Save</string>
 	<string name="label_preserve_newlines">Preserve newlines</string>
