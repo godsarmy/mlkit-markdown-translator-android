@@ -201,9 +201,10 @@ public final class MainActivity extends AppCompatActivity {
 
     private void setupWebView(WebView webView) {
         webView.setBackgroundColor(0x00000000);
-        webView.setVerticalScrollBarEnabled(false);
+        webView.setVerticalScrollBarEnabled(true);
         webView.setHorizontalScrollBarEnabled(false);
-        webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+        webView.setScrollbarFadingEnabled(true);
+        webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(false);
         settings.setDomStorageEnabled(false);
