@@ -1,5 +1,6 @@
 package io.github.godsarmy.mlmarkdown.sample;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -29,11 +30,11 @@ public final class HelpActivity extends AppCompatActivity {
     private void openProjectPage() {
         Intent browserIntent =
                 new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.project_page_url)));
-        if (browserIntent.resolveActivity(getPackageManager()) != null) {
+        try {
             startActivity(browserIntent);
-            return;
+        } catch (ActivityNotFoundException error) {
+            Toast.makeText(this, R.string.project_page_not_available, Toast.LENGTH_SHORT).show();
         }
-        Toast.makeText(this, R.string.project_page_not_available, Toast.LENGTH_SHORT).show();
     }
 
     private void sendFeedback() {
@@ -41,11 +42,11 @@ public final class HelpActivity extends AppCompatActivity {
                 new Intent(Intent.ACTION_SENDTO)
                         .setData(Uri.parse("mailto:"))
                         .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.feedback_email_subject));
-        if (emailIntent.resolveActivity(getPackageManager()) != null) {
+        try {
             startActivity(
                     Intent.createChooser(emailIntent, getString(R.string.feedback_email_chooser)));
-            return;
+        } catch (ActivityNotFoundException error) {
+            Toast.makeText(this, R.string.feedback_not_available, Toast.LENGTH_SHORT).show();
         }
-        Toast.makeText(this, R.string.feedback_not_available, Toast.LENGTH_SHORT).show();
     }
 }
