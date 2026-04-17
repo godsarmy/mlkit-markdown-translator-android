@@ -10,6 +10,7 @@
 	<color name="mlkit_accent_cyan">#00C2FF</color>
 	<color name="mlkit_on_background">#EAF2FF</color>
 	<color name="mlkit_on_surface_variant">#AFC3E8</color>
+	<color name="mlkit_code_block_bg">#212A37</color>
 	<color name="mlkit_error">#EA4335</color>
 	<color name="ic_launcher_bg">#FF12092F</color>
 </resources>

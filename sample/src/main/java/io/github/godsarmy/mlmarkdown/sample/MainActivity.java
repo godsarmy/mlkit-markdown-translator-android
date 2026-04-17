@@ -210,7 +210,7 @@ public final class MainActivity extends AppCompatActivity {
     private String wrapHtmlDocument(String body) {
         String textColor = toCssColor(getColor(R.color.mlkit_on_background));
         String linkColor = toCssColor(getColor(R.color.mlkit_primary));
-        String codeBackground = toCssColor(getColor(R.color.mlkit_surface));
+        String codeBackground = toCssColor(getColor(R.color.mlkit_code_block_bg));
         String codeText = toCssColor(getColor(R.color.mlkit_on_surface_variant));
         return "<html><head><meta charset='utf-8' /><meta name='color-scheme' content='light dark' /><style>"
                 + "body{color:"
@@ -224,6 +224,7 @@ public final class MainActivity extends AppCompatActivity {
                 + ";color:"
                 + codeText
                 + ";border-radius:8px;}"
+                + "code{padding:0.15em 0.35em;}"
                 + "pre{padding:8px;}"
                 + "</style></head><body>"
                 + body
