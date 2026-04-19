@@ -6,38 +6,64 @@
 	android:background="@color/mlkit_bg_canvas"
 	android:orientation="horizontal" android:padding="16dp">
 
-	<FrameLayout android:layout_width="0dp"
+	<LinearLayout android:layout_width="0dp"
 		android:layout_height="match_parent" android:layout_weight="1"
-		android:background="@drawable/preview_box_background"
-		android:padding="12dp">
+		android:orientation="vertical">
 
-		<EditText android:id="@+id/compareSourceText"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:background="@android:color/transparent"
-			android:focusable="false" android:focusableInTouchMode="false"
-			android:gravity="top|start" android:inputType="none"
-			android:padding="0dp" android:scrollbars="vertical"
+		<TextView android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/source_markdown_label"
 			android:textColor="@color/mlkit_on_background"
-			android:textColorHint="@color/mlkit_on_surface_variant" />
-	</FrameLayout>
+			android:textStyle="bold" />
+
+		<FrameLayout android:layout_width="match_parent"
+			android:layout_height="0dp" android:layout_marginTop="8dp"
+			android:layout_weight="1"
+			android:background="@drawable/preview_box_background"
+			android:padding="12dp">
+
+			<EditText android:id="@+id/compareSourceText"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:background="@android:color/transparent"
+				android:focusable="false" android:focusableInTouchMode="false"
+				android:gravity="top|start" android:inputType="none"
+				android:overScrollMode="always" android:padding="0dp"
+				android:scrollbarStyle="insideInset" android:scrollbars="vertical"
+				android:textColor="@color/mlkit_on_background"
+				android:textColorHint="@color/mlkit_on_surface_variant" />
+		</FrameLayout>
+	</LinearLayout>
 
 	<Space android:layout_width="12dp" android:layout_height="1dp" />
 
-	<FrameLayout android:layout_width="0dp"
+	<LinearLayout android:layout_width="0dp"
 		android:layout_height="match_parent" android:layout_weight="1"
-		android:background="@drawable/preview_box_background"
-		android:padding="12dp">
+		android:orientation="vertical">
 
-		<EditText android:id="@+id/compareTranslatedText"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:background="@android:color/transparent"
-			android:focusable="false" android:focusableInTouchMode="false"
-			android:gravity="top|start" android:inputType="none"
-			android:padding="0dp" android:scrollbars="vertical"
+		<TextView android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/label_output_markdown"
 			android:textColor="@color/mlkit_on_background"
-			android:textColorHint="@color/mlkit_on_surface_variant" />
-	</FrameLayout>
+			android:textStyle="bold" />
+
+		<FrameLayout android:layout_width="match_parent"
+			android:layout_height="0dp" android:layout_marginTop="8dp"
+			android:layout_weight="1"
+			android:background="@drawable/preview_box_background"
+			android:padding="12dp">
+
+			<EditText android:id="@+id/compareTranslatedText"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:background="@android:color/transparent"
+				android:focusable="false" android:focusableInTouchMode="false"
+				android:gravity="top|start" android:inputType="none"
+				android:overScrollMode="always" android:padding="0dp"
+				android:scrollbarStyle="insideInset" android:scrollbars="vertical"
+				android:textColor="@color/mlkit_on_background"
+				android:textColorHint="@color/mlkit_on_surface_variant" />
+		</FrameLayout>
+	</LinearLayout>
 
 </LinearLayout>
