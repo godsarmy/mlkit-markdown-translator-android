@@ -105,13 +105,26 @@
 			</FrameLayout>
 		</LinearLayout>
 
-		<com.google.android.material.switchmaterial.SwitchMaterial
-			android:id="@+id/renderModeToggle"
-			android:layout_width="wrap_content"
+		<LinearLayout android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="14dp"
-			android:text="@string/render_mode_switch"
-			android:textColor="@color/mlkit_on_background"
-			app:useMaterialThemeColors="true" />
+			android:gravity="center_vertical" android:orientation="horizontal">
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/renderModeToggle" android:layout_width="0dp"
+				android:layout_height="wrap_content" android:layout_weight="1"
+				android:text="@string/render_mode_switch"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
+
+			<androidx.appcompat.widget.AppCompatImageButton
+				android:id="@+id/compareModeButton" android:layout_width="40dp"
+				android:layout_height="40dp" android:layout_marginStart="8dp"
+				android:background="@android:color/transparent"
+				android:contentDescription="@string/compare_mode_icon_content_description"
+				android:padding="6dp"
+				android:src="@drawable/ic_compare_side_by_side"
+				android:tint="@color/mlkit_on_surface_variant" />
+		</LinearLayout>
 
 
 		<LinearLayout android:layout_width="match_parent"

@@ -10,6 +10,9 @@
 		android:roundIcon="@mipmap/ic_launcher_round"
 		android:supportsRtl="true"
 		android:theme="@style/Theme.MlMarkdownSample">
+		<activity android:name=".SideBySideCompareActivity"
+			android:exported="false" android:label="@string/compare_screen_title"
+			android:screenOrientation="landscape" />
 		<activity android:name=".HelpActivity"
 			android:exported="false" android:label="@string/help_title"
 			android:screenOrientation="portrait" />

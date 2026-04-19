@@ -81,6 +81,7 @@ public final class MainActivity extends AppCompatActivity {
     private WebView inputRenderedHtml;
     private WebView outputRenderedHtml;
     private SwitchMaterial renderModeToggle;
+    private ImageButton compareModeButton;
     private ImageButton leftMenuButton;
     private DrawerLayout mainDrawerLayout;
     private NavigationView leftNavigationView;
@@ -140,6 +141,7 @@ public final class MainActivity extends AppCompatActivity {
         inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
         outputRenderedHtml = findViewById(R.id.outputRenderedHtml);
         renderModeToggle = findViewById(R.id.renderModeToggle);
+        compareModeButton = findViewById(R.id.compareModeButton);
         leftMenuButton = findViewById(R.id.leftMenuButton);
         mainDrawerLayout = findViewById(R.id.mainDrawerLayout);
         leftNavigationView = findViewById(R.id.leftNavigationView);
@@ -321,6 +323,7 @@ public final class MainActivity extends AppCompatActivity {
     private void setupActions() {
         translateButton.setOnClickListener(v -> translateMarkdown());
         explainButton.setOnClickListener(v -> openExplainScreen());
+        compareModeButton.setOnClickListener(v -> openSideBySideCompare());
         leftMenuButton.setOnClickListener(v -> mainDrawerLayout.openDrawer(GravityCompat.START));
         leftNavigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
         updateVersionMenuItemTitle();
@@ -637,6 +640,14 @@ public final class MainActivity extends AppCompatActivity {
         startActivity(
                 ExplainMarkdownActivity.createIntent(
                         this, markdown, translationOptionsBuilder().build()));
+    }
+
+    private void openSideBySideCompare() {
+        startActivity(
+                SideBySideCompareActivity.createIntent(
+                        this,
+                        originalMarkdownInput.getText().toString(),
+                        translatedMarkdownRaw.getText().toString()));
     }
 
     private String sourceLanguage() {
