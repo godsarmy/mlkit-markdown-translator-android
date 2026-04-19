@@ -1115,8 +1115,7 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             try (java.io.InputStream inputStream = activity.getAssets().open(assetPath)) {
-                return new String(
-                        inputStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                return readText(inputStream);
             } catch (java.io.IOException e) {
                 return activity.getString(R.string.default_markdown);
             }
