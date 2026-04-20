@@ -74,6 +74,8 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
 
         setupWebView(sourceRenderedHtml);
         setupWebView(translatedRenderedHtml);
+        setupRawCompareText(sourceText);
+        setupRawCompareText(translatedText);
 
         applySafeInsets(compareRoot);
 
@@ -85,16 +87,16 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
 
         sourceText.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) ->
-                        syncVerticalScroll(sourceText, translatedText, scrollY));
+                        syncScroll(sourceText, translatedText, scrollX, scrollY));
         translatedText.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) ->
-                        syncVerticalScroll(translatedText, sourceText, scrollY));
+                        syncScroll(translatedText, sourceText, scrollX, scrollY));
         sourceRenderedHtml.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) ->
-                        syncVerticalScroll(sourceRenderedHtml, translatedRenderedHtml, scrollY));
+                        syncScroll(sourceRenderedHtml, translatedRenderedHtml, scrollX, scrollY));
         translatedRenderedHtml.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) ->
-                        syncVerticalScroll(translatedRenderedHtml, sourceRenderedHtml, scrollY));
+                        syncScroll(translatedRenderedHtml, sourceRenderedHtml, scrollX, scrollY));
 
         renderToggleButton.setOnClickListener(v -> toggleRenderMode());
         closeButton.setOnClickListener(v -> finish());
@@ -105,12 +107,17 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private void setupWebView(WebView webView) {
         webView.setBackgroundColor(0x00000000);
         webView.setVerticalScrollBarEnabled(true);
-        webView.setHorizontalScrollBarEnabled(false);
+        webView.setHorizontalScrollBarEnabled(true);
         webView.setScrollbarFadingEnabled(true);
         webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(false);
         settings.setDomStorageEnabled(false);
+    }
+
+    private static void setupRawCompareText(EditText editText) {
+        editText.setHorizontallyScrolling(true);
+        editText.setHorizontalScrollBarEnabled(true);
     }
 
     private void toggleRenderMode() {
@@ -220,11 +227,12 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         return "<html><head><meta charset='utf-8' /><meta name='color-scheme' content='light dark' /><style>"
                 + "body{color:"
                 + textColor
-                + ";font-family:sans-serif;padding:0;margin:0;background:transparent;}"
+                + ";font-family:sans-serif;padding:0;margin:0;background:transparent;overflow-x:auto;}"
+                + "p,li,blockquote,td,th,h1,h2,h3,h4,h5,h6,a,span,strong,em{white-space:nowrap;}"
                 + "a{color:"
                 + linkColor
                 + ";}"
-                + "pre,code{white-space:pre-wrap;background:"
+                + "pre,code{white-space:pre;background:"
                 + codeBackground
                 + ";color:"
                 + codeText
@@ -281,15 +289,41 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         ViewCompat.requestApplyInsets(root);
     }
 
-    private void syncVerticalScroll(View source, View target, int sourceScrollY) {
+    private void syncScroll(View source, View target, int sourceScrollX, int sourceScrollY) {
         if (syncingScroll) {
             return;
         }
+        int targetMaxScrollX = calculateMaxHorizontalScroll(target);
         int targetMaxScrollY = calculateMaxVerticalScroll(target);
+        int clampedTargetX = Math.max(0, Math.min(sourceScrollX, targetMaxScrollX));
         int clampedTargetY = Math.max(0, Math.min(sourceScrollY, targetMaxScrollY));
         syncingScroll = true;
-        target.scrollTo(target.getScrollX(), clampedTargetY);
+        target.scrollTo(clampedTargetX, clampedTargetY);
         syncingScroll = false;
+    }
+
+    private static int calculateMaxHorizontalScroll(View view) {
+        if (view instanceof EditText) {
+            EditText editText = (EditText) view;
+            if (editText.getLayout() == null) {
+                return 0;
+            }
+            int lineCount = editText.getLineCount();
+            float widestLine = 0f;
+            for (int i = 0; i < lineCount; i++) {
+                widestLine = Math.max(widestLine, editText.getLayout().getLineWidth(i));
+            }
+            int contentWidth = (int) Math.ceil(widestLine);
+            int visibleWidth =
+                    editText.getWidth()
+                            - editText.getCompoundPaddingLeft()
+                            - editText.getCompoundPaddingRight();
+            return Math.max(0, contentWidth - visibleWidth);
+        }
+        if (view instanceof WebView) {
+            return Integer.MAX_VALUE;
+        }
+        return 0;
     }
 
     private static int calculateMaxVerticalScroll(View view) {
