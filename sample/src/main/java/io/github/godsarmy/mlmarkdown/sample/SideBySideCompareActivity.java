@@ -36,6 +36,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private WebView sourceRenderedHtml;
     private WebView translatedRenderedHtml;
     private ImageButton renderToggleButton;
+    private ImageButton closeButton;
     private boolean syncingScroll;
     private boolean renderModeEnabled;
     private boolean isRenderToggleVisible;
@@ -69,6 +70,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         sourceRenderedHtml = findViewById(R.id.compareSourceRenderedHtml);
         translatedRenderedHtml = findViewById(R.id.compareTranslatedRenderedHtml);
         renderToggleButton = findViewById(R.id.compareRenderToggleButton);
+        closeButton = findViewById(R.id.compareCloseButton);
 
         setupWebView(sourceRenderedHtml);
         setupWebView(translatedRenderedHtml);
@@ -95,6 +97,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                         syncVerticalScroll(translatedRenderedHtml, sourceRenderedHtml, scrollY));
 
         renderToggleButton.setOnClickListener(v -> toggleRenderMode());
+        closeButton.setOnClickListener(v -> finish());
         applyRenderMode();
         showRenderToggleTemporarily();
     }
@@ -151,7 +154,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private void showRenderToggleTemporarily() {
-        if (renderToggleButton == null) {
+        if (renderToggleButton == null || closeButton == null) {
             return;
         }
         renderToggleButton.removeCallbacks(hideRenderToggleRunnable);
@@ -159,19 +162,25 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
             isRenderToggleVisible = true;
             renderToggleButton.setVisibility(View.VISIBLE);
             renderToggleButton.setClickable(true);
+            closeButton.setVisibility(View.VISIBLE);
+            closeButton.setClickable(true);
             renderToggleButton.animate().cancel();
+            closeButton.animate().cancel();
             renderToggleButton.setAlpha(0f);
+            closeButton.setAlpha(0f);
             renderToggleButton.animate().alpha(1f).setDuration(TOGGLE_FADE_DURATION_MS).start();
+            closeButton.animate().alpha(1f).setDuration(TOGGLE_FADE_DURATION_MS).start();
         }
         renderToggleButton.postDelayed(hideRenderToggleRunnable, TOGGLE_AUTO_HIDE_DELAY_MS);
     }
 
     private void hideRenderToggle() {
-        if (renderToggleButton == null || !isRenderToggleVisible) {
+        if (renderToggleButton == null || closeButton == null || !isRenderToggleVisible) {
             return;
         }
         renderToggleButton.removeCallbacks(hideRenderToggleRunnable);
         renderToggleButton.animate().cancel();
+        closeButton.animate().cancel();
         renderToggleButton
                 .animate()
                 .alpha(0f)
@@ -181,6 +190,16 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                             renderToggleButton.setVisibility(View.INVISIBLE);
                             renderToggleButton.setClickable(false);
                             isRenderToggleVisible = false;
+                        })
+                .start();
+        closeButton
+                .animate()
+                .alpha(0f)
+                .setDuration(TOGGLE_FADE_DURATION_MS)
+                .withEndAction(
+                        () -> {
+                            closeButton.setVisibility(View.INVISIBLE);
+                            closeButton.setClickable(false);
                         })
                 .start();
     }
