@@ -94,6 +94,8 @@
 	<string name="translated_markdown_label">Translated text</string>
 	<string name="render_mode_switch">Render markdown</string>
 	<string name="compare_mode_icon_content_description">Open side-by-side compare mode</string>
+	<string name="compare_render_markdown_enable">Enable rendered markdown preview</string>
+	<string name="compare_render_markdown_disable">Disable rendered markdown preview</string>
 	<string name="compare_screen_title">Side-by-side compare</string>
 	<string name="advanced_parameters_label">Advanced parameters</string>
 	<string name="manage_models_label">Manage language models</string>

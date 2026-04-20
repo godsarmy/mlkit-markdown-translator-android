@@ -1,69 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:id="@+id/compareRoot" android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:background="@color/mlkit_bg_canvas"
-	android:orientation="horizontal" android:padding="16dp">
+	android:background="@color/mlkit_bg_canvas" android:padding="16dp">
 
-	<LinearLayout android:layout_width="0dp"
-		android:layout_height="match_parent" android:layout_weight="1"
-		android:orientation="vertical">
+	<LinearLayout android:id="@+id/compareContent"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent" android:orientation="horizontal">
 
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:text="@string/source_markdown_label"
-			android:textColor="@color/mlkit_on_background"
-			android:textStyle="bold" />
+		<LinearLayout android:layout_width="0dp"
+			android:layout_height="match_parent" android:layout_weight="1"
+			android:orientation="vertical">
 
-		<FrameLayout android:layout_width="match_parent"
-			android:layout_height="0dp" android:layout_marginTop="8dp"
-			android:layout_weight="1"
-			android:background="@drawable/preview_box_background"
-			android:padding="12dp">
-
-			<EditText android:id="@+id/compareSourceText"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:background="@android:color/transparent"
-				android:focusable="false" android:focusableInTouchMode="false"
-				android:gravity="top|start" android:inputType="none"
-				android:overScrollMode="always" android:padding="0dp"
-				android:scrollbarStyle="insideInset" android:scrollbars="vertical"
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/source_markdown_label"
 				android:textColor="@color/mlkit_on_background"
-				android:textColorHint="@color/mlkit_on_surface_variant" />
-		</FrameLayout>
+				android:textStyle="bold" />
+
+			<FrameLayout android:layout_width="match_parent"
+				android:layout_height="0dp" android:layout_marginTop="8dp"
+				android:layout_weight="1"
+				android:background="@drawable/preview_box_background"
+				android:padding="12dp">
+
+				<EditText android:id="@+id/compareSourceText"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:background="@android:color/transparent"
+					android:focusable="false" android:focusableInTouchMode="false"
+					android:gravity="top|start" android:inputType="none"
+					android:overScrollMode="always" android:padding="0dp"
+					android:scrollbarStyle="insideInset" android:scrollbars="vertical"
+					android:textColor="@color/mlkit_on_background"
+					android:textColorHint="@color/mlkit_on_surface_variant" />
+
+				<WebView android:id="@+id/compareSourceRenderedHtml"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent" android:visibility="gone" />
+			</FrameLayout>
+		</LinearLayout>
+
+		<Space android:layout_width="12dp" android:layout_height="1dp" />
+
+		<LinearLayout android:layout_width="0dp"
+			android:layout_height="match_parent" android:layout_weight="1"
+			android:orientation="vertical">
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/label_output_markdown"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
+
+			<FrameLayout android:layout_width="match_parent"
+				android:layout_height="0dp" android:layout_marginTop="8dp"
+				android:layout_weight="1"
+				android:background="@drawable/preview_box_background"
+				android:padding="12dp">
+
+				<EditText android:id="@+id/compareTranslatedText"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:background="@android:color/transparent"
+					android:focusable="false" android:focusableInTouchMode="false"
+					android:gravity="top|start" android:inputType="none"
+					android:overScrollMode="always" android:padding="0dp"
+					android:scrollbarStyle="insideInset" android:scrollbars="vertical"
+					android:textColor="@color/mlkit_on_background"
+					android:textColorHint="@color/mlkit_on_surface_variant" />
+
+				<WebView android:id="@+id/compareTranslatedRenderedHtml"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent" android:visibility="gone" />
+			</FrameLayout>
+		</LinearLayout>
 	</LinearLayout>
 
-	<Space android:layout_width="12dp" android:layout_height="1dp" />
+	<androidx.appcompat.widget.AppCompatImageButton
+		android:id="@+id/compareRenderToggleButton"
+		android:layout_width="40dp" android:layout_height="40dp"
+		android:layout_gravity="top|end" android:layout_marginTop="4dp"
+		android:layout_marginEnd="4dp"
+		android:background="@android:color/transparent"
+		android:contentDescription="@string/compare_render_markdown_enable"
+		android:padding="6dp" android:src="@drawable/ic_render_preview_off"
+		android:tint="@color/mlkit_on_surface_variant" />
 
-	<LinearLayout android:layout_width="0dp"
-		android:layout_height="match_parent" android:layout_weight="1"
-		android:orientation="vertical">
-
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:text="@string/label_output_markdown"
-			android:textColor="@color/mlkit_on_background"
-			android:textStyle="bold" />
-
-		<FrameLayout android:layout_width="match_parent"
-			android:layout_height="0dp" android:layout_marginTop="8dp"
-			android:layout_weight="1"
-			android:background="@drawable/preview_box_background"
-			android:padding="12dp">
-
-			<EditText android:id="@+id/compareTranslatedText"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:background="@android:color/transparent"
-				android:focusable="false" android:focusableInTouchMode="false"
-				android:gravity="top|start" android:inputType="none"
-				android:overScrollMode="always" android:padding="0dp"
-				android:scrollbarStyle="insideInset" android:scrollbars="vertical"
-				android:textColor="@color/mlkit_on_background"
-				android:textColorHint="@color/mlkit_on_surface_variant" />
-		</FrameLayout>
-	</LinearLayout>
-
-</LinearLayout>
+</FrameLayout>
