@@ -1071,6 +1071,14 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (isRenderMode) {
+            applyRenderMode();
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         refreshDownloadedModelsAndButtonState();
