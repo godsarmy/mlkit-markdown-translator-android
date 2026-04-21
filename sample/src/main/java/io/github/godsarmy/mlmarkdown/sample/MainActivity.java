@@ -68,6 +68,11 @@ import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 
 public final class MainActivity extends AppCompatActivity {
+    private static final String STATE_SELECTED_SOURCE_POSITION = "state_selected_source_position";
+    private static final String STATE_RENDER_MODE = "state_render_mode";
+    private static final String STATE_SOURCE_LANGUAGE = "state_source_language";
+    private static final String STATE_TARGET_LANGUAGE = "state_target_language";
+
     private enum SourceEntryType {
         SAMPLE,
         LOAD_URL
@@ -116,6 +121,8 @@ public final class MainActivity extends AppCompatActivity {
     private boolean isSourceLoading;
     private final List<SourceSelectorEntry> sourceEntries = new ArrayList<>();
     private int selectedSourcePosition;
+    @Nullable private String pendingPreferredSourceLanguage;
+    @Nullable private String pendingPreferredTargetLanguage;
     @Nullable private KeyListener sampleAssetInputKeyListener;
     private static final List<Extension> MARKDOWN_EXTENSIONS =
             Collections.singletonList(TablesExtension.create());
@@ -128,11 +135,16 @@ public final class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (savedInstanceState != null) {
+            pendingPreferredSourceLanguage = savedInstanceState.getString(STATE_SOURCE_LANGUAGE);
+            pendingPreferredTargetLanguage = savedInstanceState.getString(STATE_TARGET_LANGUAGE);
+        }
+
         translator = createTranslator();
         bindViews();
         registerTranslationOptionsLauncher();
         setupLanguageSpinners();
-        setupActions();
+        setupActions(savedInstanceState);
     }
 
     private void bindViews() {
@@ -320,7 +332,7 @@ public final class MainActivity extends AppCompatActivity {
         return sourceEntryAt(selectedSourcePosition).type == SourceEntryType.LOAD_URL;
     }
 
-    private void setupActions() {
+    private void setupActions(@Nullable Bundle savedInstanceState) {
         translateButton.setOnClickListener(v -> translateMarkdown());
         explainButton.setOnClickListener(v -> openExplainScreen());
         compareModeButton.setOnClickListener(v -> openSideBySideCompare());
@@ -422,13 +434,32 @@ public final class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        refreshDownloadedModelsAndButtonState();
-        selectedSourcePosition = 0;
-        sampleAssetInput.setText(sourceEntryAt(selectedSourcePosition).label, false);
-        loadSelectedMarkdownSample(0);
-        applyRenderMode();
+        initializeState(savedInstanceState);
         updateExplainButtonState();
         updateSourceInputState();
+        refreshDownloadedModelsAndButtonState();
+    }
+
+    private void initializeState(@Nullable Bundle savedInstanceState) {
+        if (savedInstanceState == null) {
+            selectedSourcePosition = 0;
+            isRenderMode = false;
+            renderModeToggle.setChecked(false);
+            sampleAssetInput.setText(sourceEntryAt(selectedSourcePosition).label, false);
+            loadSelectedMarkdownSample(0);
+            applyRenderMode();
+            return;
+        }
+
+        int restoredSourcePosition =
+                savedInstanceState.getInt(STATE_SELECTED_SOURCE_POSITION, selectedSourcePosition);
+        selectedSourcePosition =
+                Math.max(0, Math.min(restoredSourcePosition, sourceEntries.size() - 1));
+
+        isRenderMode =
+                savedInstanceState.getBoolean(STATE_RENDER_MODE, renderModeToggle.isChecked());
+        renderModeToggle.setChecked(isRenderMode);
+        applyRenderMode();
     }
 
     private void loadSelectedMarkdownSample(int position) {
@@ -860,8 +891,20 @@ public final class MainActivity extends AppCompatActivity {
             targetAdapter.notifyDataSetChanged();
         }
 
-        restoreSpinnerSelection(sourceLanguageSpinner, previousSource);
-        restoreSpinnerSelection(targetLanguageSpinner, previousTarget);
+        String preferredSource =
+                pendingPreferredSourceLanguage != null
+                        ? pendingPreferredSourceLanguage
+                        : previousSource;
+        String preferredTarget =
+                pendingPreferredTargetLanguage != null
+                        ? pendingPreferredTargetLanguage
+                        : previousTarget;
+
+        restoreSpinnerSelection(sourceLanguageSpinner, preferredSource);
+        restoreSpinnerSelection(targetLanguageSpinner, preferredTarget);
+
+        pendingPreferredSourceLanguage = null;
+        pendingPreferredTargetLanguage = null;
     }
 
     private static void restoreSpinnerSelection(Spinner spinner, String preferredLanguage) {
@@ -1016,6 +1059,15 @@ public final class MainActivity extends AppCompatActivity {
         sourceLoaderExecutor.shutdownNow();
         super.onDestroy();
         translator.close();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(STATE_SELECTED_SOURCE_POSITION, selectedSourcePosition);
+        outState.putBoolean(STATE_RENDER_MODE, isRenderMode);
+        outState.putString(STATE_SOURCE_LANGUAGE, sourceLanguage());
+        outState.putString(STATE_TARGET_LANGUAGE, targetLanguage());
     }
 
     @Override
