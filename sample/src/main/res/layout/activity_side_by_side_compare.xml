@@ -3,7 +3,7 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:id="@+id/compareRoot" android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:background="@color/mlkit_bg_canvas" android:padding="16dp">
+	android:background="@color/mlkit_bg_canvas" android:paddingTop="16dp">
 
 	<LinearLayout android:id="@+id/compareContent"
 		android:layout_width="match_parent"
@@ -15,6 +15,7 @@
 
 			<TextView android:layout_width="match_parent"
 				android:layout_height="wrap_content"
+				android:gravity="center_horizontal"
 				android:text="@string/source_markdown_label"
 				android:textColor="@color/mlkit_on_background"
 				android:textStyle="bold" />
@@ -22,7 +23,7 @@
 			<FrameLayout android:layout_width="match_parent"
 				android:layout_height="0dp" android:layout_marginTop="8dp"
 				android:layout_weight="1"
-				android:background="@drawable/preview_box_background_left"
+				android:background="@drawable/preview_box_background_square"
 				android:padding="12dp">
 
 				<EditText android:id="@+id/compareSourceText"
@@ -43,12 +44,17 @@
 			</FrameLayout>
 		</LinearLayout>
 
+		<View android:layout_width="1dp"
+			android:layout_height="match_parent"
+			android:background="@color/mlkit_preview_box_edge" />
+
 		<LinearLayout android:layout_width="0dp"
 			android:layout_height="match_parent" android:layout_weight="1"
 			android:orientation="vertical">
 
 			<TextView android:layout_width="match_parent"
 				android:layout_height="wrap_content"
+				android:gravity="center_horizontal"
 				android:text="@string/label_output_markdown"
 				android:textColor="@color/mlkit_on_background"
 				android:textStyle="bold" />
@@ -56,7 +62,7 @@
 			<FrameLayout android:layout_width="match_parent"
 				android:layout_height="0dp" android:layout_marginTop="8dp"
 				android:layout_weight="1"
-				android:background="@drawable/preview_box_background_right"
+				android:background="@drawable/preview_box_background_square"
 				android:padding="12dp">
 
 				<EditText android:id="@+id/compareTranslatedText"
