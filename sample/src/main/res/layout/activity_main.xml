@@ -124,6 +124,14 @@
 				android:padding="6dp"
 				android:src="@drawable/ic_compare_side_by_side"
 				android:tint="@color/mlkit_on_surface_variant" />
+
+			<androidx.appcompat.widget.AppCompatImageButton
+				android:id="@+id/shareTranslatedButton" android:layout_width="40dp"
+				android:layout_height="40dp" android:layout_marginStart="4dp"
+				android:background="@android:color/transparent"
+				android:contentDescription="@string/share_translated_markdown_content_description"
+				android:padding="6dp" android:src="@drawable/ic_share"
+				android:tint="@color/mlkit_on_surface_variant" />
 		</LinearLayout>
 
 

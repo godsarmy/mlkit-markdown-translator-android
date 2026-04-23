@@ -87,6 +87,7 @@ public final class MainActivity extends AppCompatActivity {
     private WebView outputRenderedHtml;
     private SwitchMaterial renderModeToggle;
     private ImageButton compareModeButton;
+    private ImageButton shareTranslatedButton;
     private ImageButton leftMenuButton;
     private DrawerLayout mainDrawerLayout;
     private NavigationView leftNavigationView;
@@ -154,6 +155,7 @@ public final class MainActivity extends AppCompatActivity {
         outputRenderedHtml = findViewById(R.id.outputRenderedHtml);
         renderModeToggle = findViewById(R.id.renderModeToggle);
         compareModeButton = findViewById(R.id.compareModeButton);
+        shareTranslatedButton = findViewById(R.id.shareTranslatedButton);
         leftMenuButton = findViewById(R.id.leftMenuButton);
         mainDrawerLayout = findViewById(R.id.mainDrawerLayout);
         leftNavigationView = findViewById(R.id.leftNavigationView);
@@ -336,6 +338,7 @@ public final class MainActivity extends AppCompatActivity {
         translateButton.setOnClickListener(v -> translateMarkdown());
         explainButton.setOnClickListener(v -> openExplainScreen());
         compareModeButton.setOnClickListener(v -> openSideBySideCompare());
+        shareTranslatedButton.setOnClickListener(v -> shareTranslatedMarkdown());
         leftMenuButton.setOnClickListener(v -> mainDrawerLayout.openDrawer(GravityCompat.START));
         leftNavigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
         updateVersionMenuItemTitle();
@@ -434,8 +437,24 @@ public final class MainActivity extends AppCompatActivity {
                     }
                 });
 
+        translatedMarkdownRaw.addTextChangedListener(
+                new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(
+                            CharSequence s, int start, int count, int after) {}
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        updateShareButtonState();
+                    }
+                });
+
         initializeState(savedInstanceState);
         updateExplainButtonState();
+        updateShareButtonState();
         updateSourceInputState();
         refreshDownloadedModelsAndButtonState();
     }
@@ -663,6 +682,17 @@ public final class MainActivity extends AppCompatActivity {
         explainButton.setEnabled(!isBusy && !markdown.trim().isEmpty());
     }
 
+    private void updateShareButtonState() {
+        boolean hasTranslatedMarkdown =
+                !translatedMarkdownRaw.getText().toString().trim().isEmpty();
+        shareTranslatedButton.setEnabled(hasTranslatedMarkdown);
+        int tintColor =
+                hasTranslatedMarkdown
+                        ? getColor(R.color.mlkit_on_surface_variant)
+                        : getColor(R.color.mlkit_outline);
+        shareTranslatedButton.setImageTintList(ColorStateList.valueOf(tintColor));
+    }
+
     private void openExplainScreen() {
         String markdown = originalMarkdownInput.getText().toString();
         if (markdown.trim().isEmpty()) {
@@ -679,6 +709,21 @@ public final class MainActivity extends AppCompatActivity {
                         this,
                         originalMarkdownInput.getText().toString(),
                         translatedMarkdownRaw.getText().toString()));
+    }
+
+    private void shareTranslatedMarkdown() {
+        String translatedMarkdown = translatedMarkdownRaw.getText().toString();
+        if (translatedMarkdown.trim().isEmpty()) {
+            Toast.makeText(this, R.string.share_translated_markdown_empty, Toast.LENGTH_SHORT)
+                    .show();
+            return;
+        }
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, translatedMarkdown);
+        startActivity(
+                Intent.createChooser(
+                        shareIntent, getString(R.string.share_translated_markdown_chooser_title)));
     }
 
     private String sourceLanguage() {
