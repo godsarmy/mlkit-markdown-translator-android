@@ -94,7 +94,11 @@
 	<string name="translated_markdown_label">Translated text</string>
 	<string name="render_mode_switch">Render markdown</string>
 	<string name="compare_mode_icon_content_description">Open side-by-side compare mode</string>
+	<string name="save_translated_markdown_content_description">Save translated markdown</string>
 	<string name="share_translated_markdown_content_description">Share translated markdown</string>
+	<string name="save_translated_markdown_empty">No translated markdown to save</string>
+	<string name="save_translated_markdown_success">Saved as %1$s in Downloads</string>
+	<string name="save_translated_markdown_failure">Unable to save translated markdown</string>
 	<string name="share_translated_markdown_empty">No translated markdown to share</string>
 	<string name="share_translated_markdown_chooser_title">Share translated markdown</string>
 	<string name="compare_render_markdown_enable">Enable rendered markdown preview</string>
