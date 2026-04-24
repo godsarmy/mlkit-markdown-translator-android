@@ -326,7 +326,7 @@ public final class MainActivity extends AppCompatActivity {
         sourceEntries.add(
                 new SourceSelectorEntry(
                         getString(R.string.source_selector_load_file),
-                        R.drawable.ic_source_file,
+                        R.drawable.ic_import,
                         SourceEntryType.LOAD_FILE,
                         -1));
         sourceEntries.add(
