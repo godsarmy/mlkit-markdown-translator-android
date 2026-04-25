@@ -4,13 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.text.Layout;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -39,8 +39,8 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private ImageButton renderToggleButton;
     private ImageButton lineNumbersToggleButton;
     private ImageButton closeButton;
-    private TextView sourceLineNumbers;
-    private TextView translatedLineNumbers;
+    private LineNumberGutterView sourceLineNumbers;
+    private LineNumberGutterView translatedLineNumbers;
     private View sourceLineDivider;
     private View translatedLineDivider;
     private boolean syncingScroll;
@@ -98,24 +98,22 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         String translatedMarkdown = intent.getStringExtra(EXTRA_TRANSLATED_MARKDOWN);
         sourceText.setText(sourceMarkdown == null ? "" : sourceMarkdown);
         translatedText.setText(translatedMarkdown == null ? "" : translatedMarkdown);
+        sourceLineNumbers.bindTo(sourceText);
+        translatedLineNumbers.bindTo(translatedText);
         sourceText.post(
                 () -> {
-                    refreshLineNumbers();
-                    syncLineNumberGutter(sourceText, sourceLineNumbers);
-                    syncLineNumberGutter(translatedText, translatedLineNumbers);
+                    invalidateLineNumberGutters();
                 });
 
         sourceText.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-                    syncScroll(sourceText, translatedText, scrollX, scrollY);
-                    syncLineNumberGutter(sourceText, sourceLineNumbers);
-                    syncLineNumberGutter(translatedText, translatedLineNumbers);
+                    syncRawScrollByLine(sourceText, translatedText, scrollX, scrollY);
+                    invalidateLineNumberGutters();
                 });
         translatedText.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-                    syncScroll(translatedText, sourceText, scrollX, scrollY);
-                    syncLineNumberGutter(translatedText, translatedLineNumbers);
-                    syncLineNumberGutter(sourceText, sourceLineNumbers);
+                    syncRawScrollByLine(translatedText, sourceText, scrollX, scrollY);
+                    invalidateLineNumberGutters();
                 });
         sourceRenderedHtml.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) ->
@@ -147,17 +145,12 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         editText.setHorizontalScrollBarEnabled(true);
     }
 
-    private static void matchLineNumberStyle(EditText contentView, TextView lineNumbersView) {
+    private static void matchLineNumberStyle(
+            EditText contentView, LineNumberGutterView lineNumbersView) {
         if (contentView == null || lineNumbersView == null) {
             return;
         }
-        lineNumbersView.setTypeface(contentView.getTypeface());
-        lineNumbersView.setTextSize(
-                android.util.TypedValue.COMPLEX_UNIT_PX, contentView.getTextSize());
-        lineNumbersView.setLineSpacing(
-                contentView.getLineSpacingExtra(), contentView.getLineSpacingMultiplier());
-        lineNumbersView.setIncludeFontPadding(contentView.getIncludeFontPadding());
-        lineNumbersView.setLetterSpacing(contentView.getLetterSpacing());
+        lineNumbersView.applyTextMetricsFrom(contentView);
     }
 
     private void toggleRenderMode() {
@@ -320,45 +313,22 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         if (sourceLineNumbers == null || translatedLineNumbers == null) {
             return;
         }
-        if (lineNumbersEnabled) {
-            refreshLineNumbers();
-        }
         int visibility = lineNumbersEnabled ? View.VISIBLE : View.GONE;
         sourceLineNumbers.setVisibility(visibility);
         translatedLineNumbers.setVisibility(visibility);
         sourceLineDivider.setVisibility(visibility);
         translatedLineDivider.setVisibility(visibility);
-        syncLineNumberGutter(sourceText, sourceLineNumbers);
-        syncLineNumberGutter(translatedText, translatedLineNumbers);
+        invalidateLineNumberGutters();
     }
 
-    private void refreshLineNumbers() {
-        updateLineNumbersFor(sourceText, sourceLineNumbers);
-        updateLineNumbersFor(translatedText, translatedLineNumbers);
-    }
-
-    private static void updateLineNumbersFor(EditText editText, TextView lineNumbersView) {
-        if (editText == null || lineNumbersView == null) {
-            return;
+    private void invalidateLineNumberGutters() {
+        if (sourceLineNumbers != null && sourceLineNumbers.getVisibility() == View.VISIBLE) {
+            sourceLineNumbers.invalidate();
         }
-        int lineCount = Math.max(1, editText.getLineCount());
-        StringBuilder lineNumbersBuilder = new StringBuilder(lineCount * 3);
-        for (int line = 1; line <= lineCount; line++) {
-            lineNumbersBuilder.append(line);
-            if (line < lineCount) {
-                lineNumbersBuilder.append('\n');
-            }
+        if (translatedLineNumbers != null
+                && translatedLineNumbers.getVisibility() == View.VISIBLE) {
+            translatedLineNumbers.invalidate();
         }
-        lineNumbersView.setText(lineNumbersBuilder.toString());
-    }
-
-    private static void syncLineNumberGutter(EditText editText, TextView lineNumbersView) {
-        if (editText == null
-                || lineNumbersView == null
-                || lineNumbersView.getVisibility() != View.VISIBLE) {
-            return;
-        }
-        lineNumbersView.scrollTo(0, editText.getScrollY());
     }
 
     private void renderMarkdownToWebView(WebView webView, String markdown) {
@@ -447,6 +417,42 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         int targetMaxScrollY = calculateMaxVerticalScroll(target);
         int clampedTargetX = Math.max(0, Math.min(sourceScrollX, targetMaxScrollX));
         int clampedTargetY = Math.max(0, Math.min(sourceScrollY, targetMaxScrollY));
+        syncingScroll = true;
+        target.scrollTo(clampedTargetX, clampedTargetY);
+        syncingScroll = false;
+    }
+
+    private void syncRawScrollByLine(
+            EditText source, EditText target, int sourceScrollX, int sourceScrollY) {
+        if (syncingScroll) {
+            return;
+        }
+        Layout sourceLayout = source.getLayout();
+        Layout targetLayout = target.getLayout();
+        if (sourceLayout == null || targetLayout == null) {
+            syncScroll(source, target, sourceScrollX, sourceScrollY);
+            return;
+        }
+
+        int clampedTargetX =
+                Math.max(0, Math.min(sourceScrollX, calculateMaxHorizontalScroll(target)));
+        int sourceVertical = sourceScrollY + source.getCompoundPaddingTop();
+        int sourceLine = sourceLayout.getLineForVertical(sourceVertical);
+        int sourceLineTop = sourceLayout.getLineTop(sourceLine);
+        int sourceLineBottom = sourceLayout.getLineBottom(sourceLine);
+        int sourceLineHeight = Math.max(1, sourceLineBottom - sourceLineTop);
+        float sourceLineOffsetRatio = (sourceVertical - sourceLineTop) / (float) sourceLineHeight;
+        float clampedRatio = Math.max(0f, Math.min(1f, sourceLineOffsetRatio));
+
+        int targetLine = Math.max(0, Math.min(sourceLine, targetLayout.getLineCount() - 1));
+        int targetLineTop = targetLayout.getLineTop(targetLine);
+        int targetLineBottom = targetLayout.getLineBottom(targetLine);
+        int targetLineHeight = Math.max(1, targetLineBottom - targetLineTop);
+        int targetVertical = targetLineTop + Math.round(targetLineHeight * clampedRatio);
+        int unclampedTargetY = targetVertical - target.getCompoundPaddingTop();
+        int clampedTargetY =
+                Math.max(0, Math.min(unclampedTargetY, calculateMaxVerticalScroll(target)));
+
         syncingScroll = true;
         target.scrollTo(clampedTargetX, clampedTargetY);
         syncingScroll = false;

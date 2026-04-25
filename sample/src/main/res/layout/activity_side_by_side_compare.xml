@@ -30,7 +30,8 @@
 					android:layout_height="match_parent"
 					android:orientation="horizontal">
 
-					<TextView android:id="@+id/compareSourceLineNumbers"
+					<io.github.godsarmy.mlmarkdown.sample.LineNumberGutterView
+						android:id="@+id/compareSourceLineNumbers"
 						android:layout_width="wrap_content"
 						android:layout_height="match_parent" android:gravity="top|end"
 						android:paddingEnd="8dp"
@@ -91,7 +92,8 @@
 					android:layout_height="match_parent"
 					android:orientation="horizontal">
 
-					<TextView android:id="@+id/compareTranslatedLineNumbers"
+					<io.github.godsarmy.mlmarkdown.sample.LineNumberGutterView
+						android:id="@+id/compareTranslatedLineNumbers"
 						android:layout_width="wrap_content"
 						android:layout_height="match_parent" android:gravity="top|end"
 						android:paddingEnd="8dp"
