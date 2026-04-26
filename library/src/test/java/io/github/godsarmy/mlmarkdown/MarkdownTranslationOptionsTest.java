@@ -27,8 +27,10 @@ public class MarkdownTranslationOptionsTest {
                 MarkdownTranslationOptions.DEFAULT_ESCAPED_MARKDOWN_CHARACTERS,
                 options.escapedMarkdownCharactersToProtect());
         assertFalse(options.escapedMarkdownCharactersToProtect().contains("_"));
-        assertFalse(options.escapedMarkdownCharactersToProtect().contains("-"));
-        assertFalse(options.escapedMarkdownCharactersToProtect().contains("+"));
+        assertFalse(options.escapedMarkdownCharactersToProtect().contains("{"));
+        assertFalse(options.escapedMarkdownCharactersToProtect().contains("}"));
+        assertTrue(options.escapedMarkdownCharactersToProtect().contains("-"));
+        assertTrue(options.escapedMarkdownCharactersToProtect().contains("+"));
         assertEquals(MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER, options.tokenMarker());
         assertNull(options.translationTimingListener());
     }

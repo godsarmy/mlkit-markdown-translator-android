@@ -137,7 +137,7 @@ public final class MarkdownTranslationOptions {
   - `false`: fallback mode skips regex token protection and passes normalized text directly.
 - `escapedMarkdownCharactersToProtect`
   - controls which backslash-escaped Markdown punctuation pairs are protected from translation.
-  - default: ``\\`*{}[]()#.!|>`` (does not include `_`, `-`, or `+`).
+  - default: ``\\`*[]()#+-.!|>`` (does not include `_`, `{`, or `}`).
   - for example, include `[` and `]` to preserve `\[` and `\]` without ML Kit inserting spaces.
   - empty string disables this escape-specific protection.
 - `tokenMarker`

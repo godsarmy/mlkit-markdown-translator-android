@@ -7,7 +7,7 @@ import java.util.Objects;
 public final class MarkdownTranslationOptions {
     public static final String DEFAULT_TOKEN_MARKER = "@@";
     public static final int DEFAULT_MAX_CHARS_PER_CHUNK = 400;
-    public static final String DEFAULT_ESCAPED_MARKDOWN_CHARACTERS = "\\`*{}[]()#.!|>";
+    public static final String DEFAULT_ESCAPED_MARKDOWN_CHARACTERS = "\\`*[]()#+-.!|>";
 
     private final boolean preserveNewlines;
     private final boolean preserveListPrefixes;

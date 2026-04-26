@@ -147,7 +147,7 @@
 	<string name="token_marker_hint">e.g. @@</string>
 	<string name="token_marker_required_error">Token marker cannot be empty</string>
 	<string name="escaped_markdown_characters_label">Escaped Markdown characters to protect</string>
-	<string name="escaped_markdown_characters_hint">\`*{}[]()#.!|&gt;</string>
+	<string name="escaped_markdown_characters_hint">\`*[]()#+-.!|&gt;</string>
 	<string name="escaped_markdown_characters_help">Protects backslash escapes for these characters,
 		for example \*data\*, \#data, and \[label\]. Leave empty to disable.</string>
 	<string name="max_chars_per_chunk_label">Max chars per chunk</string>
