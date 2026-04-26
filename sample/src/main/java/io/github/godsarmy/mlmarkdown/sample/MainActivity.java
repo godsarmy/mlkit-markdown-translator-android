@@ -108,12 +108,14 @@ public final class MainActivity extends AppCompatActivity {
     private View exampleSourceContainer;
     private ImageButton translationErrorButton;
     private View translationProgressContainer;
+    private TextView translationProgressText;
     private TextView translationResultText;
     private Button translateButton;
     private Button explainButton;
 
     private boolean isBusy;
     private boolean isTranslating;
+    private boolean isLoadingMarkdownFromUrl;
     private boolean isRenderMode;
     private boolean preserveNewlines = true;
     private boolean preserveListPrefixes = true;
@@ -188,6 +190,7 @@ public final class MainActivity extends AppCompatActivity {
         exampleSourceContainer = findViewById(R.id.exampleSourceContainer);
         translationErrorButton = findViewById(R.id.translationErrorButton);
         translationProgressContainer = findViewById(R.id.translationProgressContainer);
+        translationProgressText = findViewById(R.id.translationProgressText);
         translationResultText = findViewById(R.id.translationResultText);
         translateButton = findViewById(R.id.translateButton);
         explainButton = findViewById(R.id.explainButton);
@@ -710,7 +713,15 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void updateTranslationProgressState() {
-        translationProgressContainer.setVisibility(isTranslating ? View.VISIBLE : View.INVISIBLE);
+        boolean showProgress = isTranslating || isLoadingMarkdownFromUrl;
+        translationProgressContainer.setVisibility(showProgress ? View.VISIBLE : View.INVISIBLE);
+        if (!showProgress) {
+            return;
+        }
+        translationProgressText.setText(
+                isLoadingMarkdownFromUrl
+                        ? R.string.status_loading_markdown_url
+                        : R.string.status_translating);
     }
 
     private void updateTranslateButtonState() {
@@ -1070,6 +1081,8 @@ public final class MainActivity extends AppCompatActivity {
             return;
         }
 
+        isLoadingMarkdownFromUrl = true;
+        updateTranslationProgressState();
         setSourceLoading(true);
         sourceLoaderExecutor.execute(
                 () -> {
@@ -1090,7 +1103,12 @@ public final class MainActivity extends AppCompatActivity {
                                                         Toast.LENGTH_SHORT)
                                                 .show());
                     } finally {
-                        runOnUiThread(() -> setSourceLoading(false));
+                        runOnUiThread(
+                                () -> {
+                                    isLoadingMarkdownFromUrl = false;
+                                    updateTranslationProgressState();
+                                    setSourceLoading(false);
+                                });
                     }
                 });
     }

@@ -3,6 +3,7 @@
 	<string name="app_name">ML Markdown Translator</string>
 	<string name="sample_title">ML Markdown Translator Example</string>
 	<string name="status_idle">Status: idle</string>
+	<string name="status_loading_markdown_url">Loading markdown from URL...</string>
 	<string name="source_markdown_label">Source markdown</string>
 	<string name="label_output_markdown">Translated markdown</string>
 	<string name="markdown_sample_label">Markdown sample</string>
