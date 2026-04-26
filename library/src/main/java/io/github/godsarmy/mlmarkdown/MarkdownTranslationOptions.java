@@ -7,6 +7,7 @@ import java.util.Objects;
 public final class MarkdownTranslationOptions {
     public static final String DEFAULT_TOKEN_MARKER = "@@";
     public static final int DEFAULT_MAX_CHARS_PER_CHUNK = 400;
+    public static final String DEFAULT_ESCAPED_MARKDOWN_CHARACTERS = "\\`*{}[]()#.!|>";
 
     private final boolean preserveNewlines;
     private final boolean preserveListPrefixes;
@@ -15,6 +16,7 @@ public final class MarkdownTranslationOptions {
     private final boolean protectAutolinks;
     private final boolean enableRegexFallbackProtection;
     private final boolean preserveWhitespaceAroundProtectedSegments;
+    private final String escapedMarkdownCharactersToProtect;
     private final String tokenMarker;
     private final int maxCharsPerChunk;
     @Nullable private final TranslationTimingListener translationTimingListener;
@@ -28,6 +30,7 @@ public final class MarkdownTranslationOptions {
         this.enableRegexFallbackProtection = builder.enableRegexFallbackProtection;
         this.preserveWhitespaceAroundProtectedSegments =
                 builder.preserveWhitespaceAroundProtectedSegments;
+        this.escapedMarkdownCharactersToProtect = builder.escapedMarkdownCharactersToProtect;
         this.tokenMarker = builder.tokenMarker;
         this.maxCharsPerChunk = builder.maxCharsPerChunk;
         this.translationTimingListener = builder.translationTimingListener;
@@ -65,6 +68,10 @@ public final class MarkdownTranslationOptions {
         return preserveWhitespaceAroundProtectedSegments;
     }
 
+    public String escapedMarkdownCharactersToProtect() {
+        return escapedMarkdownCharactersToProtect;
+    }
+
     public String tokenMarker() {
         return tokenMarker;
     }
@@ -86,6 +93,7 @@ public final class MarkdownTranslationOptions {
         private boolean protectAutolinks = true;
         private boolean enableRegexFallbackProtection = true;
         private boolean preserveWhitespaceAroundProtectedSegments = true;
+        private String escapedMarkdownCharactersToProtect = DEFAULT_ESCAPED_MARKDOWN_CHARACTERS;
         private String tokenMarker = DEFAULT_TOKEN_MARKER;
         private int maxCharsPerChunk = DEFAULT_MAX_CHARS_PER_CHUNK;
         @Nullable private TranslationTimingListener translationTimingListener;
@@ -124,6 +132,15 @@ public final class MarkdownTranslationOptions {
                 boolean preserveWhitespaceAroundProtectedSegments) {
             this.preserveWhitespaceAroundProtectedSegments =
                     preserveWhitespaceAroundProtectedSegments;
+            return this;
+        }
+
+        public Builder setEscapedMarkdownCharactersToProtect(
+                String escapedMarkdownCharactersToProtect) {
+            this.escapedMarkdownCharactersToProtect =
+                    Objects.requireNonNull(
+                            escapedMarkdownCharactersToProtect,
+                            "escapedMarkdownCharactersToProtect == null");
             return this;
         }
 

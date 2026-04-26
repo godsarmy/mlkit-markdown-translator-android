@@ -23,6 +23,8 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
             "extra_enable_regex_fallback_protection";
     private static final String EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS =
             "extra_preserve_whitespace_around_protected_segments";
+    private static final String EXTRA_ESCAPED_MARKDOWN_CHARACTERS_TO_PROTECT =
+            "extra_escaped_markdown_characters_to_protect";
     private static final String EXTRA_TOKEN_MARKER = "extra_token_marker";
     private static final String EXTRA_MAX_CHARS_PER_CHUNK = "extra_max_chars_per_chunk";
 
@@ -33,6 +35,7 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
     private SwitchMaterial protectAutolinksSwitch;
     private SwitchMaterial enableRegexFallbackProtectionSwitch;
     private SwitchMaterial preserveWhitespaceAroundProtectedSegmentsSwitch;
+    private EditText escapedMarkdownCharactersInput;
     private EditText tokenMarkerInput;
     private EditText maxCharsPerChunkInput;
 
@@ -47,6 +50,12 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
         String tokenMarker = intent.getStringExtra(EXTRA_TOKEN_MARKER);
         if (tokenMarker == null || tokenMarker.isEmpty()) {
             tokenMarker = MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER;
+        }
+        String escapedMarkdownCharactersToProtect =
+                intent.getStringExtra(EXTRA_ESCAPED_MARKDOWN_CHARACTERS_TO_PROTECT);
+        if (escapedMarkdownCharactersToProtect == null) {
+            escapedMarkdownCharactersToProtect =
+                    MarkdownTranslationOptions.DEFAULT_ESCAPED_MARKDOWN_CHARACTERS;
         }
         int maxCharsPerChunk =
                 intent.getIntExtra(
@@ -64,6 +73,7 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                 .setPreserveWhitespaceAroundProtectedSegments(
                         intent.getBooleanExtra(
                                 EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS, true))
+                .setEscapedMarkdownCharactersToProtect(escapedMarkdownCharactersToProtect)
                 .setTokenMarker(tokenMarker)
                 .setMaxCharsPerChunk(maxCharsPerChunk)
                 .build();
@@ -84,6 +94,9 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
         intent.putExtra(
                 EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS,
                 options.preserveWhitespaceAroundProtectedSegments());
+        intent.putExtra(
+                EXTRA_ESCAPED_MARKDOWN_CHARACTERS_TO_PROTECT,
+                options.escapedMarkdownCharactersToProtect());
         intent.putExtra(EXTRA_TOKEN_MARKER, options.tokenMarker());
         intent.putExtra(EXTRA_MAX_CHARS_PER_CHUNK, options.maxCharsPerChunk());
         return intent;
@@ -114,6 +127,7 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                 findViewById(R.id.switchEnableRegexFallbackProtection);
         preserveWhitespaceAroundProtectedSegmentsSwitch =
                 findViewById(R.id.switchPreserveWhitespaceAroundProtectedSegments);
+        escapedMarkdownCharactersInput = findViewById(R.id.escapedMarkdownCharactersInput);
         tokenMarkerInput = findViewById(R.id.tokenMarkerInput);
         maxCharsPerChunkInput = findViewById(R.id.maxCharsPerChunkInput);
     }
@@ -128,6 +142,7 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
         enableRegexFallbackProtectionSwitch.setChecked(options.enableRegexFallbackProtection());
         preserveWhitespaceAroundProtectedSegmentsSwitch.setChecked(
                 options.preserveWhitespaceAroundProtectedSegments());
+        escapedMarkdownCharactersInput.setText(options.escapedMarkdownCharactersToProtect());
         tokenMarkerInput.setText(options.tokenMarker());
         maxCharsPerChunkInput.setText(String.valueOf(options.maxCharsPerChunk()));
     }
@@ -143,6 +158,10 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                             Objects.requireNonNull(tokenMarkerInput.getText()).toString().trim();
                     String maxCharsText =
                             Objects.requireNonNull(maxCharsPerChunkInput.getText())
+                                    .toString()
+                                    .trim();
+                    String escapedMarkdownCharactersToProtect =
+                            Objects.requireNonNull(escapedMarkdownCharactersInput.getText())
                                     .toString()
                                     .trim();
 
@@ -185,6 +204,8 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                                     .setPreserveWhitespaceAroundProtectedSegments(
                                             preserveWhitespaceAroundProtectedSegmentsSwitch
                                                     .isChecked())
+                                    .setEscapedMarkdownCharactersToProtect(
+                                            escapedMarkdownCharactersToProtect)
                                     .setTokenMarker(enteredTokenMarker)
                                     .setMaxCharsPerChunk(parsedMaxChars)
                                     .build();

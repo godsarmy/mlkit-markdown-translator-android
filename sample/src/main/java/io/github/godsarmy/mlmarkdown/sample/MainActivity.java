@@ -122,6 +122,8 @@ public final class MainActivity extends AppCompatActivity {
     private boolean protectAutolinks = true;
     private boolean enableRegexFallbackProtection = true;
     private boolean preserveWhitespaceAroundProtectedSegments = true;
+    private String escapedMarkdownCharactersToProtect =
+            MarkdownTranslationOptions.DEFAULT_ESCAPED_MARKDOWN_CHARACTERS;
     private String tokenMarker = MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER;
     private int maxCharsPerChunk = MarkdownTranslationOptions.DEFAULT_MAX_CHARS_PER_CHUNK;
     private String latestTranslationError;
@@ -944,6 +946,7 @@ public final class MainActivity extends AppCompatActivity {
                 .setEnableRegexFallbackProtection(enableRegexFallbackProtection)
                 .setPreserveWhitespaceAroundProtectedSegments(
                         preserveWhitespaceAroundProtectedSegments)
+                .setEscapedMarkdownCharactersToProtect(escapedMarkdownCharactersToProtect)
                 .setMaxCharsPerChunk(maxCharsPerChunk)
                 .setTokenMarker(tokenMarker);
     }
@@ -1160,6 +1163,7 @@ public final class MainActivity extends AppCompatActivity {
         enableRegexFallbackProtection = options.enableRegexFallbackProtection();
         preserveWhitespaceAroundProtectedSegments =
                 options.preserveWhitespaceAroundProtectedSegments();
+        escapedMarkdownCharactersToProtect = options.escapedMarkdownCharactersToProtect();
         tokenMarker = options.tokenMarker();
         maxCharsPerChunk = options.maxCharsPerChunk();
     }

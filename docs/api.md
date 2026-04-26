@@ -103,6 +103,7 @@ public final class MarkdownTranslationOptions {
   public boolean protectAutolinks();
   public boolean enableRegexFallbackProtection();
   public boolean preserveWhitespaceAroundProtectedSegments();
+  public String escapedMarkdownCharactersToProtect();
   public String tokenMarker();
   public int maxCharsPerChunk();
   public @Nullable TranslationTimingListener translationTimingListener();
@@ -115,6 +116,7 @@ public final class MarkdownTranslationOptions {
     public Builder setProtectAutolinks(boolean value);
     public Builder setEnableRegexFallbackProtection(boolean value);
     public Builder setPreserveWhitespaceAroundProtectedSegments(boolean value);
+    public Builder setEscapedMarkdownCharactersToProtect(String characters);
     public Builder setTokenMarker(String marker);
     public Builder setMaxCharsPerChunk(int value);
     public Builder setTranslationTimingListener(@Nullable TranslationTimingListener listener);
@@ -133,6 +135,11 @@ public final class MarkdownTranslationOptions {
 - `enableRegexFallbackProtection`
   - `true` (default): regex protection/restoration pipeline runs in fallback mode.
   - `false`: fallback mode skips regex token protection and passes normalized text directly.
+- `escapedMarkdownCharactersToProtect`
+  - controls which backslash-escaped Markdown punctuation pairs are protected from translation.
+  - default: ``\\`*{}[]()#.!|>`` (does not include `_`, `-`, or `+`).
+  - for example, include `[` and `]` to preserve `\[` and `\]` without ML Kit inserting spaces.
+  - empty string disables this escape-specific protection.
 - `tokenMarker`
   - marker fence used for AST chunk token boundaries.
   - default: `@@` (markers look like `@@MLMD_TOKEN_<id>@@`).

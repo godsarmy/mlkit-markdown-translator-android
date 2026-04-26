@@ -23,6 +23,12 @@ public class MarkdownTranslationOptionsTest {
         assertTrue(options.protectAutolinks());
         assertTrue(options.enableRegexFallbackProtection());
         assertTrue(options.preserveWhitespaceAroundProtectedSegments());
+        assertEquals(
+                MarkdownTranslationOptions.DEFAULT_ESCAPED_MARKDOWN_CHARACTERS,
+                options.escapedMarkdownCharactersToProtect());
+        assertFalse(options.escapedMarkdownCharactersToProtect().contains("_"));
+        assertFalse(options.escapedMarkdownCharactersToProtect().contains("-"));
+        assertFalse(options.escapedMarkdownCharactersToProtect().contains("+"));
         assertEquals(MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER, options.tokenMarker());
         assertNull(options.translationTimingListener());
     }
@@ -38,6 +44,7 @@ public class MarkdownTranslationOptionsTest {
                         .setProtectAutolinks(false)
                         .setEnableRegexFallbackProtection(false)
                         .setPreserveWhitespaceAroundProtectedSegments(false)
+                        .setEscapedMarkdownCharactersToProtect("*#")
                         .setTokenMarker("##")
                         .build();
 
@@ -48,6 +55,7 @@ public class MarkdownTranslationOptionsTest {
         assertFalse(options.protectAutolinks());
         assertFalse(options.enableRegexFallbackProtection());
         assertFalse(options.preserveWhitespaceAroundProtectedSegments());
+        assertEquals("*#", options.escapedMarkdownCharactersToProtect());
         assertEquals("##", options.tokenMarker());
         assertNull(options.translationTimingListener());
     }

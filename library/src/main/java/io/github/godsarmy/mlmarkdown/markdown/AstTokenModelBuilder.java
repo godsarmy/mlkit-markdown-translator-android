@@ -16,22 +16,36 @@ import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.TreeSet;
 
 /** Step 6C: Converts a Flexmark AST into an ordered token stream. */
 public final class AstTokenModelBuilder {
     private final Parser parser;
     private final boolean protectAutolinks;
+    private final String escapedMarkdownCharactersToProtect;
 
     public AstTokenModelBuilder() {
         this(true);
     }
 
     public AstTokenModelBuilder(boolean protectAutolinks) {
+        this(
+                protectAutolinks,
+                io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions
+                        .DEFAULT_ESCAPED_MARKDOWN_CHARACTERS);
+    }
+
+    public AstTokenModelBuilder(
+            boolean protectAutolinks, String escapedMarkdownCharactersToProtect) {
         MutableDataSet options = new MutableDataSet();
         options.set(Parser.EXTENSIONS, List.of(TablesExtension.create()));
         this.parser = Parser.builder(options).build();
         this.protectAutolinks = protectAutolinks;
+        this.escapedMarkdownCharactersToProtect =
+                Objects.requireNonNull(
+                        escapedMarkdownCharactersToProtect,
+                        "escapedMarkdownCharactersToProtect == null");
     }
 
     public TokenizedMarkdownDocument build(String markdown) {
@@ -40,6 +54,7 @@ public final class AstTokenModelBuilder {
         List<Span> translatableSpans = new ArrayList<>();
         List<Span> protectedSpans = new ArrayList<>();
         collectSpans(document, translatableSpans, protectedSpans, protectAutolinks);
+        collectEscapedMarkdownSpans(markdown, protectedSpans, escapedMarkdownCharactersToProtect);
 
         List<MarkdownToken> tokens = toTokenStream(markdown, translatableSpans, protectedSpans);
         assignTranslatableTokenIds(tokens);
@@ -103,6 +118,17 @@ public final class AstTokenModelBuilder {
         for (Span span : spans) {
             boundaries.add(span.start);
             boundaries.add(span.end);
+        }
+    }
+
+    private static void collectEscapedMarkdownSpans(
+            String markdown, List<Span> protectedSpans, String escapedMarkdownCharactersToProtect) {
+        for (int i = 0; i < markdown.length() - 1; i++) {
+            if (markdown.charAt(i) == '\\'
+                    && escapedMarkdownCharactersToProtect.indexOf(markdown.charAt(i + 1)) >= 0) {
+                protectedSpans.add(new Span(i, i + 2));
+                i++;
+            }
         }
     }
 

@@ -91,6 +91,7 @@ public class TokenizedMarkdownDocumentReconstructionTest {
                         || reconstructed.contains(
                                 "[ref]: https://example.com \"Example Title\"\n"));
         assertTrue(reconstructed.contains("    indented code block line"));
-        assertTrue(reconstructed.contains("TR(Escaped literal \\* and \\[ should stay literal)"));
+        assertTrue(reconstructed.contains("\\*"));
+        assertTrue(reconstructed.contains("\\["));
     }
 }

@@ -29,6 +29,8 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
             "extra_enable_regex_fallback_protection";
     private static final String EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS =
             "extra_preserve_whitespace_around_protected_segments";
+    private static final String EXTRA_ESCAPED_MARKDOWN_CHARACTERS_TO_PROTECT =
+            "extra_escaped_markdown_characters_to_protect";
     private static final String EXTRA_TOKEN_MARKER = "extra_token_marker";
     private static final String EXTRA_MAX_CHARS_PER_CHUNK = "extra_max_chars_per_chunk";
 
@@ -58,6 +60,9 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
         intent.putExtra(
                 EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS,
                 options.preserveWhitespaceAroundProtectedSegments());
+        intent.putExtra(
+                EXTRA_ESCAPED_MARKDOWN_CHARACTERS_TO_PROTECT,
+                options.escapedMarkdownCharactersToProtect());
         intent.putExtra(EXTRA_TOKEN_MARKER, options.tokenMarker());
         intent.putExtra(EXTRA_MAX_CHARS_PER_CHUNK, options.maxCharsPerChunk());
         return intent;
@@ -85,6 +90,12 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
         if (tokenMarker == null || tokenMarker.isEmpty()) {
             tokenMarker = MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER;
         }
+        String escapedMarkdownCharactersToProtect =
+                intent.getStringExtra(EXTRA_ESCAPED_MARKDOWN_CHARACTERS_TO_PROTECT);
+        if (escapedMarkdownCharactersToProtect == null) {
+            escapedMarkdownCharactersToProtect =
+                    MarkdownTranslationOptions.DEFAULT_ESCAPED_MARKDOWN_CHARACTERS;
+        }
         int maxCharsPerChunk =
                 intent.getIntExtra(
                         EXTRA_MAX_CHARS_PER_CHUNK,
@@ -100,6 +111,8 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
                                 .setEnableRegexFallbackProtection(enableRegexFallbackProtection)
                                 .setPreserveWhitespaceAroundProtectedSegments(
                                         preserveWhitespaceAroundProtectedSegments)
+                                .setEscapedMarkdownCharactersToProtect(
+                                        escapedMarkdownCharactersToProtect)
                                 .setTokenMarker(tokenMarker)
                                 .setMaxCharsPerChunk(maxCharsPerChunk)
                                 .build());

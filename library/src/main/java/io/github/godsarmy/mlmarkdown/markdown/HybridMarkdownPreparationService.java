@@ -20,8 +20,9 @@ public class HybridMarkdownPreparationService {
     public HybridMarkdownPreparationService(MarkdownTranslationOptions options) {
         this(
                 new MarkdownPreprocessor(),
-                new AstTokenModelBuilder(options.protectAutolinks()),
-                new MarkdownProtectionPipeline(),
+                new AstTokenModelBuilder(
+                        options.protectAutolinks(), options.escapedMarkdownCharactersToProtect()),
+                new MarkdownProtectionPipeline(options.escapedMarkdownCharactersToProtect()),
                 options);
     }
 

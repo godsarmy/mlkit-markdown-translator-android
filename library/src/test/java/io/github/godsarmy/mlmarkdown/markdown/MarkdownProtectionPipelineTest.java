@@ -47,6 +47,42 @@ public class MarkdownProtectionPipelineTest {
     }
 
     @Test
+    public void protect_replacesEscapedMarkdownCharactersWithTokens() {
+        MarkdownProtectionPipeline pipeline = new MarkdownProtectionPipeline();
+        MarkdownRestorer restorer = new MarkdownRestorer();
+        MarkdownTokenStore tokenStore = new MarkdownTokenStore();
+
+        String input = "Escaped \\*data\\*, \\#data, and \\[label\\] stay literal";
+
+        String protectedMarkdown = pipeline.protect(input, tokenStore);
+
+        assertFalse(protectedMarkdown.contains("\\*"));
+        assertFalse(protectedMarkdown.contains("\\#"));
+        assertFalse(protectedMarkdown.contains("\\["));
+        assertFalse(protectedMarkdown.contains("\\]"));
+        assertEquals(5, tokenStore.getAll().size());
+        assertEquals(input, restorer.restore(protectedMarkdown, tokenStore));
+    }
+
+    @Test
+    public void protect_usesConfiguredEscapedMarkdownCharacters() {
+        MarkdownProtectionPipeline pipeline = new MarkdownProtectionPipeline("#[]");
+        MarkdownRestorer restorer = new MarkdownRestorer();
+        MarkdownTokenStore tokenStore = new MarkdownTokenStore();
+
+        String input = "Escaped \\*data\\*, \\#data, and \\[label\\] stay literal";
+
+        String protectedMarkdown = pipeline.protect(input, tokenStore);
+
+        assertTrue(protectedMarkdown.contains("\\*"));
+        assertFalse(protectedMarkdown.contains("\\#"));
+        assertFalse(protectedMarkdown.contains("\\["));
+        assertFalse(protectedMarkdown.contains("\\]"));
+        assertEquals(3, tokenStore.getAll().size());
+        assertEquals(input, restorer.restore(protectedMarkdown, tokenStore));
+    }
+
+    @Test
     public void protect_preservesWholeTableBlockInFallbackMode() {
         MarkdownProtectionPipeline pipeline = new MarkdownProtectionPipeline();
         MarkdownRestorer restorer = new MarkdownRestorer();

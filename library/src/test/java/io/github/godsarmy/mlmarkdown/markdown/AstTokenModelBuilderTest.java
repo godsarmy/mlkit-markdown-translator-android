@@ -1,6 +1,7 @@
 package io.github.godsarmy.mlmarkdown.markdown;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
@@ -90,6 +91,49 @@ public class AstTokenModelBuilderTest {
     }
 
     @Test
+    public void build_protectsEscapedMarkdownCharactersFromTranslation() {
+        AstTokenModelBuilder builder = new AstTokenModelBuilder();
+        String markdown = "Escaped \\*data\\*, \\#data, and \\[label\\] stay literal";
+
+        TokenizedMarkdownDocument document = builder.build(markdown);
+
+        assertEquals(markdown, document.reconstruct());
+        assertProtectedToken(document, "\\*");
+        assertProtectedToken(document, "\\#");
+        assertProtectedToken(document, "\\[");
+        assertProtectedToken(document, "\\]");
+        assertFalse(
+                document.translatableTokenMap().values().stream()
+                        .anyMatch(
+                                value ->
+                                        value.contains("\\*")
+                                                || value.contains("\\#")
+                                                || value.contains("\\[")
+                                                || value.contains("\\]")));
+    }
+
+    @Test
+    public void build_usesConfiguredEscapedMarkdownCharacters() {
+        AstTokenModelBuilder builder = new AstTokenModelBuilder(true, "#[]");
+        String markdown = "Escaped \\*data\\*, \\#data, and \\[label\\] stay literal";
+
+        TokenizedMarkdownDocument document = builder.build(markdown);
+
+        assertProtectedToken(document, "\\#");
+        assertProtectedToken(document, "\\[");
+        assertProtectedToken(document, "\\]");
+        assertFalse(
+                document.getTokens().stream()
+                        .anyMatch(
+                                token ->
+                                        token.getType() == MarkdownTokenType.PROTECTED
+                                                && token.getValue().equals("\\*")));
+        assertTrue(
+                document.translatableTokenMap().values().stream()
+                        .anyMatch(value -> value.contains("\\*")));
+    }
+
+    @Test
     public void build_preservesTableStructureWhileAllowingCellTextTranslation() {
         AstTokenModelBuilder builder = new AstTokenModelBuilder();
         String markdown =
@@ -139,5 +183,14 @@ public class AstTokenModelBuilderTest {
         TokenizedMarkdownDocument document = builder.build(markdown);
 
         assertEquals(markdown, document.reconstruct());
+    }
+
+    private static void assertProtectedToken(TokenizedMarkdownDocument document, String value) {
+        assertTrue(
+                document.getTokens().stream()
+                        .anyMatch(
+                                token ->
+                                        token.getType() == MarkdownTokenType.PROTECTED
+                                                && token.getValue().equals(value)));
     }
 }
