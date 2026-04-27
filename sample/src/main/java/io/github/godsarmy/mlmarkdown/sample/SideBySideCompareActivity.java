@@ -5,12 +5,13 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.text.Layout;
+import android.text.method.ScrollingMovementMethod;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -32,8 +33,8 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private static final String EXTRA_TRANSLATED_MARKDOWN = "extra_translated_markdown";
     private static final long TOGGLE_AUTO_HIDE_DELAY_MS = 2400L;
     private static final long TOGGLE_FADE_DURATION_MS = 180L;
-    private EditText sourceText;
-    private EditText translatedText;
+    private TextView sourceText;
+    private TextView translatedText;
     private WebView sourceRenderedHtml;
     private WebView translatedRenderedHtml;
     private ImageButton renderToggleButton;
@@ -140,13 +141,15 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         settings.setDomStorageEnabled(false);
     }
 
-    private static void setupRawCompareText(EditText editText) {
-        editText.setHorizontallyScrolling(true);
-        editText.setHorizontalScrollBarEnabled(true);
+    private static void setupRawCompareText(TextView textView) {
+        textView.setMovementMethod(new ScrollingMovementMethod());
+        textView.setHorizontallyScrolling(true);
+        textView.setHorizontalScrollBarEnabled(true);
+        textView.setVerticalScrollBarEnabled(true);
     }
 
     private static void matchLineNumberStyle(
-            EditText contentView, LineNumberGutterView lineNumbersView) {
+            TextView contentView, LineNumberGutterView lineNumbersView) {
         if (contentView == null || lineNumbersView == null) {
             return;
         }
@@ -423,7 +426,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private void syncRawScrollByLine(
-            EditText source, EditText target, int sourceScrollX, int sourceScrollY) {
+            TextView source, TextView target, int sourceScrollX, int sourceScrollY) {
         if (syncingScroll) {
             return;
         }
@@ -459,21 +462,21 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private static int calculateMaxHorizontalScroll(View view) {
-        if (view instanceof EditText) {
-            EditText editText = (EditText) view;
-            if (editText.getLayout() == null) {
+        if (view instanceof TextView) {
+            TextView textView = (TextView) view;
+            if (textView.getLayout() == null) {
                 return 0;
             }
-            int lineCount = editText.getLineCount();
+            int lineCount = textView.getLineCount();
             float widestLine = 0f;
             for (int i = 0; i < lineCount; i++) {
-                widestLine = Math.max(widestLine, editText.getLayout().getLineWidth(i));
+                widestLine = Math.max(widestLine, textView.getLayout().getLineWidth(i));
             }
             int contentWidth = (int) Math.ceil(widestLine);
             int visibleWidth =
-                    editText.getWidth()
-                            - editText.getCompoundPaddingLeft()
-                            - editText.getCompoundPaddingRight();
+                    textView.getWidth()
+                            - textView.getCompoundPaddingLeft()
+                            - textView.getCompoundPaddingRight();
             return Math.max(0, contentWidth - visibleWidth);
         }
         if (view instanceof WebView) {
@@ -483,16 +486,16 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private static int calculateMaxVerticalScroll(View view) {
-        if (view instanceof EditText) {
-            EditText editText = (EditText) view;
-            if (editText.getLayout() == null) {
+        if (view instanceof TextView) {
+            TextView textView = (TextView) view;
+            if (textView.getLayout() == null) {
                 return 0;
             }
-            int contentHeight = editText.getLayout().getHeight();
+            int contentHeight = textView.getLayout().getHeight();
             int visibleHeight =
-                    editText.getHeight()
-                            - editText.getCompoundPaddingTop()
-                            - editText.getCompoundPaddingBottom();
+                    textView.getHeight()
+                            - textView.getCompoundPaddingTop()
+                            - textView.getCompoundPaddingBottom();
             return Math.max(0, contentHeight - visibleHeight);
         }
         if (view instanceof WebView) {
