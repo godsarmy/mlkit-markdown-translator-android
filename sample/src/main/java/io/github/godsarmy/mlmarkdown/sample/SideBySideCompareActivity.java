@@ -4,13 +4,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,6 +26,8 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.node.Node;
@@ -37,6 +43,11 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private TextView translatedText;
     private WebView sourceRenderedHtml;
     private WebView translatedRenderedHtml;
+    private View compareContent;
+    private View compareLoadingContainer;
+    private ProgressBar compareLoadingProgressBar;
+    private TextView compareLoadingText;
+    private Button compareLoadingRetryButton;
     private ImageButton renderToggleButton;
     private ImageButton lineNumbersToggleButton;
     private ImageButton closeButton;
@@ -48,12 +59,25 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private boolean renderModeEnabled;
     private boolean lineNumbersEnabled;
     private boolean isRenderToggleVisible;
+    private boolean isDestroyed;
+    private int renderRequestVersion;
+    private Runnable retryAction;
+    private String sourceMarkdownText = "";
+    private String translatedMarkdownText = "";
     private final Runnable hideRenderToggleRunnable = this::hideRenderToggle;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final ExecutorService renderExecutor = Executors.newSingleThreadExecutor();
     private static final List<Extension> MARKDOWN_EXTENSIONS =
             Collections.singletonList(TablesExtension.create());
     private final Parser markdownParser = Parser.builder().extensions(MARKDOWN_EXTENSIONS).build();
     private final HtmlRenderer htmlRenderer =
             HtmlRenderer.builder().extensions(MARKDOWN_EXTENSIONS).build();
+
+    private enum CompareUiState {
+        LOADING,
+        READY,
+        ERROR
+    }
 
     public static Intent createIntent(
             Context context, String sourceMarkdown, String translatedMarkdown) {
@@ -73,10 +97,15 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         hideStatusBar();
 
         View compareRoot = findViewById(R.id.compareRoot);
+        compareContent = findViewById(R.id.compareContent);
         sourceText = findViewById(R.id.compareSourceText);
         translatedText = findViewById(R.id.compareTranslatedText);
         sourceRenderedHtml = findViewById(R.id.compareSourceRenderedHtml);
         translatedRenderedHtml = findViewById(R.id.compareTranslatedRenderedHtml);
+        compareLoadingContainer = findViewById(R.id.compareLoadingContainer);
+        compareLoadingProgressBar = findViewById(R.id.compareLoadingProgressBar);
+        compareLoadingText = findViewById(R.id.compareLoadingText);
+        compareLoadingRetryButton = findViewById(R.id.compareLoadingRetryButton);
         renderToggleButton = findViewById(R.id.compareRenderToggleButton);
         lineNumbersToggleButton = findViewById(R.id.compareLineNumbersToggleButton);
         closeButton = findViewById(R.id.compareCloseButton);
@@ -95,16 +124,17 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         applySafeInsets(compareRoot);
 
         Intent intent = getIntent();
-        String sourceMarkdown = intent.getStringExtra(EXTRA_SOURCE_MARKDOWN);
-        String translatedMarkdown = intent.getStringExtra(EXTRA_TRANSLATED_MARKDOWN);
-        sourceText.setText(sourceMarkdown == null ? "" : sourceMarkdown);
-        translatedText.setText(translatedMarkdown == null ? "" : translatedMarkdown);
-        sourceLineNumbers.bindTo(sourceText);
-        translatedLineNumbers.bindTo(translatedText);
-        sourceText.post(
-                () -> {
-                    invalidateLineNumberGutters();
-                });
+        sourceMarkdownText = valueOrEmpty(intent.getStringExtra(EXTRA_SOURCE_MARKDOWN));
+        translatedMarkdownText = valueOrEmpty(intent.getStringExtra(EXTRA_TRANSLATED_MARKDOWN));
+
+        if (compareLoadingRetryButton != null) {
+            compareLoadingRetryButton.setOnClickListener(
+                    v -> {
+                        if (retryAction != null) {
+                            retryAction.run();
+                        }
+                    });
+        }
 
         sourceText.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
@@ -126,8 +156,8 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         renderToggleButton.setOnClickListener(v -> toggleRenderMode());
         lineNumbersToggleButton.setOnClickListener(v -> toggleLineNumbers());
         closeButton.setOnClickListener(v -> finish());
-        applyRenderMode();
-        showRenderToggleTemporarily();
+        applyUiState(CompareUiState.LOADING, getString(R.string.compare_loading_preparing), null);
+        compareRoot.post(this::initializeContentAfterFirstFrame);
     }
 
     private void setupWebView(WebView webView) {
@@ -156,6 +186,49 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         lineNumbersView.applyTextMetricsFrom(contentView);
     }
 
+    private static String valueOrEmpty(@Nullable String value) {
+        return value == null ? "" : value;
+    }
+
+    private void initializeContentAfterFirstFrame() {
+        if (isDestroyed) {
+            return;
+        }
+        sourceText.setText(sourceMarkdownText);
+        translatedText.setText(translatedMarkdownText);
+        sourceLineNumbers.bindTo(sourceText);
+        translatedLineNumbers.bindTo(translatedText);
+        sourceText.post(this::invalidateLineNumberGutters);
+        applyRenderMode();
+        applyUiState(CompareUiState.READY, null, null);
+        showRenderToggleTemporarily();
+    }
+
+    private void applyUiState(
+            CompareUiState state,
+            @Nullable String loadingOrErrorMessage,
+            @Nullable Runnable retry) {
+        retryAction = retry;
+        if (compareLoadingContainer == null || compareLoadingText == null) {
+            return;
+        }
+        boolean loading = state == CompareUiState.LOADING;
+        boolean error = state == CompareUiState.ERROR;
+        compareLoadingContainer.setVisibility((loading || error) ? View.VISIBLE : View.GONE);
+        compareLoadingText.setText(
+                valueOrEmpty(loadingOrErrorMessage).isEmpty()
+                        ? getString(R.string.compare_loading_preparing)
+                        : loadingOrErrorMessage);
+        if (compareLoadingProgressBar != null) {
+            compareLoadingProgressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
+        }
+        if (compareLoadingRetryButton != null) {
+            compareLoadingRetryButton.setVisibility(
+                    error && retry != null ? View.VISIBLE : View.GONE);
+            compareLoadingRetryButton.setEnabled(error && retry != null);
+        }
+    }
+
     private void toggleRenderMode() {
         renderModeEnabled = !renderModeEnabled;
         applyRenderMode();
@@ -166,8 +239,8 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         if (renderModeEnabled) {
             sourceText.setVisibility(View.GONE);
             translatedText.setVisibility(View.GONE);
-            sourceRenderedHtml.setVisibility(View.VISIBLE);
-            translatedRenderedHtml.setVisibility(View.VISIBLE);
+            sourceRenderedHtml.setVisibility(View.GONE);
+            translatedRenderedHtml.setVisibility(View.GONE);
             if (lineNumbersToggleButton != null) {
                 lineNumbersToggleButton.setEnabled(false);
                 lineNumbersToggleButton.setClickable(false);
@@ -176,9 +249,9 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
             translatedLineNumbers.setVisibility(View.GONE);
             sourceLineDivider.setVisibility(View.GONE);
             translatedLineDivider.setVisibility(View.GONE);
-            renderMarkdownToWebView(sourceRenderedHtml, sourceText.getText().toString());
-            renderMarkdownToWebView(translatedRenderedHtml, translatedText.getText().toString());
+            requestRenderedPreview();
         } else {
+            renderRequestVersion++;
             sourceText.setVisibility(View.VISIBLE);
             translatedText.setVisibility(View.VISIBLE);
             sourceRenderedHtml.setVisibility(View.GONE);
@@ -188,9 +261,52 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                 lineNumbersToggleButton.setClickable(true);
             }
             updateLineNumbersVisibility();
+            applyUiState(CompareUiState.READY, null, null);
         }
         updateRenderToggleIcon();
         updateLineNumbersToggleIcon();
+    }
+
+    private void requestRenderedPreview() {
+        final int requestId = ++renderRequestVersion;
+        final String sourceMarkdown = sourceText.getText().toString();
+        final String translatedMarkdown = translatedText.getText().toString();
+        applyUiState(CompareUiState.LOADING, getString(R.string.compare_loading_rendering), null);
+
+        renderExecutor.execute(
+                () -> {
+                    try {
+                        final String sourceHtml = renderMarkdownToHtmlDocument(sourceMarkdown);
+                        final String translatedHtml =
+                                renderMarkdownToHtmlDocument(translatedMarkdown);
+                        mainHandler.post(
+                                () -> {
+                                    if (isDestroyed
+                                            || requestId != renderRequestVersion
+                                            || !renderModeEnabled) {
+                                        return;
+                                    }
+                                    loadHtmlDocument(sourceRenderedHtml, sourceHtml);
+                                    loadHtmlDocument(translatedRenderedHtml, translatedHtml);
+                                    sourceRenderedHtml.setVisibility(View.VISIBLE);
+                                    translatedRenderedHtml.setVisibility(View.VISIBLE);
+                                    applyUiState(CompareUiState.READY, null, null);
+                                });
+                    } catch (RuntimeException e) {
+                        mainHandler.post(
+                                () -> {
+                                    if (isDestroyed
+                                            || requestId != renderRequestVersion
+                                            || !renderModeEnabled) {
+                                        return;
+                                    }
+                                    applyUiState(
+                                            CompareUiState.ERROR,
+                                            getString(R.string.compare_loading_error),
+                                            this::requestRenderedPreview);
+                                });
+                    }
+                });
     }
 
     private void updateRenderToggleIcon() {
@@ -334,10 +450,14 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         }
     }
 
-    private void renderMarkdownToWebView(WebView webView, String markdown) {
+    private String renderMarkdownToHtmlDocument(String markdown) {
         Node node = markdownParser.parse(markdown == null ? "" : markdown);
         String html = htmlRenderer.render(node);
-        webView.loadDataWithBaseURL(null, wrapHtmlDocument(html), "text/html", "utf-8", null);
+        return wrapHtmlDocument(html);
+    }
+
+    private static void loadHtmlDocument(WebView webView, String htmlDocument) {
+        webView.loadDataWithBaseURL(null, htmlDocument, "text/html", "utf-8", null);
     }
 
     private String wrapHtmlDocument(String body) {
@@ -525,6 +645,11 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        isDestroyed = true;
+        renderRequestVersion++;
+        retryAction = null;
+        mainHandler.removeCallbacksAndMessages(null);
+        renderExecutor.shutdownNow();
         if (renderToggleButton != null) {
             renderToggleButton.removeCallbacks(hideRenderToggleRunnable);
         }
