@@ -252,16 +252,25 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
             requestRenderedPreview();
         } else {
             renderRequestVersion++;
-            sourceText.setVisibility(View.VISIBLE);
-            translatedText.setVisibility(View.VISIBLE);
-            sourceRenderedHtml.setVisibility(View.GONE);
-            translatedRenderedHtml.setVisibility(View.GONE);
-            if (lineNumbersToggleButton != null) {
-                lineNumbersToggleButton.setEnabled(true);
-                lineNumbersToggleButton.setClickable(true);
-            }
-            updateLineNumbersVisibility();
-            applyUiState(CompareUiState.READY, null, null);
+            applyUiState(
+                    CompareUiState.LOADING, getString(R.string.compare_loading_preparing), null);
+            View stateHost = compareContent != null ? compareContent : sourceText;
+            stateHost.post(
+                    () -> {
+                        if (isDestroyed || renderModeEnabled) {
+                            return;
+                        }
+                        sourceText.setVisibility(View.VISIBLE);
+                        translatedText.setVisibility(View.VISIBLE);
+                        sourceRenderedHtml.setVisibility(View.GONE);
+                        translatedRenderedHtml.setVisibility(View.GONE);
+                        if (lineNumbersToggleButton != null) {
+                            lineNumbersToggleButton.setEnabled(true);
+                            lineNumbersToggleButton.setClickable(true);
+                        }
+                        updateLineNumbersVisibility();
+                        applyUiState(CompareUiState.READY, null, null);
+                    });
         }
         updateRenderToggleIcon();
         updateLineNumbersToggleIcon();
@@ -271,7 +280,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         final int requestId = ++renderRequestVersion;
         final String sourceMarkdown = sourceText.getText().toString();
         final String translatedMarkdown = translatedText.getText().toString();
-        applyUiState(CompareUiState.LOADING, getString(R.string.compare_loading_rendering), null);
+        applyUiState(CompareUiState.LOADING, getString(R.string.compare_loading_preparing), null);
 
         renderExecutor.execute(
                 () -> {
