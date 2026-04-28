@@ -766,7 +766,7 @@ public final class MainActivity extends AppCompatActivity {
 
     private void openSideBySideCompare() {
         startActivity(
-                SideBySideCompareActivity.createIntent(
+                SideBySideTransferStore.createIntent(
                         this,
                         originalMarkdownInput.getText().toString(),
                         translatedMarkdownRaw.getText().toString()));

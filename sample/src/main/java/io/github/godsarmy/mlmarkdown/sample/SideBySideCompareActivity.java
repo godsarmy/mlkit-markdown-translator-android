@@ -35,8 +35,6 @@ import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 
 public final class SideBySideCompareActivity extends AppCompatActivity {
-    private static final String EXTRA_SOURCE_MARKDOWN = "extra_source_markdown";
-    private static final String EXTRA_TRANSLATED_MARKDOWN = "extra_translated_markdown";
     private static final long TOGGLE_AUTO_HIDE_DELAY_MS = 2400L;
     private static final long TOGGLE_FADE_DURATION_MS = 180L;
     private TextView sourceText;
@@ -81,10 +79,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
 
     public static Intent createIntent(
             Context context, String sourceMarkdown, String translatedMarkdown) {
-        Intent intent = new Intent(context, SideBySideCompareActivity.class);
-        intent.putExtra(EXTRA_SOURCE_MARKDOWN, sourceMarkdown);
-        intent.putExtra(EXTRA_TRANSLATED_MARKDOWN, translatedMarkdown);
-        return intent;
+        return SideBySideTransferStore.createIntent(context, sourceMarkdown, translatedMarkdown);
     }
 
     @Override
@@ -124,8 +119,10 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         applySafeInsets(compareRoot);
 
         Intent intent = getIntent();
-        sourceMarkdownText = valueOrEmpty(intent.getStringExtra(EXTRA_SOURCE_MARKDOWN));
-        translatedMarkdownText = valueOrEmpty(intent.getStringExtra(EXTRA_TRANSLATED_MARKDOWN));
+        SideBySideTransferStore.TransferPayload payload =
+                SideBySideTransferStore.resolveFromIntent(this, intent);
+        sourceMarkdownText = valueOrEmpty(payload.sourceMarkdown);
+        translatedMarkdownText = valueOrEmpty(payload.translatedMarkdown);
 
         if (compareLoadingRetryButton != null) {
             compareLoadingRetryButton.setOnClickListener(
@@ -654,6 +651,9 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (isFinishing() && !isChangingConfigurations()) {
+            SideBySideTransferStore.cleanupIfBackedByFile(this, getIntent());
+        }
         isDestroyed = true;
         renderRequestVersion++;
         retryAction = null;
