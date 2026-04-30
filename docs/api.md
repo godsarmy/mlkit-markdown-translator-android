@@ -42,7 +42,9 @@ public final class MlKitMarkdownTranslator implements Closeable {
 - `translateMarkdown(..., timeoutMs, ...)`
   - `timeoutMs = 0` (default): no timeout.
   - `timeoutMs > 0`: fails with `TranslationException` (`TranslationErrorCode.TIMEOUT`) if the
-    translation does not complete before timeout.
+    active translation engine call does not complete before timeout.
+  - In Markdown mode, translation is chunked; timeout is evaluated per chunk/token call, not as a
+    single wall-clock timeout for the full document.
 - `explainMarkdown(...)` is a fast, local preparation/chunking diagnostic path and does not call
   the translation engine.
 - Reuse one `MlKitMarkdownTranslator` instance per screen/controller scope.

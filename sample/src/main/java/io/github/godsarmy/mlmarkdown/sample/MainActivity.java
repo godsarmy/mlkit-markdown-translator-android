@@ -37,7 +37,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import androidx.core.view.GravityCompat;
@@ -106,7 +105,6 @@ public final class MainActivity extends AppCompatActivity {
     private Spinner targetLanguageSpinner;
     private AppCompatAutoCompleteTextView sampleAssetInput;
     private View exampleSourceContainer;
-    private ImageButton translationErrorButton;
     private View translationProgressContainer;
     private TextView translationProgressText;
     private TextView translationResultText;
@@ -128,6 +126,7 @@ public final class MainActivity extends AppCompatActivity {
             MarkdownTranslationOptions.DEFAULT_ESCAPED_MARKDOWN_CHARACTERS;
     private String tokenMarker = MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER;
     private int maxCharsPerChunk = MarkdownTranslationOptions.DEFAULT_MAX_CHARS_PER_CHUNK;
+    private int translateTimeoutMs = 0;
     private String latestTranslationError;
     @Nullable private TranslationTimingReport latestTimingReport;
     private final Set<String> downloadedTargetModels = new HashSet<>();
@@ -188,7 +187,6 @@ public final class MainActivity extends AppCompatActivity {
         targetLanguageSpinner = findViewById(R.id.targetLanguageSpinner);
         sampleAssetInput = findViewById(R.id.sampleAssetInput);
         exampleSourceContainer = findViewById(R.id.exampleSourceContainer);
-        translationErrorButton = findViewById(R.id.translationErrorButton);
         translationProgressContainer = findViewById(R.id.translationProgressContainer);
         translationProgressText = findViewById(R.id.translationProgressText);
         translationResultText = findViewById(R.id.translationResultText);
@@ -203,7 +201,6 @@ public final class MainActivity extends AppCompatActivity {
         enableNestedScrollWithinPage(inputRenderedHtml);
         enableNestedScrollWithinPage(outputRenderedHtml);
 
-        translationErrorButton.setOnClickListener(v -> showTranslationErrorDialog());
         sampleAssetInputKeyListener = sampleAssetInput.getKeyListener();
         applyDrawerHeaderInsets();
     }
@@ -643,7 +640,7 @@ public final class MainActivity extends AppCompatActivity {
             mainDrawerLayout.closeDrawer(GravityCompat.START);
             translationOptionsLauncher.launch(
                     TranslationOptionsActivity.createIntent(
-                            this, translationOptionsBuilder().build()));
+                            this, translationOptionsBuilder().build(), translateTimeoutMs));
             return true;
         }
         if (itemId == R.id.menu_help_feedback) {
@@ -976,6 +973,8 @@ public final class MainActivity extends AppCompatActivity {
                             }
                             applyTranslationOptions(
                                     TranslationOptionsActivity.extractOptions(data));
+                            translateTimeoutMs =
+                                    TranslationOptionsActivity.extractTranslateTimeoutMs(data);
                             recreateTranslator();
                         });
     }
@@ -1312,6 +1311,7 @@ public final class MainActivity extends AppCompatActivity {
                 markdown,
                 sourceLanguage(),
                 targetLanguage(),
+                translateTimeoutMs,
                 new io.github.godsarmy.mlmarkdown.api.TranslationCallback() {
                     @Override
                     public void onSuccess(String translatedText) {
@@ -1344,6 +1344,8 @@ public final class MainActivity extends AppCompatActivity {
                                                     chunkCount,
                                                     chunkRecoveryCount,
                                                     regexFallbackTriggered));
+                                    translationResultText.setTextColor(
+                                            getColor(R.color.mlkit_on_surface_variant));
                                     translationResultText.setVisibility(View.VISIBLE);
 
                                     clearTranslationError();
@@ -1361,9 +1363,11 @@ public final class MainActivity extends AppCompatActivity {
                                         reason = "Unknown error";
                                     }
 
-                                    showTranslationError(reason);
+                                    clearTranslationError();
                                     translationResultText.setText(
                                             getString(R.string.translation_result_failure, reason));
+                                    translationResultText.setTextColor(
+                                            getColor(R.color.mlkit_error));
                                     translationResultText.setVisibility(View.VISIBLE);
 
                                     isTranslating = false;
@@ -1375,29 +1379,11 @@ public final class MainActivity extends AppCompatActivity {
 
     private void clearTranslationError() {
         latestTranslationError = null;
-        translationErrorButton.setVisibility(View.GONE);
     }
 
     private void clearTranslationResult() {
         translationResultText.setText("");
         translationResultText.setVisibility(View.INVISIBLE);
-    }
-
-    private void showTranslationError(String details) {
-        latestTranslationError = details == null ? "Unknown error" : details;
-        translationErrorButton.setVisibility(View.VISIBLE);
-    }
-
-    private void showTranslationErrorDialog() {
-        if (latestTranslationError == null || latestTranslationError.isBlank()) {
-            return;
-        }
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.translation_error_dialog_title)
-                .setMessage(latestTranslationError)
-                .setCancelable(true)
-                .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
-                .show();
     }
 
     @Override

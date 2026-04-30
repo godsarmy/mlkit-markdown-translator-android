@@ -10,14 +10,6 @@
 		android:background="@color/mlkit_bg_canvas"
 		android:orientation="vertical" android:padding="16dp">
 
-		<androidx.appcompat.widget.AppCompatImageButton
-			android:id="@+id/translationErrorButton" android:layout_width="40dp"
-			android:layout_height="40dp" android:layout_gravity="end"
-			android:background="@android:color/transparent"
-			android:contentDescription="@string/translation_error_icon_content_description"
-			android:padding="6dp" android:src="@android:drawable/ic_dialog_alert"
-			android:tint="@color/mlkit_error" android:visibility="gone" />
-
 		<LinearLayout android:id="@+id/exampleSourceContainer"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"

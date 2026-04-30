@@ -101,6 +101,20 @@
 				<TextView android:layout_width="match_parent"
 					android:layout_height="wrap_content"
 					android:layout_marginTop="10dp"
+					android:text="@string/translate_timeout_ms_label"
+					android:textColor="@color/mlkit_on_surface_variant" />
+
+				<EditText android:id="@+id/translateTimeoutMsInput"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content" android:layout_marginTop="4dp"
+					android:hint="@string/translate_timeout_ms_hint"
+					android:inputType="number" android:singleLine="true"
+					android:textColor="@color/mlkit_on_background"
+					android:textColorHint="@color/mlkit_on_surface_variant" />
+
+				<TextView android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginTop="10dp"
 					android:text="@string/token_marker_label"
 					android:textColor="@color/mlkit_on_surface_variant" />
 

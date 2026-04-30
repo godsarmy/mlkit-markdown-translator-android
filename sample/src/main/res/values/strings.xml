@@ -160,6 +160,10 @@
 	<string name="max_chars_per_chunk_suffix">chars</string>
 	<string name="max_chars_per_chunk_required_error">Please enter a max chunk size</string>
 	<string name="max_chars_per_chunk_positive_error">Max chars must be greater than zero</string>
+	<string name="translate_timeout_ms_label">Chunk call timeout (ms)</string>
+	<string name="translate_timeout_ms_hint">0 = no timeout (applies per chunk call)</string>
+	<string name="translate_timeout_ms_required_error">Please enter a timeout in ms</string>
+	<string name="translate_timeout_ms_non_negative_error">Timeout ms must be 0 or greater</string>
 	<string name="default_markdown"># Hello Markdown
 
 		This is a simple markdown example.

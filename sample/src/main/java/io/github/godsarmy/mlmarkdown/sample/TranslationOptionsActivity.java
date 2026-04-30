@@ -27,6 +27,8 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
             "extra_escaped_markdown_characters_to_protect";
     private static final String EXTRA_TOKEN_MARKER = "extra_token_marker";
     private static final String EXTRA_MAX_CHARS_PER_CHUNK = "extra_max_chars_per_chunk";
+    private static final String EXTRA_TRANSLATE_TIMEOUT_MS = "extra_translate_timeout_ms";
+    private static final int DEFAULT_TRANSLATE_TIMEOUT_MS = 0;
 
     private SwitchMaterial preserveNewlinesSwitch;
     private SwitchMaterial preserveListPrefixesSwitch;
@@ -38,9 +40,12 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
     private EditText escapedMarkdownCharactersInput;
     private EditText tokenMarkerInput;
     private EditText maxCharsPerChunkInput;
+    private EditText translateTimeoutMsInput;
 
-    public static Intent createIntent(Context context, MarkdownTranslationOptions options) {
-        return withOptions(new Intent(context, TranslationOptionsActivity.class), options);
+    public static Intent createIntent(
+            Context context, MarkdownTranslationOptions options, int translateTimeoutMs) {
+        return withOptions(
+                new Intent(context, TranslationOptionsActivity.class), options, translateTimeoutMs);
     }
 
     public static MarkdownTranslationOptions extractOptions(@Nullable Intent intent) {
@@ -80,10 +85,24 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
     }
 
     public static Intent resultIntent(MarkdownTranslationOptions options) {
-        return withOptions(new Intent(), options);
+        return resultIntent(options, DEFAULT_TRANSLATE_TIMEOUT_MS);
     }
 
-    private static Intent withOptions(Intent intent, MarkdownTranslationOptions options) {
+    public static Intent resultIntent(MarkdownTranslationOptions options, int translateTimeoutMs) {
+        return withOptions(new Intent(), options, translateTimeoutMs);
+    }
+
+    public static int extractTranslateTimeoutMs(@Nullable Intent intent) {
+        if (intent == null) {
+            return DEFAULT_TRANSLATE_TIMEOUT_MS;
+        }
+        return Math.max(
+                DEFAULT_TRANSLATE_TIMEOUT_MS,
+                intent.getIntExtra(EXTRA_TRANSLATE_TIMEOUT_MS, DEFAULT_TRANSLATE_TIMEOUT_MS));
+    }
+
+    private static Intent withOptions(
+            Intent intent, MarkdownTranslationOptions options, int translateTimeoutMs) {
         intent.putExtra(EXTRA_PRESERVE_NEWLINES, options.preserveNewlines());
         intent.putExtra(EXTRA_PRESERVE_LIST_PREFIXES, options.preserveListPrefixes());
         intent.putExtra(EXTRA_PRESERVE_BLOCKQUOTES, options.preserveBlockquotes());
@@ -99,6 +118,9 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                 options.escapedMarkdownCharactersToProtect());
         intent.putExtra(EXTRA_TOKEN_MARKER, options.tokenMarker());
         intent.putExtra(EXTRA_MAX_CHARS_PER_CHUNK, options.maxCharsPerChunk());
+        intent.putExtra(
+                EXTRA_TRANSLATE_TIMEOUT_MS,
+                Math.max(DEFAULT_TRANSLATE_TIMEOUT_MS, translateTimeoutMs));
         return intent;
     }
 
@@ -130,6 +152,7 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
         escapedMarkdownCharactersInput = findViewById(R.id.escapedMarkdownCharactersInput);
         tokenMarkerInput = findViewById(R.id.tokenMarkerInput);
         maxCharsPerChunkInput = findViewById(R.id.maxCharsPerChunkInput);
+        translateTimeoutMsInput = findViewById(R.id.translateTimeoutMsInput);
     }
 
     private void populateInitialValues() {
@@ -145,6 +168,7 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
         escapedMarkdownCharactersInput.setText(options.escapedMarkdownCharactersToProtect());
         tokenMarkerInput.setText(options.tokenMarker());
         maxCharsPerChunkInput.setText(String.valueOf(options.maxCharsPerChunk()));
+        translateTimeoutMsInput.setText(String.valueOf(extractTranslateTimeoutMs(getIntent())));
     }
 
     private void setupActions() {
@@ -164,9 +188,14 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                             Objects.requireNonNull(escapedMarkdownCharactersInput.getText())
                                     .toString()
                                     .trim();
+                    String translateTimeoutMsText =
+                            Objects.requireNonNull(translateTimeoutMsInput.getText())
+                                    .toString()
+                                    .trim();
 
                     tokenMarkerInput.setError(null);
                     maxCharsPerChunkInput.setError(null);
+                    translateTimeoutMsInput.setError(null);
 
                     if (maxCharsText.isEmpty()) {
                         maxCharsPerChunkInput.setError(
@@ -184,6 +213,24 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                     if (parsedMaxChars <= 0) {
                         maxCharsPerChunkInput.setError(
                                 getString(R.string.max_chars_per_chunk_positive_error));
+                        return;
+                    }
+                    if (translateTimeoutMsText.isEmpty()) {
+                        translateTimeoutMsInput.setError(
+                                getString(R.string.translate_timeout_ms_required_error));
+                        return;
+                    }
+                    int parsedTranslateTimeoutMs;
+                    try {
+                        parsedTranslateTimeoutMs = Integer.parseInt(translateTimeoutMsText);
+                    } catch (NumberFormatException numberFormatException) {
+                        translateTimeoutMsInput.setError(
+                                getString(R.string.translate_timeout_ms_non_negative_error));
+                        return;
+                    }
+                    if (parsedTranslateTimeoutMs < 0) {
+                        translateTimeoutMsInput.setError(
+                                getString(R.string.translate_timeout_ms_non_negative_error));
                         return;
                     }
                     if (enteredTokenMarker.isEmpty()) {
@@ -209,7 +256,7 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                                     .setTokenMarker(enteredTokenMarker)
                                     .setMaxCharsPerChunk(parsedMaxChars)
                                     .build();
-                    Intent result = resultIntent(options);
+                    Intent result = resultIntent(options, parsedTranslateTimeoutMs);
                     setResult(RESULT_OK, result);
                     finish();
                 });
