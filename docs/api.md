@@ -19,6 +19,13 @@ public final class MlKitMarkdownTranslator implements Closeable {
       String targetLanguage,
       TranslationCallback callback);
 
+  public void translateMarkdown(
+      String markdown,
+      String sourceLanguage,
+      String targetLanguage,
+      long timeoutMs,
+      TranslationCallback callback);
+
   public ExplainMarkdownResult explainMarkdown(String markdown);
 
   @Override
@@ -32,6 +39,10 @@ public final class MlKitMarkdownTranslator implements Closeable {
   `TranslateRemoteModel`).
 - `translateMarkdown(...)` does not auto-download missing models; translation fails when the
   required pack is unavailable.
+- `translateMarkdown(..., timeoutMs, ...)`
+  - `timeoutMs = 0` (default): no timeout.
+  - `timeoutMs > 0`: fails with `TranslationException` (`TranslationErrorCode.TIMEOUT`) if the
+    translation does not complete before timeout.
 - `explainMarkdown(...)` is a fast, local preparation/chunking diagnostic path and does not call
   the translation engine.
 - Reuse one `MlKitMarkdownTranslator` instance per screen/controller scope.
@@ -171,6 +182,7 @@ Failure note:
 ```java
 public enum TranslationErrorCode {
   MODEL_NOT_DOWNLOADED,
+  TIMEOUT,
   UNKNOWN
 }
 ```

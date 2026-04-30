@@ -12,17 +12,32 @@ import java.io.Closeable;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MlKitTranslationEngine implements TranslationEngine, Closeable {
     private final TranslatorClientFactory translatorClientFactory;
+    private final ScheduledExecutorService timeoutScheduler;
     private final Map<String, TranslatorClient> translatorsByLanguagePair = new LinkedHashMap<>();
 
     public MlKitTranslationEngine() {
-        this(new DefaultTranslatorClientFactory());
+        this(new DefaultTranslatorClientFactory(), newTimeoutScheduler());
     }
 
     MlKitTranslationEngine(TranslatorClientFactory translatorClientFactory) {
+        this(translatorClientFactory, newTimeoutScheduler());
+    }
+
+    MlKitTranslationEngine(
+            TranslatorClientFactory translatorClientFactory,
+            ScheduledExecutorService timeoutScheduler) {
         this.translatorClientFactory = translatorClientFactory;
+        this.timeoutScheduler = timeoutScheduler;
     }
 
     @Override
@@ -31,8 +46,22 @@ public class MlKitTranslationEngine implements TranslationEngine, Closeable {
             String sourceLanguage,
             String targetLanguage,
             TranslationCallback callback) {
+        translate(text, sourceLanguage, targetLanguage, 0, callback);
+    }
+
+    @Override
+    public void translate(
+            String text,
+            String sourceLanguage,
+            String targetLanguage,
+            long timeoutMs,
+            TranslationCallback callback) {
         if (text == null) {
             callback.onFailure(new IllegalArgumentException("Text must not be null"));
+            return;
+        }
+        if (timeoutMs < 0) {
+            callback.onFailure(new IllegalArgumentException("timeoutMs must be >= 0"));
             return;
         }
 
@@ -49,16 +78,26 @@ public class MlKitTranslationEngine implements TranslationEngine, Closeable {
         }
 
         TranslatorClient translator = getOrCreateTranslator(normalizedSource, normalizedTarget);
+        AtomicBoolean completed = new AtomicBoolean(false);
+        ScheduledFuture<?> timeoutFuture = scheduleTimeout(timeoutMs, completed, callback);
         translator.translate(
                 text,
                 new TranslationCallback() {
                     @Override
                     public void onSuccess(String translatedText) {
+                        if (!completed.compareAndSet(false, true)) {
+                            return;
+                        }
+                        cancelTimeout(timeoutFuture);
                         callback.onSuccess(translatedText);
                     }
 
                     @Override
                     public void onFailure(Exception error) {
+                        if (!completed.compareAndSet(false, true)) {
+                            return;
+                        }
+                        cancelTimeout(timeoutFuture);
                         callback.onFailure(mapTranslationError(error));
                     }
                 });
@@ -70,6 +109,45 @@ public class MlKitTranslationEngine implements TranslationEngine, Closeable {
             translator.close();
         }
         translatorsByLanguagePair.clear();
+        timeoutScheduler.shutdownNow();
+    }
+
+    private ScheduledFuture<?> scheduleTimeout(
+            long timeoutMs, AtomicBoolean completed, TranslationCallback callback) {
+        if (timeoutMs == 0) {
+            return null;
+        }
+        return timeoutScheduler.schedule(
+                () -> {
+                    if (!completed.compareAndSet(false, true)) {
+                        return;
+                    }
+                    callback.onFailure(
+                            new TranslationException(
+                                    TranslationErrorCode.TIMEOUT,
+                                    "Translation timed out after " + timeoutMs + " ms",
+                                    new TimeoutException("Translation timed out")));
+                },
+                timeoutMs,
+                TimeUnit.MILLISECONDS);
+    }
+
+    private static void cancelTimeout(ScheduledFuture<?> timeoutFuture) {
+        if (timeoutFuture != null) {
+            timeoutFuture.cancel(false);
+        }
+    }
+
+    private static ScheduledExecutorService newTimeoutScheduler() {
+        return Executors.newSingleThreadScheduledExecutor(
+                new ThreadFactory() {
+                    @Override
+                    public Thread newThread(@NonNull Runnable runnable) {
+                        Thread thread = new Thread(runnable, "mlmd-translation-timeout");
+                        thread.setDaemon(true);
+                        return thread;
+                    }
+                });
     }
 
     private TranslatorClient getOrCreateTranslator(String sourceLanguage, String targetLanguage) {

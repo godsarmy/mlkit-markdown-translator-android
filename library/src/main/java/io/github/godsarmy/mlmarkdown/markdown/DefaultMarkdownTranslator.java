@@ -60,6 +60,16 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             String sourceLanguage,
             String targetLanguage,
             TranslationCallback callback) {
+        translateMarkdown(markdown, sourceLanguage, targetLanguage, 0, callback);
+    }
+
+    @Override
+    public void translateMarkdown(
+            String markdown,
+            String sourceLanguage,
+            String targetLanguage,
+            long timeoutMs,
+            TranslationCallback callback) {
         long totalStartNanos = nanoTimeProvider.nowNanos();
         long preparationStartNanos = nanoTimeProvider.nowNanos();
         MarkdownPreparationResult preparationResult = preparationService.prepare(markdown);
@@ -76,6 +86,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                     preparationResult.getTokenizedDocument(),
                     sourceLanguage,
                     targetLanguage,
+                    timeoutMs,
                     new MarkdownStructureTranslator.TokenizedTranslationCallback() {
                         @Override
                         public void onSuccess(String translatedText, int chunkParseRecoveryCount) {
@@ -122,6 +133,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                 preparationResult.getMarkdownForTranslation(),
                 sourceLanguage,
                 targetLanguage,
+                timeoutMs,
                 new TranslationCallback() {
                     @Override
                     public void onSuccess(String translatedText) {

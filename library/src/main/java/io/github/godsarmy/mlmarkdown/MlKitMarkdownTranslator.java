@@ -37,6 +37,16 @@ public final class MlKitMarkdownTranslator implements Closeable {
         markdownTranslator.translateMarkdown(markdown, sourceLanguage, targetLanguage, callback);
     }
 
+    public void translateMarkdown(
+            String markdown,
+            String sourceLanguage,
+            String targetLanguage,
+            long timeoutMs,
+            TranslationCallback callback) {
+        markdownTranslator.translateMarkdown(
+                markdown, sourceLanguage, targetLanguage, timeoutMs, callback);
+    }
+
     public ExplainMarkdownResult explainMarkdown(String markdown) {
         return markdownTranslator.explainMarkdown(markdown);
     }

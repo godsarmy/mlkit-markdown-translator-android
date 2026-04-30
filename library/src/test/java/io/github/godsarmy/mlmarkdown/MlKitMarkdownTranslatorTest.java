@@ -40,6 +40,19 @@ public class MlKitMarkdownTranslatorTest {
     }
 
     @Test
+    public void translateMarkdown_withTimeout_delegatesTimeoutToMarkdownTranslator() {
+        FakeMarkdownTranslator markdownTranslator = new FakeMarkdownTranslator();
+        MlKitMarkdownTranslator facade =
+                new MlKitMarkdownTranslator(markdownTranslator, new FakeCloseable());
+        TestTranslationCallback callback = new TestTranslationCallback();
+
+        facade.translateMarkdown("# Hello", "en", "es", 1234L, callback);
+
+        assertEquals(1234L, markdownTranslator.timeoutMs);
+        assertEquals("OK:# Hello", callback.translatedText);
+    }
+
+    @Test
     public void explainMarkdown_delegatesToMarkdownTranslator() {
         FakeMarkdownTranslator markdownTranslator = new FakeMarkdownTranslator();
         MlKitMarkdownTranslator facade =
@@ -56,6 +69,7 @@ public class MlKitMarkdownTranslatorTest {
         private String markdown;
         private String sourceLanguage;
         private String targetLanguage;
+        private long timeoutMs;
         private String explainedMarkdown;
 
         @Override
@@ -67,6 +81,20 @@ public class MlKitMarkdownTranslatorTest {
             this.markdown = markdown;
             this.sourceLanguage = sourceLanguage;
             this.targetLanguage = targetLanguage;
+            callback.onSuccess("OK:" + markdown);
+        }
+
+        @Override
+        public void translateMarkdown(
+                String markdown,
+                String sourceLanguage,
+                String targetLanguage,
+                long timeoutMs,
+                TranslationCallback callback) {
+            this.markdown = markdown;
+            this.sourceLanguage = sourceLanguage;
+            this.targetLanguage = targetLanguage;
+            this.timeoutMs = timeoutMs;
             callback.onSuccess("OK:" + markdown);
         }
 

@@ -8,4 +8,13 @@ public interface TranslationEngine {
             String sourceLanguage,
             String targetLanguage,
             TranslationCallback callback);
+
+    default void translate(
+            String text,
+            String sourceLanguage,
+            String targetLanguage,
+            long timeoutMs,
+            TranslationCallback callback) {
+        translate(text, sourceLanguage, targetLanguage, callback);
+    }
 }

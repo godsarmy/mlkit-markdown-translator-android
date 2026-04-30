@@ -92,7 +92,16 @@ public class MarkdownStructureTranslator {
             String sourceLanguage,
             String targetLanguage,
             TranslationCallback callback) {
-        translationEngine.translate(markdown, sourceLanguage, targetLanguage, callback);
+        translate(markdown, sourceLanguage, targetLanguage, 0, callback);
+    }
+
+    public void translate(
+            String markdown,
+            String sourceLanguage,
+            String targetLanguage,
+            long timeoutMs,
+            TranslationCallback callback) {
+        translationEngine.translate(markdown, sourceLanguage, targetLanguage, timeoutMs, callback);
     }
 
     public void translate(
@@ -100,10 +109,20 @@ public class MarkdownStructureTranslator {
             String sourceLanguage,
             String targetLanguage,
             TranslationCallback callback) {
+        translate(tokenizedDocument, sourceLanguage, targetLanguage, 0, callback);
+    }
+
+    public void translate(
+            TokenizedMarkdownDocument tokenizedDocument,
+            String sourceLanguage,
+            String targetLanguage,
+            long timeoutMs,
+            TranslationCallback callback) {
         translate(
                 tokenizedDocument,
                 sourceLanguage,
                 targetLanguage,
+                timeoutMs,
                 new TokenizedTranslationCallback() {
                     @Override
                     public void onSuccess(String translatedText, int chunkParseRecoveryCount) {
@@ -122,6 +141,15 @@ public class MarkdownStructureTranslator {
             String sourceLanguage,
             String targetLanguage,
             TokenizedTranslationCallback callback) {
+        translate(tokenizedDocument, sourceLanguage, targetLanguage, 0, callback);
+    }
+
+    void translate(
+            TokenizedMarkdownDocument tokenizedDocument,
+            String sourceLanguage,
+            String targetLanguage,
+            long timeoutMs,
+            TokenizedTranslationCallback callback) {
         List<TranslationChunk> chunks = chunkTranslatableTokens(tokenizedDocument);
         if (chunks.isEmpty()) {
             callback.onSuccess(tokenizedDocument.reconstruct(), 0);
@@ -134,6 +162,7 @@ public class MarkdownStructureTranslator {
                 new LinkedHashMap<>(),
                 sourceLanguage,
                 targetLanguage,
+                timeoutMs,
                 callback,
                 0);
     }
@@ -172,6 +201,7 @@ public class MarkdownStructureTranslator {
             Map<String, String> translations,
             String sourceLanguage,
             String targetLanguage,
+            long timeoutMs,
             TokenizedTranslationCallback callback,
             int chunkParseRecoveryCount) {
         if (!iterator.hasNext()) {
@@ -186,6 +216,7 @@ public class MarkdownStructureTranslator {
                 chunk.getText(),
                 sourceLanguage,
                 targetLanguage,
+                timeoutMs,
                 new TranslationCallback() {
                     @Override
                     public void onSuccess(String translatedText) {
@@ -197,6 +228,7 @@ public class MarkdownStructureTranslator {
                                     translations,
                                     sourceLanguage,
                                     targetLanguage,
+                                    timeoutMs,
                                     callback,
                                     chunkParseRecoveryCount);
                         } catch (IllegalStateException parseError) {
@@ -207,6 +239,7 @@ public class MarkdownStructureTranslator {
                                     translations,
                                     sourceLanguage,
                                     targetLanguage,
+                                    timeoutMs,
                                     callback,
                                     chunkParseRecoveryCount + 1);
                         }
@@ -226,6 +259,7 @@ public class MarkdownStructureTranslator {
             Map<String, String> translations,
             String sourceLanguage,
             String targetLanguage,
+            long timeoutMs,
             TokenizedTranslationCallback callback,
             int chunkParseRecoveryCount) {
         translateChunkTokenAt(
@@ -235,6 +269,7 @@ public class MarkdownStructureTranslator {
                 translations,
                 sourceLanguage,
                 targetLanguage,
+                timeoutMs,
                 callback,
                 chunkParseRecoveryCount,
                 0);
@@ -247,6 +282,7 @@ public class MarkdownStructureTranslator {
             Map<String, String> translations,
             String sourceLanguage,
             String targetLanguage,
+            long timeoutMs,
             TokenizedTranslationCallback callback,
             int chunkParseRecoveryCount,
             int index) {
@@ -257,6 +293,7 @@ public class MarkdownStructureTranslator {
                     translations,
                     sourceLanguage,
                     targetLanguage,
+                    timeoutMs,
                     callback,
                     chunkParseRecoveryCount);
             return;
@@ -268,6 +305,7 @@ public class MarkdownStructureTranslator {
                 tokenValue,
                 sourceLanguage,
                 targetLanguage,
+                timeoutMs,
                 new TranslationCallback() {
                     @Override
                     public void onSuccess(String translatedText) {
@@ -280,6 +318,7 @@ public class MarkdownStructureTranslator {
                                 translations,
                                 sourceLanguage,
                                 targetLanguage,
+                                timeoutMs,
                                 callback,
                                 chunkParseRecoveryCount,
                                 index + 1);

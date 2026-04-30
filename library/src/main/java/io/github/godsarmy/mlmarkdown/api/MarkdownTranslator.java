@@ -7,5 +7,14 @@ public interface MarkdownTranslator {
             String targetLanguage,
             TranslationCallback callback);
 
+    default void translateMarkdown(
+            String markdown,
+            String sourceLanguage,
+            String targetLanguage,
+            long timeoutMs,
+            TranslationCallback callback) {
+        translateMarkdown(markdown, sourceLanguage, targetLanguage, callback);
+    }
+
     ExplainMarkdownResult explainMarkdown(String markdown);
 }
