@@ -5,7 +5,6 @@ import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -158,7 +157,7 @@ public class MarkdownStructureTranslator {
 
         translateChunks(
                 tokenizedDocument,
-                chunks.iterator(),
+                chunks,
                 new LinkedHashMap<>(),
                 sourceLanguage,
                 targetLanguage,
@@ -197,138 +196,172 @@ public class MarkdownStructureTranslator {
 
     private void translateChunks(
             TokenizedMarkdownDocument tokenizedDocument,
-            Iterator<TranslationChunk> iterator,
+            List<TranslationChunk> chunks,
             Map<String, String> translations,
             String sourceLanguage,
             String targetLanguage,
             long timeoutMs,
             TokenizedTranslationCallback callback,
             int chunkParseRecoveryCount) {
-        if (!iterator.hasNext()) {
-            callback.onSuccess(
-                    tokenizedDocument.reconstructWithTranslations(translations),
-                    chunkParseRecoveryCount);
-            return;
+        TranslationFlow flow =
+                new TranslationFlow(
+                        tokenizedDocument,
+                        chunks,
+                        translations,
+                        sourceLanguage,
+                        targetLanguage,
+                        timeoutMs,
+                        callback,
+                        chunkParseRecoveryCount);
+        flow.start();
+    }
+
+    private final class TranslationFlow {
+        private final TokenizedMarkdownDocument tokenizedDocument;
+        private final List<TranslationChunk> chunks;
+        private final Map<String, String> translations;
+        private final String sourceLanguage;
+        private final String targetLanguage;
+        private final long timeoutMs;
+        private final TokenizedTranslationCallback callback;
+        private int chunkParseRecoveryCount;
+        private int chunkIndex;
+        private int tokenIndex;
+        private boolean translatingTokens;
+        private boolean driveRunning;
+        private boolean driveRequested;
+        private boolean inFlight;
+        private boolean completed;
+
+        private TranslationFlow(
+                TokenizedMarkdownDocument tokenizedDocument,
+                List<TranslationChunk> chunks,
+                Map<String, String> translations,
+                String sourceLanguage,
+                String targetLanguage,
+                long timeoutMs,
+                TokenizedTranslationCallback callback,
+                int chunkParseRecoveryCount) {
+            this.tokenizedDocument = tokenizedDocument;
+            this.chunks = chunks;
+            this.translations = translations;
+            this.sourceLanguage = sourceLanguage;
+            this.targetLanguage = targetLanguage;
+            this.timeoutMs = timeoutMs;
+            this.callback = callback;
+            this.chunkParseRecoveryCount = chunkParseRecoveryCount;
         }
 
-        TranslationChunk chunk = iterator.next();
-        translationEngine.translate(
-                chunk.getText(),
-                sourceLanguage,
-                targetLanguage,
-                timeoutMs,
-                new TranslationCallback() {
-                    @Override
-                    public void onSuccess(String translatedText) {
-                        try {
-                            translations.putAll(parseChunkTranslations(chunk, translatedText));
-                            translateChunks(
-                                    tokenizedDocument,
-                                    iterator,
-                                    translations,
-                                    sourceLanguage,
-                                    targetLanguage,
-                                    timeoutMs,
-                                    callback,
-                                    chunkParseRecoveryCount);
-                        } catch (IllegalStateException parseError) {
-                            translateChunkIndividually(
-                                    tokenizedDocument,
-                                    chunk,
-                                    iterator,
-                                    translations,
-                                    sourceLanguage,
-                                    targetLanguage,
-                                    timeoutMs,
-                                    callback,
-                                    chunkParseRecoveryCount + 1);
-                        }
+        private void start() {
+            drive();
+        }
+
+        private void drive() {
+            if (completed) {
+                return;
+            }
+            if (driveRunning) {
+                driveRequested = true;
+                return;
+            }
+
+            driveRunning = true;
+            try {
+                do {
+                    driveRequested = false;
+                    while (!completed && !inFlight) {
+                        step();
                     }
+                } while (driveRequested && !completed);
+            } finally {
+                driveRunning = false;
+            }
+        }
 
-                    @Override
-                    public void onFailure(Exception error) {
-                        callback.onFailure(error, chunkParseRecoveryCount);
-                    }
-                });
-    }
+        private void step() {
+            if (chunkIndex >= chunks.size()) {
+                completed = true;
+                callback.onSuccess(
+                        tokenizedDocument.reconstructWithTranslations(translations),
+                        chunkParseRecoveryCount);
+                return;
+            }
 
-    private void translateChunkIndividually(
-            TokenizedMarkdownDocument tokenizedDocument,
-            TranslationChunk chunk,
-            Iterator<TranslationChunk> iterator,
-            Map<String, String> translations,
-            String sourceLanguage,
-            String targetLanguage,
-            long timeoutMs,
-            TokenizedTranslationCallback callback,
-            int chunkParseRecoveryCount) {
-        translateChunkTokenAt(
-                tokenizedDocument,
-                chunk,
-                iterator,
-                translations,
-                sourceLanguage,
-                targetLanguage,
-                timeoutMs,
-                callback,
-                chunkParseRecoveryCount,
-                0);
-    }
+            TranslationChunk chunk = chunks.get(chunkIndex);
+            if (!translatingTokens) {
+                translateChunk(chunk);
+                return;
+            }
 
-    private void translateChunkTokenAt(
-            TokenizedMarkdownDocument tokenizedDocument,
-            TranslationChunk chunk,
-            Iterator<TranslationChunk> iterator,
-            Map<String, String> translations,
-            String sourceLanguage,
-            String targetLanguage,
-            long timeoutMs,
-            TokenizedTranslationCallback callback,
-            int chunkParseRecoveryCount,
-            int index) {
-        if (index >= chunk.getTokenIds().size()) {
-            translateChunks(
-                    tokenizedDocument,
-                    iterator,
-                    translations,
+            if (tokenIndex >= chunk.getTokenIds().size()) {
+                translatingTokens = false;
+                tokenIndex = 0;
+                chunkIndex++;
+                return;
+            }
+
+            translateChunkToken(chunk, tokenIndex);
+        }
+
+        private void translateChunk(TranslationChunk chunk) {
+            inFlight = true;
+            translationEngine.translate(
+                    chunk.getText(),
                     sourceLanguage,
                     targetLanguage,
                     timeoutMs,
-                    callback,
-                    chunkParseRecoveryCount);
-            return;
+                    new TranslationCallback() {
+                        @Override
+                        public void onSuccess(String translatedText) {
+                            inFlight = false;
+                            try {
+                                translations.putAll(parseChunkTranslations(chunk, translatedText));
+                                chunkIndex++;
+                            } catch (IllegalStateException parseError) {
+                                translatingTokens = true;
+                                tokenIndex = 0;
+                                chunkParseRecoveryCount++;
+                            }
+                            drive();
+                        }
+
+                        @Override
+                        public void onFailure(Exception error) {
+                            inFlight = false;
+                            completed = true;
+                            callback.onFailure(error, chunkParseRecoveryCount);
+                        }
+                    });
         }
 
-        String tokenId = chunk.getTokenIds().get(index);
-        String tokenValue = chunk.getTokenValues().get(index);
-        translationEngine.translate(
-                tokenValue,
-                sourceLanguage,
-                targetLanguage,
-                timeoutMs,
-                new TranslationCallback() {
-                    @Override
-                    public void onSuccess(String translatedText) {
-                        translations.put(
-                                tokenId, maybePreserveEdgeWhitespace(tokenValue, translatedText));
-                        translateChunkTokenAt(
-                                tokenizedDocument,
-                                chunk,
-                                iterator,
-                                translations,
-                                sourceLanguage,
-                                targetLanguage,
-                                timeoutMs,
-                                callback,
-                                chunkParseRecoveryCount,
-                                index + 1);
-                    }
+        private void translateChunkToken(TranslationChunk chunk, int index) {
+            String tokenId = chunk.getTokenIds().get(index);
+            String tokenValue = chunk.getTokenValues().get(index);
+            inFlight = true;
+            translationEngine.translate(
+                    tokenValue,
+                    sourceLanguage,
+                    targetLanguage,
+                    timeoutMs,
+                    new TranslationCallback() {
+                        @Override
+                        public void onSuccess(String translatedText) {
+                            inFlight = false;
+                            translations.put(
+                                    tokenId,
+                                    maybePreserveEdgeWhitespace(tokenValue, translatedText));
+                            tokenIndex++;
+                            drive();
+                        }
 
-                    @Override
-                    public void onFailure(Exception error) {
-                        callback.onFailure(error, chunkParseRecoveryCount);
-                    }
-                });
+                        @Override
+                        public void onFailure(Exception error) {
+                            inFlight = false;
+                            completed = true;
+                            callback.onFailure(error, chunkParseRecoveryCount);
+                        }
+                    });
+        }
     }
 
     interface TokenizedTranslationCallback {
