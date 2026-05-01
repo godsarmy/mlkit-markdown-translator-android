@@ -167,20 +167,20 @@
 		android:gravity="center_vertical" android:orientation="horizontal">
 
 		<androidx.appcompat.widget.AppCompatImageButton
-			android:id="@+id/compareRenderToggleButton"
-			android:layout_width="40dp" android:layout_height="40dp"
-			android:background="@android:color/transparent"
-			android:contentDescription="@string/compare_render_markdown_enable"
-			android:padding="6dp" android:src="@drawable/ic_render_preview_off"
-			android:tint="@color/mlkit_on_surface_variant" />
-
-		<androidx.appcompat.widget.AppCompatImageButton
 			android:id="@+id/compareLineNumbersToggleButton"
 			android:layout_width="40dp" android:layout_height="40dp"
-			android:layout_marginStart="4dp"
 			android:background="@android:color/transparent"
 			android:contentDescription="@string/compare_line_numbers_enable"
 			android:padding="6dp" android:src="@drawable/ic_line_numbers"
+			android:tint="@color/mlkit_on_surface_variant" />
+
+		<androidx.appcompat.widget.AppCompatImageButton
+			android:id="@+id/compareRenderToggleButton"
+			android:layout_width="40dp" android:layout_height="40dp"
+			android:layout_marginStart="4dp"
+			android:background="@android:color/transparent"
+			android:contentDescription="@string/compare_render_markdown_enable"
+			android:padding="6dp" android:src="@drawable/ic_render_preview_off"
 			android:tint="@color/mlkit_on_surface_variant" />
 
 		<androidx.appcompat.widget.AppCompatImageButton
