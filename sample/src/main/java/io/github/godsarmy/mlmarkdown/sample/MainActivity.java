@@ -128,7 +128,7 @@ public final class MainActivity extends AppCompatActivity {
     private int maxCharsPerChunk = MarkdownTranslationOptions.DEFAULT_MAX_CHARS_PER_CHUNK;
     private int translateTimeoutMs = 0;
     private String latestTranslationError;
-    @Nullable private TranslationMetricsReport latestTimingReport;
+    @Nullable private TranslationMetricsReport latestMetricsReport;
     private final Set<String> downloadedTargetModels = new HashSet<>();
     private final List<String> downloadedLanguageOptions = new ArrayList<>();
     private final ExecutorService sourceLoaderExecutor = Executors.newSingleThreadExecutor();
@@ -940,7 +940,7 @@ public final class MainActivity extends AppCompatActivity {
     private MlKitMarkdownTranslator createTranslator() {
         return new MlKitMarkdownTranslator(
                 translationOptionsBuilder()
-                        .setTranslationMetricsListener(report -> latestTimingReport = report)
+                        .setTranslationMetricsListener(report -> latestMetricsReport = report)
                         .build());
     }
 
@@ -1302,7 +1302,7 @@ public final class MainActivity extends AppCompatActivity {
         int rawCharCount = markdown.length();
 
         isTranslating = true;
-        latestTimingReport = null;
+        latestMetricsReport = null;
         setBusy(true);
         clearTranslationError();
         clearTranslationResult();
@@ -1322,7 +1322,7 @@ public final class MainActivity extends AppCompatActivity {
                                         renderMarkdownToWebView(outputRenderedHtml, translatedText);
                                     }
 
-                                    TranslationMetricsReport report = latestTimingReport;
+                                    TranslationMetricsReport report = latestMetricsReport;
                                     long durationMs =
                                             report != null ? report.getTotalDurationMs() : 0L;
                                     int tokenCount =
