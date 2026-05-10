@@ -1,7 +1,7 @@
 package io.github.godsarmy.mlmarkdown;
 
 import androidx.annotation.Nullable;
-import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
+import io.github.godsarmy.mlmarkdown.api.TranslationMetricsListener;
 import java.util.Objects;
 
 public final class MarkdownTranslationOptions {
@@ -19,7 +19,7 @@ public final class MarkdownTranslationOptions {
     private final String escapedMarkdownCharactersToProtect;
     private final String tokenMarker;
     private final int maxCharsPerChunk;
-    @Nullable private final TranslationTimingListener translationTimingListener;
+    @Nullable private final TranslationMetricsListener translationMetricsListener;
 
     private MarkdownTranslationOptions(Builder builder) {
         this.preserveNewlines = builder.preserveNewlines;
@@ -33,7 +33,7 @@ public final class MarkdownTranslationOptions {
         this.escapedMarkdownCharactersToProtect = builder.escapedMarkdownCharactersToProtect;
         this.tokenMarker = builder.tokenMarker;
         this.maxCharsPerChunk = builder.maxCharsPerChunk;
-        this.translationTimingListener = builder.translationTimingListener;
+        this.translationMetricsListener = builder.translationMetricsListener;
     }
 
     public static MarkdownTranslationOptions defaults() {
@@ -81,8 +81,8 @@ public final class MarkdownTranslationOptions {
     }
 
     @Nullable
-    public TranslationTimingListener translationTimingListener() {
-        return translationTimingListener;
+    public TranslationMetricsListener translationMetricsListener() {
+        return translationMetricsListener;
     }
 
     public static final class Builder {
@@ -96,7 +96,7 @@ public final class MarkdownTranslationOptions {
         private String escapedMarkdownCharactersToProtect = DEFAULT_ESCAPED_MARKDOWN_CHARACTERS;
         private String tokenMarker = DEFAULT_TOKEN_MARKER;
         private int maxCharsPerChunk = DEFAULT_MAX_CHARS_PER_CHUNK;
-        @Nullable private TranslationTimingListener translationTimingListener;
+        @Nullable private TranslationMetricsListener translationMetricsListener;
 
         public Builder setPreserveNewlines(boolean preserveNewlines) {
             this.preserveNewlines = preserveNewlines;
@@ -161,9 +161,9 @@ public final class MarkdownTranslationOptions {
             return this;
         }
 
-        public Builder setTranslationTimingListener(
-                @Nullable TranslationTimingListener translationTimingListener) {
-            this.translationTimingListener = translationTimingListener;
+        public Builder setTranslationMetricsListener(
+                @Nullable TranslationMetricsListener translationMetricsListener) {
+            this.translationMetricsListener = translationMetricsListener;
             return this;
         }
 

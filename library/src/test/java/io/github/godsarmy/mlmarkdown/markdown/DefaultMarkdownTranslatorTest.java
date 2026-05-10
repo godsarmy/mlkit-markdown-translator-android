@@ -10,8 +10,8 @@ import static org.junit.Assert.assertTrue;
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownResult;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
+import io.github.godsarmy.mlmarkdown.api.TranslationMetricsListener;
 import io.github.godsarmy.mlmarkdown.api.TranslationMetricsReport;
-import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 import java.util.List;
@@ -134,7 +134,7 @@ public class DefaultMarkdownTranslatorTest {
                 new DefaultMarkdownTranslator(
                         new MarkerStrippingTranslationEngine(),
                         new MarkdownTranslationOptions.Builder()
-                                .setTranslationTimingListener(timingListener)
+                                .setTranslationMetricsListener(timingListener)
                                 .build(),
                         nanoTimeProvider);
 
@@ -167,7 +167,7 @@ public class DefaultMarkdownTranslatorTest {
                 new DefaultMarkdownTranslator(
                         new FailingTranslationEngine(),
                         new MarkdownTranslationOptions.Builder()
-                                .setTranslationTimingListener(timingListener)
+                                .setTranslationMetricsListener(timingListener)
                                 .build(),
                         nanoTimeProvider);
 
@@ -216,7 +216,7 @@ public class DefaultMarkdownTranslatorTest {
                 new DefaultMarkdownTranslator(
                         new MarkerStrippingTranslationEngine(),
                         new MarkdownTranslationOptions.Builder()
-                                .setTranslationTimingListener(timingListener)
+                                .setTranslationMetricsListener(timingListener)
                                 .build(),
                         nanoTimeProvider,
                         preparationService);
@@ -366,7 +366,7 @@ public class DefaultMarkdownTranslatorTest {
         }
     }
 
-    private static final class RecordingTimingListener implements TranslationTimingListener {
+    private static final class RecordingTimingListener implements TranslationMetricsListener {
         private TranslationMetricsReport lastReport;
 
         @Override

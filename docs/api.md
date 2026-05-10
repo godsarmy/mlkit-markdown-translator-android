@@ -119,7 +119,7 @@ public final class MarkdownTranslationOptions {
   public String escapedMarkdownCharactersToProtect();
   public String tokenMarker();
   public int maxCharsPerChunk();
-  public @Nullable TranslationTimingListener translationTimingListener();
+  public @Nullable TranslationMetricsListener translationMetricsListener();
 
   public static final class Builder {
     public Builder setPreserveNewlines(boolean value);
@@ -132,7 +132,7 @@ public final class MarkdownTranslationOptions {
     public Builder setEscapedMarkdownCharactersToProtect(String characters);
     public Builder setTokenMarker(String marker);
     public Builder setMaxCharsPerChunk(int value);
-    public Builder setTranslationTimingListener(@Nullable TranslationTimingListener listener);
+    public Builder setTranslationMetricsListener(@Nullable TranslationMetricsListener listener);
     public MarkdownTranslationOptions build();
   }
 }
@@ -199,10 +199,10 @@ public final class TranslationException extends Exception {
 
 ## Translation metrics API
 
-### `TranslationTimingListener`
+### `TranslationMetricsListener`
 
 ```java
-public interface TranslationTimingListener {
+public interface TranslationMetricsListener {
   void onCompleted(TranslationMetricsReport report);
 }
 ```

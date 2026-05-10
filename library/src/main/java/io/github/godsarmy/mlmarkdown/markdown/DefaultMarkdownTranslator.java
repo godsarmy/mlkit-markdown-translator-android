@@ -7,8 +7,8 @@ import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownToken;
 import io.github.godsarmy.mlmarkdown.api.ExplainProtectedSegment;
 import io.github.godsarmy.mlmarkdown.api.MarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
+import io.github.godsarmy.mlmarkdown.api.TranslationMetricsListener;
 import io.github.godsarmy.mlmarkdown.api.TranslationMetricsReport;
-import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 import io.github.godsarmy.mlmarkdown.model.ProtectedSegment;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
@@ -20,7 +20,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
     private final MarkdownStructureTranslator structureTranslator;
     private final MarkdownRestorer restorer;
     private final NanoTimeProvider nanoTimeProvider;
-    private final TranslationTimingListener translationTimingListener;
+    private final TranslationMetricsListener translationMetricsListener;
 
     public DefaultMarkdownTranslator(TranslationEngine translationEngine) {
         this(translationEngine, MarkdownTranslationOptions.defaults());
@@ -51,7 +51,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
         this.structureTranslator = new MarkdownStructureTranslator(translationEngine, options);
         this.restorer = new MarkdownRestorer();
         this.nanoTimeProvider = nanoTimeProvider;
-        this.translationTimingListener = options.translationTimingListener();
+        this.translationMetricsListener = options.translationMetricsListener();
     }
 
     @Override
@@ -240,10 +240,10 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             boolean regexFallbackTriggered,
             boolean successful,
             Exception error) {
-        if (translationTimingListener == null) {
+        if (translationMetricsListener == null) {
             return;
         }
-        translationTimingListener.onCompleted(
+        translationMetricsListener.onCompleted(
                 new TranslationMetricsReport(
                         processingMode,
                         preparationDurationMs,

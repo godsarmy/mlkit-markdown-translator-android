@@ -940,7 +940,7 @@ public final class MainActivity extends AppCompatActivity {
     private MlKitMarkdownTranslator createTranslator() {
         return new MlKitMarkdownTranslator(
                 translationOptionsBuilder()
-                        .setTranslationTimingListener(report -> latestTimingReport = report)
+                        .setTranslationMetricsListener(report -> latestTimingReport = report)
                         .build());
     }
 

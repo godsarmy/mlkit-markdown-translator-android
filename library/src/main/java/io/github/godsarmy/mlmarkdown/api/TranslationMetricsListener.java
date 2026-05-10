@@ -1,5 +1,5 @@
 package io.github.godsarmy.mlmarkdown.api;
 
-public interface TranslationTimingListener {
+public interface TranslationMetricsListener {
     void onCompleted(TranslationMetricsReport report);
 }
