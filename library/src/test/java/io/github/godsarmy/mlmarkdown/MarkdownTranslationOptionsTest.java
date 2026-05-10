@@ -7,8 +7,8 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import io.github.godsarmy.mlmarkdown.api.TranslationMetricsReport;
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
-import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
 import org.junit.Test;
 
 public class MarkdownTranslationOptionsTest {
@@ -85,7 +85,7 @@ public class MarkdownTranslationOptionsTest {
 
     private static final class NoOpTimingListener implements TranslationTimingListener {
         @Override
-        public void onCompleted(TranslationTimingReport report) {
+        public void onCompleted(TranslationMetricsReport report) {
             // no-op
         }
     }

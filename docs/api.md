@@ -203,14 +203,14 @@ public final class TranslationException extends Exception {
 
 ```java
 public interface TranslationTimingListener {
-  void onCompleted(TranslationTimingReport report);
+  void onCompleted(TranslationMetricsReport report);
 }
 ```
 
-### `TranslationTimingReport`
+### `TranslationMetricsReport`
 
 ```java
-public final class TranslationTimingReport {
+public final class TranslationMetricsReport {
   public ProcessingMode getProcessingMode();
   public long getPreparationDurationMs();
   public long getTranslationDurationMs();

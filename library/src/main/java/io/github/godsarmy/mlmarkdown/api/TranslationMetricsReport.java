@@ -3,7 +3,7 @@ package io.github.godsarmy.mlmarkdown.api;
 import androidx.annotation.Nullable;
 import io.github.godsarmy.mlmarkdown.markdown.ProcessingMode;
 
-public final class TranslationTimingReport {
+public final class TranslationMetricsReport {
     private final ProcessingMode processingMode;
     private final long preparationDurationMs;
     private final long translationDurationMs;
@@ -16,7 +16,7 @@ public final class TranslationTimingReport {
     private final int chunkParseRecoveryCount;
     private final boolean regexFallbackTriggered;
 
-    public TranslationTimingReport(
+    public TranslationMetricsReport(
             ProcessingMode processingMode,
             long preparationDurationMs,
             long translationDurationMs,

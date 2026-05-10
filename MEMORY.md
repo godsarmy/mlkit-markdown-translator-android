@@ -17,7 +17,7 @@
 - Timing report now includes `totalTokenCount` (AST token count when tokenized document exists; fallback protected-token count when regex token store is used).
 - After cutting a new release tag, keep README dependency snippets/version labels aligned immediately (latest is `v0.6.1`).
 - Timing report now also includes `totalChunkCount` (AST chunk count from `chunkTranslatableTokens`; fallback reports one translation chunk).
-- Sample app now should display chunk/token/time metrics from `TranslationTimingReport` listener rather than approximate UI-side token counting.
+- Sample app now should display chunk/token/time metrics from `TranslationMetricsReport` listener rather than approximate UI-side token counting.
 - Sample app should consume `TranslationTimingListener` report values for displayed metrics (duration/token/chunk) instead of approximating tokens/time in UI code.
 - Sample UX preference: after successful language-pack download, close the download dialog and update button state only; do not show an additional "ready to use" confirmation dialog.
 - Sample app theme now needs full token definitions in both `values/colors.xml` (light) and `values-night/colors.xml` (dark); otherwise DayNight won't visually switch palettes.

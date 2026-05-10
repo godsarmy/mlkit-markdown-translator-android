@@ -50,7 +50,7 @@ import com.google.mlkit.nl.translate.TranslateLanguage;
 import com.google.mlkit.nl.translate.TranslateRemoteModel;
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
-import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
+import io.github.godsarmy.mlmarkdown.api.TranslationMetricsReport;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -128,7 +128,7 @@ public final class MainActivity extends AppCompatActivity {
     private int maxCharsPerChunk = MarkdownTranslationOptions.DEFAULT_MAX_CHARS_PER_CHUNK;
     private int translateTimeoutMs = 0;
     private String latestTranslationError;
-    @Nullable private TranslationTimingReport latestTimingReport;
+    @Nullable private TranslationMetricsReport latestTimingReport;
     private final Set<String> downloadedTargetModels = new HashSet<>();
     private final List<String> downloadedLanguageOptions = new ArrayList<>();
     private final ExecutorService sourceLoaderExecutor = Executors.newSingleThreadExecutor();
@@ -1322,7 +1322,7 @@ public final class MainActivity extends AppCompatActivity {
                                         renderMarkdownToWebView(outputRenderedHtml, translatedText);
                                     }
 
-                                    TranslationTimingReport report = latestTimingReport;
+                                    TranslationMetricsReport report = latestTimingReport;
                                     long durationMs =
                                             report != null ? report.getTotalDurationMs() : 0L;
                                     int tokenCount =

@@ -7,8 +7,8 @@ import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownToken;
 import io.github.godsarmy.mlmarkdown.api.ExplainProtectedSegment;
 import io.github.godsarmy.mlmarkdown.api.MarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
+import io.github.godsarmy.mlmarkdown.api.TranslationMetricsReport;
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
-import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 import io.github.godsarmy.mlmarkdown.model.ProtectedSegment;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
@@ -244,7 +244,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             return;
         }
         translationTimingListener.onCompleted(
-                new TranslationTimingReport(
+                new TranslationMetricsReport(
                         processingMode,
                         preparationDurationMs,
                         translationDurationMs,

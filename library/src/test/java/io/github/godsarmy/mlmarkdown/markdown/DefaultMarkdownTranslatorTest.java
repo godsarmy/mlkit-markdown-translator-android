@@ -10,8 +10,8 @@ import static org.junit.Assert.assertTrue;
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownResult;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
+import io.github.godsarmy.mlmarkdown.api.TranslationMetricsReport;
 import io.github.godsarmy.mlmarkdown.api.TranslationTimingListener;
-import io.github.godsarmy.mlmarkdown.api.TranslationTimingReport;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 import java.util.List;
@@ -367,10 +367,10 @@ public class DefaultMarkdownTranslatorTest {
     }
 
     private static final class RecordingTimingListener implements TranslationTimingListener {
-        private TranslationTimingReport lastReport;
+        private TranslationMetricsReport lastReport;
 
         @Override
-        public void onCompleted(TranslationTimingReport report) {
+        public void onCompleted(TranslationMetricsReport report) {
             this.lastReport = report;
         }
     }
