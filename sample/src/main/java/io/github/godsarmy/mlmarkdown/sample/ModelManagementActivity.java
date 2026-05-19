@@ -11,6 +11,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.mlkit.common.model.DownloadConditions;
@@ -342,6 +343,18 @@ public final class ModelManagementActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.model_built_in_not_deletable, Toast.LENGTH_SHORT).show();
             return;
         }
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.delete_model_dialog_title)
+                .setMessage(getString(R.string.delete_model_dialog_message, language))
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
+                .setPositiveButton(
+                        R.string.delete_model_confirm_action,
+                        (dialog, which) -> performDeleteModel(language, normalizedLanguageCode))
+                .show();
+    }
+
+    private void performDeleteModel(String language, String normalizedLanguageCode) {
 
         setBusy(true);
         TranslateRemoteModel model =

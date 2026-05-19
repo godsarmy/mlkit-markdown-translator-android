@@ -135,6 +135,7 @@
 		download.</string>
 	<string name="download_model_button">Download selected language</string>
 	<string name="delete_model_button">Delete selected language</string>
+	<string name="delete_model_confirm_action">Delete</string>
 	<string name="model_management_status">%1$d installed · %2$d available</string>
 	<string name="no_downloaded_models_message">No downloaded language models. Open Manage models
 		to download at least one language.</string>
