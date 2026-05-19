@@ -38,6 +38,12 @@ Optional install to a connected device:
 adb install -r sample/build/outputs/apk/debug/sample-debug.apk
 ```
 
+Google Play download URL (example app):
+
+```text
+https://play.google.com/store/apps/details?id=io.github.godsarmy.mlmarkdown.sample
+```
+
 ## API reference
 
 See [`docs/api.md`](docs/api.md) for the current public API surface.
