@@ -69,20 +69,21 @@ If device testing is requested:
 Use this flow to publish a new version on JitPack.
 
 1. Update version references in docs/sample as needed (for example, `README.md` and `sample/build.gradle`).
-2. there is no 'v' before version
-3. Run validation from repo root:
+2. Update `versionCode` for example app
+3. there is no 'v' before version
+4. Run validation from repo root:
    - `./gradlew spotlessCheck`
    - `./gradlew :library:testDebugUnitTest`
    - `./gradlew :sample:assembleDebug`
-4. Ensure JitPack publishing config is present:
+5. Ensure JitPack publishing config is present:
    - `library/build.gradle` includes `id 'maven-publish'`
    - release publication exists (`from components.release`, with sources jar)
    - `jitpack.yml` runs `./gradlew clean :library:publishReleasePublicationToMavenLocal`
-5. Commit release-related changes to `main` and push.
-6. Create and push a new tag:
+6. Commit release-related changes to `main` and push.
+7. Create and push a new tag:
    - `git tag -a X.Y.Z -m "Release X.Y.Z"`
    - `git push origin X.Y.Z`
-7. Trigger/verify JitPack build:
+8. Trigger/verify JitPack build:
    - Open `https://jitpack.io/#godsarmy/mlkit-markdown-translator-android`
    - Select tag `X.Y.Z` and wait for success
    - Optional log URL: `https://jitpack.io/com/github/godsarmy/mlkit-markdown-translator-android/X.Y.Z/build.log`
