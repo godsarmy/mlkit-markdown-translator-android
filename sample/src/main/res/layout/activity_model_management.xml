@@ -22,13 +22,13 @@
 		android:padding="16dp">
 
 		<com.google.android.material.card.MaterialCardView
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
+			android:layout_width="match_parent" android:layout_height="0dp"
+			android:layout_weight="1"
 			app:cardBackgroundColor="@color/mlkit_surface"
 			app:strokeColor="@color/mlkit_outline" app:strokeWidth="1dp">
 
 			<LinearLayout android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:orientation="vertical"
+				android:layout_height="match_parent" android:orientation="vertical"
 				android:padding="16dp">
 
 				<TextView android:layout_width="wrap_content"
@@ -38,8 +38,9 @@
 					android:textColor="@color/mlkit_on_background" />
 
 				<ListView android:id="@+id/availableModelsList"
-					android:layout_width="match_parent" android:layout_height="120dp"
-					android:layout_marginTop="8dp" android:choiceMode="singleChoice"
+					android:layout_width="match_parent" android:layout_height="0dp"
+					android:layout_weight="1" android:layout_marginTop="8dp"
+					android:choiceMode="singleChoice"
 					android:divider="@android:color/transparent"
 					android:dividerHeight="4dp" />
 
@@ -60,13 +61,13 @@
 			android:textAllCaps="false" />
 
 		<com.google.android.material.card.MaterialCardView
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="16dp"
+			android:layout_width="match_parent" android:layout_height="0dp"
+			android:layout_marginTop="16dp" android:layout_weight="1"
 			app:cardBackgroundColor="@color/mlkit_surface"
 			app:strokeColor="@color/mlkit_outline" app:strokeWidth="1dp">
 
 			<LinearLayout android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:orientation="vertical"
+				android:layout_height="match_parent" android:orientation="vertical"
 				android:padding="16dp">
 
 				<TextView android:layout_width="wrap_content"
@@ -76,8 +77,9 @@
 					android:textColor="@color/mlkit_on_background" />
 
 				<ListView android:id="@+id/downloadedModelsList"
-					android:layout_width="match_parent" android:layout_height="120dp"
-					android:layout_marginTop="8dp" android:choiceMode="singleChoice"
+					android:layout_width="match_parent" android:layout_height="0dp"
+					android:layout_weight="1" android:layout_marginTop="8dp"
+					android:choiceMode="singleChoice"
 					android:divider="@android:color/transparent"
 					android:dividerHeight="4dp" />
 
