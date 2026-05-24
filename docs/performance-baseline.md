@@ -1,4 +1,4 @@
-# Performance Baseline (v0.1.0)
+# Performance Regression Baseline
 
 This file documents performance regression thresholds and update policy for
 `MarkdownPerformanceRegressionTest`.
