@@ -1,26 +1,39 @@
 # ML Kit Markdown Translator
 
+[![JitPack](https://jitpack.io/v/godsarmy/mlkit-markdown-translator-android.svg)](https://jitpack.io/#godsarmy/mlkit-markdown-translator-android)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Android](https://img.shields.io/badge/android-minSdk%2024-brightgreen.svg)](library/build.gradle)
+
 <img src="docs/icon.svg" alt="ML Kit Markdown Translator icon" width="96" />
 
-## Example App Screenshot
+Translate Markdown in Android apps with Google ML Kit while keeping the document readable as Markdown.
+
+This library prepares Markdown for translation, sends only the translatable text through ML Kit, and rebuilds the document with headings, lists, quotes, links, code, tables, and spacing preserved as much as possible. It is designed for apps that need local, ML Kit-powered translation without flattening rich Markdown content into plain text.
+
+## Why use it?
+
+- **Markdown-aware translation** — protects structural syntax while translating human-readable text.
+- **Built on Google ML Kit Translate** — uses on-device translation models managed by your app.
+- **Small Java API** — simple callback-based integration for Android projects.
+- **AST/token-based pipeline** — avoids relying on regex-only Markdown handling.
+- **Diagnostics included** — inspect chunking and tokenization with `explainMarkdown(...)`.
+- **Sample app included** — see a practical integration with model management and rendered preview.
+
+Requirements: Android `minSdk 24`, Java 17, and an app-level ML Kit model download flow.
+
+## Example app
 
 <img src="screenshot-example.jpg" alt="Screenshot of the example app" width="360" />
 
-Reusable Android library for translating Markdown content with Google ML Kit while preserving Markdown structure (code blocks, links, headings, lists, and spacing) as much as possible.
+The `sample/` app shows how to build a complete Markdown translation experience around the library. It demonstrates:
 
-## Project status
+- Markdown input and translated output
+- source and target language selection
+- ML Kit model download and delete flow
+- raw Markdown and rendered Markdown preview modes
+- missing-model handling and user-facing error states
 
-Active development with versioned releases via Git tags.
-
-## Planned modules
-
-- `library/` — Android library module (core deliverable)
-- `sample/` — Android sample app for manual verification
-- `docs/` — design notes and API documentation
-
-## Build the Example App
-
-From repo root:
+Build it from the repository root:
 
 ```bash
 ./gradlew :sample:assembleDebug
@@ -32,41 +45,25 @@ Generated APK:
 sample/build/outputs/apk/debug/sample-debug.apk
 ```
 
-Optional install to a connected device:
+Install to a connected device:
 
 ```bash
 adb install -r sample/build/outputs/apk/debug/sample-debug.apk
 ```
 
-Google Play download URL (example app):
+Google Play listing:
 
 ```text
 https://play.google.com/store/apps/details?id=io.github.godsarmy.mlmarkdown.sample
 ```
 
-## API reference
-
-See [`docs/api.md`](docs/api.md) for the current public API surface.
-
-## Architecture
-
-See [`docs/architecture.md`](docs/architecture.md) for the markdown translation architecture and pipeline design.
-
 ## Installation
 
-### Option A: Local module
-
-If this repository is part of your multi-module build, use:
-
-```gradle
-dependencies {
-    implementation project(":library")
-}
-```
-
-### Option B: JitPack (`1.1.1`)
+### JitPack
 
 JitPack page: https://jitpack.io/#godsarmy/mlkit-markdown-translator-android
+
+Groovy:
 
 ```gradle
 repositories {
@@ -80,7 +77,7 @@ dependencies {
 }
 ```
 
-Kotlin DSL equivalent:
+Kotlin DSL:
 
 ```kotlin
 repositories {
@@ -94,50 +91,65 @@ dependencies {
 }
 ```
 
-### Version alignment (optional)
+### Local module
 
-This library defaults to:
-
-- `com.google.mlkit:translate:17.0.3`
-- `com.vladsch.flexmark:flexmark:0.64.8`
-
-If integrating this repo as a **local module**, override in root `gradle.properties`:
-
-```properties
-mlkitTranslateVersion=17.0.4
-flexmarkVersion=0.64.8
-```
-
-If integrating via **JitPack/artifact**, pin ML Kit in app dependencies:
+If you are working with this repository as part of a multi-module build:
 
 ```gradle
 dependencies {
-    implementation "com.github.godsarmy:mlkit-markdown-translator-android:1.1.1"
-    implementation "com.google.mlkit:translate:17.0.4"
+    implementation project(":library")
 }
 ```
 
-## Using from Android app
-
-### 1) Basic translation call
+## Quick start
 
 ```java
 MlKitMarkdownTranslator translator = new MlKitMarkdownTranslator();
 
 translator.translateMarkdown(markdown, "en", "es", new TranslationCallback() {
     @Override
-    public void onSuccess(String translatedText) {
-        // update UI / state with translated markdown
+    public void onSuccess(String translatedMarkdown) {
+        // Render or store the translated Markdown.
     }
 
     @Override
     public void onFailure(Exception error) {
-        // handle translation failure
+        // Show an error state or request a missing language model.
     }
 });
 ```
 
-### 1.1) Explain markdown structure/chunks
+Create one translator per screen/controller scope and call `close()` when that scope is destroyed.
+
+## Handling ML Kit models
+
+`translateMarkdown(...)` does not automatically download missing language models. Manage model lifecycle in your app with ML Kit APIs such as:
+
+- `RemoteModelManager`
+- `TranslateRemoteModel`
+- `DownloadConditions`
+
+Handle missing models explicitly:
+
+```java
+import io.github.godsarmy.mlmarkdown.api.TranslationErrorCode;
+import io.github.godsarmy.mlmarkdown.api.TranslationException;
+
+if (error instanceof TranslationException
+        && ((TranslationException) error).getCode() == TranslationErrorCode.MODEL_NOT_DOWNLOADED) {
+    // Ask the user to download the required ML Kit language model.
+}
+```
+
+If your app downloads models, include internet permission:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+## Inspect Markdown processing
+
+Use `explainMarkdown(...)` to understand how the library chunks and protects Markdown before translation. This is useful when testing your own Markdown fixtures or debugging edge cases.
 
 ```java
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownChunk;
@@ -146,7 +158,6 @@ import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownResult;
 MlKitMarkdownTranslator translator = new MlKitMarkdownTranslator();
 ExplainMarkdownResult explain = translator.explainMarkdown(markdown);
 
-// Useful for debugging chunk boundaries and tokenization behavior.
 for (ExplainMarkdownChunk chunk : explain.getChunks()) {
     Log.d("MLMD", "chunk #" + chunk.getIndex() + " raw=" + chunk.getRawText());
 }
@@ -156,71 +167,56 @@ Log.d("MLMD", "mode=" + explain.getProcessingMode()
         + " chunks=" + explain.getTotalChunkCount());
 ```
 
-`explainMarkdown(...)` runs local preparation/chunking diagnostics and does not call the
-translation engine.
+`explainMarkdown(...)` runs local preparation diagnostics only; it does not call ML Kit translation.
 
-### 2) Handle missing-model errors
+## Version notes
 
-```java
-import io.github.godsarmy.mlmarkdown.api.TranslationErrorCode;
-import io.github.godsarmy.mlmarkdown.api.TranslationException;
+The library currently defaults to:
 
-if (error instanceof TranslationException
-        && ((TranslationException) error).getCode() == TranslationErrorCode.MODEL_NOT_DOWNLOADED) {
-    // prompt user to download required language model first
+- `com.google.mlkit:translate:17.0.3`
+- `com.vladsch.flexmark:flexmark:0.64.8`
+
+When integrating through JitPack, you can pin a newer ML Kit version in your app if needed:
+
+```gradle
+dependencies {
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:1.1.1"
+    implementation "com.google.mlkit:translate:17.0.4"
 }
 ```
 
-### 3) Manage model lifecycle in app code (native ML Kit)
+For local-module development, override versions in root `gradle.properties`:
 
-Use native ML Kit APIs in your app for model download/list/delete:
+```properties
+mlkitTranslateVersion=17.0.4
+flexmarkVersion=0.64.8
+```
 
-- `RemoteModelManager`
-- `TranslateRemoteModel`
-- `DownloadConditions`
+## Documentation
 
-`translateMarkdown(...)` does not auto-download missing models.
+- Public API reference: [`docs/api.md`](docs/api.md)
+- Architecture and pipeline notes: [`docs/architecture.md`](docs/architecture.md)
+- Repository-style integration example: [`docs/examples/JavaMarkdownTranslationRepositoryExample.java`](docs/examples/JavaMarkdownTranslationRepositoryExample.java)
 
-### 4) Recommended app structure
+Repository layout:
 
-- **Activity/Fragment**: owns UI state and triggers user actions.
-- **ViewModel**: coordinates source/target language + intent handling.
-- **Repository**: wraps `MlKitMarkdownTranslator.translateMarkdown(...)`.
-- **App model manager**: wraps ML Kit model lifecycle APIs.
+- `library/` — reusable Android library module
+- `sample/` — example Android app
+- `docs/` — API, architecture, and integration notes
 
-Example repository-style wrapper:
+## Markdown compatibility notes
 
-- `docs/examples/JavaMarkdownTranslationRepositoryExample.java`
+The library is designed to preserve Markdown structure during translation, but translation engines can still change punctuation or spacing in plain-text regions. Validate your own Markdown corpus if your app depends on strict round-tripping.
 
-### 5) Integration guardrails
+Known practical limits:
 
-- **Android SDK**: library targets `minSdk 24`, `compileSdk 34`.
-- **Permissions**: include internet permission when model downloads are expected:
+- very complex nested Markdown may need app-specific verification
+- raw HTML blocks are preserved only for supported patterns
+- GFM pipe tables are translated through the AST path; fallback mode may preserve full table blocks without translating every cell
+- unusual reference-style links may need fixture coverage
 
-  ```xml
-  <uses-permission android:name="android.permission.INTERNET" />
-  ```
-
-- **Threading**: callbacks are async; post UI updates to main thread.
-- **Resource lifecycle**:
-  - create one translator instance per screen/controller scope
-  - call `close()` in `onDestroy()` (or equivalent)
-  - avoid creating new translator instances per click
-- **R8/ProGuard**: no custom keep rules required for current public API surface.
-
-## Limitations (v1)
-
-This library is designed to preserve Markdown structure during translation, but v1 still has known limits:
-
-- advanced nested Markdown edge cases may not be perfectly preserved
-- raw HTML blocks beyond currently supported patterns may not round-trip cleanly
-- GFM-style pipe tables are supported in AST path; regex fallback may preserve full table blocks without translating each cell
-- reference-style link definitions may be imperfect if tokenization does not fully cover a case
-- translator-driven punctuation drift can still occur in plain text regions
-
-For production use, validate your own Markdown fixtures with the provided golden-test pattern under
-`library/src/test/resources/fixtures`.
+Golden-test fixtures live under `library/src/test/resources/fixtures`.
 
 ## License
 
-Apache License 2.0. See `LICENSE`.
+Apache License 2.0. See [`LICENSE`](LICENSE).
