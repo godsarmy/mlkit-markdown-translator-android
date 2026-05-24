@@ -73,7 +73,7 @@ repositories {
 }
 
 dependencies {
-    implementation "com.github.godsarmy:mlkit-markdown-translator-android:1.1.1"
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:1.1.2"
 }
 ```
 
@@ -87,7 +87,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.godsarmy:mlkit-markdown-translator-android:1.1.1")
+    implementation("com.github.godsarmy:mlkit-markdown-translator-android:1.1.2")
 }
 ```
 
@@ -180,7 +180,7 @@ When integrating through JitPack, you can pin a newer ML Kit version in your app
 
 ```gradle
 dependencies {
-    implementation "com.github.godsarmy:mlkit-markdown-translator-android:1.1.1"
+    implementation "com.github.godsarmy:mlkit-markdown-translator-android:1.1.2"
     implementation "com.google.mlkit:translate:17.0.4"
 }
 ```
