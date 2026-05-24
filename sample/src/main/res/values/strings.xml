@@ -81,7 +81,7 @@
 		• chunk recoveries: %5$d • Regex fallback: %6$b</string>
 	<string name="translation_result_failure">Translation failed: %1$s</string>
 	<string name="explain_markdown">Explain</string>
-	<string name="explain_screen_title">Explain markdown result</string>
+	<string name="explain_screen_title">Explain translation plan</string>
 	<string name="explain_loading">Preparing explain result...</string>
 	<string name="explain_mode_label">Processing mode</string>
 	<string name="explain_counts_label">Counts</string>
