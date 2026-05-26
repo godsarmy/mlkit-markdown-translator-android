@@ -27,18 +27,67 @@
 	<string name="feedback_email_chooser">Send feedback</string>
 	<string name="feedback_not_available">No email app available</string>
 	<string name="help_title">Help &amp; Feedback</string>
-	<string name="help_intro">This sample demonstrates Markdown translation with
-		ML Kit while preserving Markdown structure.</string>
-	<string name="help_how_it_works_title">How translation works</string>
-	<string name="help_how_it_works_body">• Parses Markdown into an AST/token stream\n•
-		Translates only human-readable text\n• Preserves code blocks, links,
-		URLs, and layout\n• Rebuilds Markdown in original structure\n• Falls
-		back to regex protection when AST preparation fails</string>
-	<string name="help_api_notes_title">API notes</string>
-	<string name="help_api_notes_body">• Use one MlKitMarkdownTranslator instance per
-		screen scope\n• Download language models before translation\n•
-		explainMarkdown() is local diagnostics and does not call
-		translation\n• close() translator when owner is destroyed</string>
+	<string name="help_intro">Translate Markdown documents while keeping
+		headings, lists,
+		links, code, and spacing as close to the original as
+		possible.</string>
+	<string name="help_usage_title">How to use the app</string>
+	<string name="help_usage_body">1. Type Markdown, choose the example text, pick a
+		local .md file, or load
+		Markdown from a URL.\n2. Download the required
+		ML Kit language model
+		if it is missing on your device.\n3. Select the
+		source language and
+		target language.\n4. Tap
+		Translate.\n5. Use Render
+		markdown or side-by-side compare to review
+		the result.\n6. Save or
+		share the
+		translated Markdown.</string>
+	<string name="help_markdown_support_title">What stays protected</string>
+	<string name="help_markdown_support_body">• Headings stay headings.\n• Bulleted and numbered
+		lists stay lists.\n• Link
+		text can be translated, but the URL stays
+		unchanged.\n• Inline code and fenced code blocks
+		are not translated.\n•
+		Markdown syntax, blank lines, and indentation are preserved where
+		possible.</string>
+	<string name="help_translation_tips_title">Tips for better results</string>
+	<string name="help_translation_tips_body">• Use valid Markdown before translating.\n• Put
+		commands, snippets, and file paths
+		inside inline code or fenced code
+		blocks.\n• Very large files can take longer to prepare and
+		translate.\n• Review technical terms, product names, and
+		mixed-language sentences before
+		publishing.\n• If the output looks
+		unusual, fix the Markdown formatting and translate again.</string>
+	<string name="help_model_title">Language models</string>
+	<string name="help_model_body">ML Kit translates on this device after the required
+		language model is downloaded.
+		The first translation for a target
+		language may need internet access. You can open Manage
+		language models
+		to download or delete models when you need offline access or more
+		storage
+		space.</string>
+	<string name="help_troubleshooting_title">Troubleshooting</string>
+	<string name="help_troubleshooting_body">• Translate button disabled: enter Markdown and
+		choose different source and target
+		languages.\n• Model download fails:
+		check internet connection and available storage.\n• Some
+		content is not
+		translated: code, URLs, and Markdown syntax are intentionally
+		protected.\n•
+		Rendered preview looks wrong: check that the source
+		Markdown is valid.</string>
+	<string name="help_developer_notes_title">For developers</string>
+	<string name="help_developer_notes_body">This sample uses MlKitMarkdownTranslator to prepare
+		Markdown,
+		translate human-readable chunks, and rebuild the document.
+		Use explainMarkdown() to inspect
+		tokens and protected segments without
+		calling translation. Close the translator when the owner
+		is destroyed.</string>
 	<string name="help_project_title">Project page</string>
 	<string name="project_page_url">https://github.com/godsarmy/mlkit-markdown-translator-android</string>
 	<string name="open_project_page">Open project page</string>
