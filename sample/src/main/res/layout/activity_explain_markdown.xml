@@ -33,9 +33,17 @@
 		android:textColor="@color/mlkit_error" android:visibility="gone" />
 
 	<com.google.android.material.tabs.TabLayout
-		android:id="@+id/explainTabLayout" android:layout_width="match_parent"
+		android:id="@+id/explainTabLayout"
+		style="@style/Widget.MlMarkdown.TabLayout.Filter"
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content" android:layout_marginTop="14dp"
-		app:tabMode="scrollable" />
+		app:tabGravity="start" app:tabIndicatorAnimationMode="elastic"
+		app:tabIndicatorFullWidth="false" app:tabMode="scrollable" />
+
+	<View android:layout_width="match_parent"
+		android:layout_height="1dp" android:layout_marginStart="2dp"
+		android:layout_marginEnd="2dp"
+		android:background="@color/mlkit_outline_soft" />
 
 	<androidx.viewpager2.widget.ViewPager2
 		android:id="@+id/explainViewPager" android:layout_width="match_parent"
