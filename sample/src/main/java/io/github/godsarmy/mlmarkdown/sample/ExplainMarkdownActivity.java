@@ -7,12 +7,17 @@ import android.view.View;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownChunk;
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownResult;
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownToken;
 import io.github.godsarmy.mlmarkdown.api.ExplainProtectedSegment;
+import io.github.godsarmy.mlmarkdown.markdown.ProcessingMode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,12 +44,10 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
     private MlKitMarkdownTranslator translator;
     private View loadingContainer;
     private TextView errorText;
-    private TextView modeValue;
-    private TextView countsValue;
-    private TextView preparedMarkdownValue;
-    private TextView chunksValue;
-    private TextView tokensValue;
-    private TextView protectedSegmentsValue;
+    private TabLayout tabLayout;
+    private ViewPager2 viewPager;
+    private ExplainPagerAdapter pagerAdapter;
+    @Nullable private TabLayoutMediator tabLayoutMediator;
 
     public static Intent createIntent(
             Context context, String markdown, MarkdownTranslationOptions options) {
@@ -128,12 +131,10 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
     private void bindViews() {
         loadingContainer = findViewById(R.id.explainLoadingContainer);
         errorText = findViewById(R.id.explainErrorText);
-        modeValue = findViewById(R.id.explainModeValue);
-        countsValue = findViewById(R.id.explainCountsValue);
-        preparedMarkdownValue = findViewById(R.id.explainPreparedMarkdownValue);
-        chunksValue = findViewById(R.id.explainChunksValue);
-        tokensValue = findViewById(R.id.explainTokensValue);
-        protectedSegmentsValue = findViewById(R.id.explainProtectedSegmentsValue);
+        tabLayout = findViewById(R.id.explainTabLayout);
+        viewPager = findViewById(R.id.explainViewPager);
+        pagerAdapter = new ExplainPagerAdapter();
+        viewPager.setAdapter(pagerAdapter);
     }
 
     private void loadExplainResult(String markdown) {
@@ -153,17 +154,47 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
         showLoading(false);
         errorText.setVisibility(View.GONE);
 
-        modeValue.setText(String.valueOf(result.getProcessingMode()));
-        countsValue.setText(
-                getString(
-                        R.string.explain_counts_value,
-                        result.getTotalTokenCount(),
-                        result.getTotalChunkCount(),
-                        result.getProtectedSegments().size()));
-        preparedMarkdownValue.setText(result.getPreparedMarkdown());
-        chunksValue.setText(formatChunks(result.getChunks()));
-        tokensValue.setText(formatTokens(result.getTokens()));
-        protectedSegmentsValue.setText(formatProtectedSegments(result.getProtectedSegments()));
+        List<ExplainPageItem> pages =
+                List.of(
+                        new ExplainPageItem(
+                                getPreparedTabTitle(result.getProcessingMode()),
+                                getString(R.string.explain_none),
+                                List.of(result.getPreparedMarkdown())),
+                        new ExplainPageItem(
+                                getString(R.string.explain_tab_chunks, result.getTotalChunkCount()),
+                                getString(R.string.explain_chunks_empty),
+                                formatChunks(result.getChunks())),
+                        new ExplainPageItem(
+                                getString(R.string.explain_tab_tokens, result.getTotalTokenCount()),
+                                getString(R.string.explain_tokens_empty),
+                                formatTokens(result.getTokens())),
+                        new ExplainPageItem(
+                                getString(
+                                        R.string.explain_tab_protected,
+                                        result.getProtectedSegments().size()),
+                                getString(R.string.explain_protected_empty),
+                                formatProtectedSegments(result.getProtectedSegments())));
+        pagerAdapter.submit(pages);
+        bindTabs();
+    }
+
+    private void bindTabs() {
+        if (tabLayoutMediator != null) {
+            tabLayoutMediator.detach();
+        }
+        tabLayoutMediator =
+                new TabLayoutMediator(
+                        tabLayout,
+                        viewPager,
+                        (tab, position) -> tab.setText(pagerAdapter.getTitle(position)));
+        tabLayoutMediator.attach();
+    }
+
+    private String getPreparedTabTitle(ProcessingMode mode) {
+        if (mode == ProcessingMode.AST_TOKEN_STREAM) {
+            return getString(R.string.explain_tab_prepared_ast);
+        }
+        return getString(R.string.explain_tab_prepared_fallback);
     }
 
     private void showError(String message) {
@@ -177,69 +208,67 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
         loadingContainer.setVisibility(loading ? View.VISIBLE : View.GONE);
     }
 
-    private String formatChunks(List<ExplainMarkdownChunk> chunks) {
+    private List<String> formatChunks(List<ExplainMarkdownChunk> chunks) {
         if (chunks.isEmpty()) {
-            return getString(R.string.explain_none);
+            return List.of();
         }
 
-        StringBuilder builder = new StringBuilder();
+        List<String> items = new ArrayList<>();
         for (ExplainMarkdownChunk chunk : chunks) {
-            if (builder.length() > 0) {
-                builder.append("\n\n");
-            }
-            builder.append("#")
-                    .append(chunk.getIndex())
-                    .append(" • len=")
-                    .append(chunk.getPlainTextLength())
-                    .append(" • tokenIds=")
-                    .append(chunk.getTokenIds())
-                    .append("\n")
-                    .append(chunk.getRawText());
+            String text =
+                    "#"
+                            + chunk.getIndex()
+                            + " • len="
+                            + chunk.getPlainTextLength()
+                            + " • tokenIds="
+                            + chunk.getTokenIds()
+                            + "\n"
+                            + chunk.getRawText();
+            items.add(text);
         }
-        return builder.toString();
+        return items;
     }
 
-    private String formatTokens(List<ExplainMarkdownToken> tokens) {
+    private List<String> formatTokens(List<ExplainMarkdownToken> tokens) {
         if (tokens.isEmpty()) {
-            return getString(R.string.explain_none);
+            return List.of();
         }
 
-        StringBuilder builder = new StringBuilder();
+        List<String> items = new ArrayList<>();
         for (ExplainMarkdownToken token : tokens) {
-            if (builder.length() > 0) {
-                builder.append("\n\n");
-            }
-            builder.append(token.getType())
-                    .append(" • id=")
-                    .append(token.getTokenId())
-                    .append(" • offsets=")
-                    .append(token.getStartOffset())
-                    .append("-")
-                    .append(token.getEndOffset())
-                    .append("\n")
-                    .append(token.getValue());
+            String text =
+                    token.getType()
+                            + " • id="
+                            + token.getTokenId()
+                            + " • offsets="
+                            + token.getStartOffset()
+                            + "-"
+                            + token.getEndOffset()
+                            + "\n"
+                            + token.getValue();
+            items.add(text);
         }
-        return builder.toString();
+        return items;
     }
 
-    private String formatProtectedSegments(List<ExplainProtectedSegment> protectedSegments) {
+    private List<String> formatProtectedSegments(List<ExplainProtectedSegment> protectedSegments) {
         if (protectedSegments.isEmpty()) {
-            return getString(R.string.explain_none);
+            return List.of();
         }
 
-        StringBuilder builder = new StringBuilder();
+        List<String> items = new ArrayList<>();
         for (ExplainProtectedSegment segment : protectedSegments) {
-            if (builder.length() > 0) {
-                builder.append("\n\n");
-            }
-            builder.append(segment.getToken()).append("\n").append(segment.getOriginalText());
+            items.add(segment.getToken() + "\n" + segment.getOriginalText());
         }
-        return builder.toString();
+        return items;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (tabLayoutMediator != null) {
+            tabLayoutMediator.detach();
+        }
         executorService.shutdownNow();
         if (translator != null) {
             translator.close();

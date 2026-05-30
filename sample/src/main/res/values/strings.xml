@@ -139,6 +139,14 @@
 	<string name="explain_chunks_label">Chunks</string>
 	<string name="explain_tokens_label">Tokens</string>
 	<string name="explain_protected_segments_label">Protected segments</string>
+	<string name="explain_tab_prepared_ast">Prepared (AST)</string>
+	<string name="explain_tab_prepared_fallback">Prepared (Fallback)</string>
+	<string name="explain_tab_chunks">Chunks (%1$d)</string>
+	<string name="explain_tab_tokens">Tokens (%1$d)</string>
+	<string name="explain_tab_protected">Protected (%1$d)</string>
+	<string name="explain_chunks_empty">No chunks generated</string>
+	<string name="explain_tokens_empty">No tokens generated</string>
+	<string name="explain_protected_empty">No protected segments</string>
 	<string name="explain_none">(none)</string>
 	<string name="explain_error_missing_markdown">No markdown provided.</string>
 	<string name="explain_error_template">Explain failed: %1$s</string>
