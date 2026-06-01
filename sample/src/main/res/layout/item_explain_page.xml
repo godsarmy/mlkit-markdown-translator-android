@@ -12,7 +12,7 @@
 		<com.google.android.material.switchmaterial.SwitchMaterial
 			android:id="@+id/explainPageSourcePreparedToggle"
 			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="2dp"
+			android:layout_height="wrap_content" android:layout_marginTop="-6dp"
 			android:text="@string/explain_source_toggle_prepared"
 			android:textColor="@color/mlkit_on_background"
 			android:visibility="gone" />
