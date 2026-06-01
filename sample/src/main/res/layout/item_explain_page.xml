@@ -9,6 +9,14 @@
 		android:layout_height="wrap_content" android:orientation="vertical"
 		android:paddingBottom="8dp">
 
+		<com.google.android.material.switchmaterial.SwitchMaterial
+			android:id="@+id/explainPageSourcePreparedToggle"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="10dp"
+			android:text="@string/explain_source_toggle_prepared"
+			android:textColor="@color/mlkit_on_background"
+			android:visibility="gone" />
+
 		<TextView android:id="@+id/explainPageEmptyText"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="10dp"

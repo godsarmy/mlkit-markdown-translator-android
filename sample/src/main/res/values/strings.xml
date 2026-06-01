@@ -135,7 +135,9 @@
 	<string name="explain_mode_label">Processing mode</string>
 	<string name="explain_counts_label">Counts</string>
 	<string name="explain_counts_value">tokens: %1$d • chunks: %2$d • protected: %3$d</string>
+	<string name="explain_tab_source_markdown">Source markdown</string>
 	<string name="explain_prepared_markdown_label">Prepared markdown</string>
+	<string name="explain_source_toggle_prepared">Show prepared markdown</string>
 	<string name="explain_chunks_label">Chunks</string>
 	<string name="explain_tokens_label">Tokens</string>
 	<string name="explain_protected_segments_label">Protected segments</string>
@@ -149,6 +151,8 @@
 	<string name="explain_protected_empty">No protected segments</string>
 	<string name="explain_none">(none)</string>
 	<string name="explain_error_missing_markdown">No markdown provided.</string>
+	<string name="explain_error_ast_required">Explain view is unavailable because AST parsing
+		failed and fallback was used.</string>
 	<string name="explain_error_template">Explain failed: %1$s</string>
 	<string name="original_markdown_label">Original text</string>
 	<string name="translated_markdown_label">Translated text</string>

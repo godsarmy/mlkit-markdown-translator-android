@@ -9,11 +9,26 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatTextView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import java.util.ArrayList;
 import java.util.List;
 
 final class ExplainPagerAdapter extends RecyclerView.Adapter<ExplainPagerAdapter.PageViewHolder> {
+    interface OnSourcePreparedToggleChangedListener {
+        void onSourcePreparedToggleChanged(boolean enabled);
+    }
+
     private final List<ExplainPageItem> items = new ArrayList<>();
+    private boolean sourcePreparedEnabled;
+    private OnSourcePreparedToggleChangedListener toggleChangedListener;
+
+    void setSourcePreparedEnabled(boolean sourcePreparedEnabled) {
+        this.sourcePreparedEnabled = sourcePreparedEnabled;
+    }
+
+    void setOnSourcePreparedToggleChangedListener(OnSourcePreparedToggleChangedListener listener) {
+        this.toggleChangedListener = listener;
+    }
 
     void submit(List<ExplainPageItem> newItems) {
         items.clear();
@@ -38,7 +53,21 @@ final class ExplainPagerAdapter extends RecyclerView.Adapter<ExplainPagerAdapter
     public void onBindViewHolder(@NonNull PageViewHolder holder, int position) {
         ExplainPageItem item = items.get(position);
         holder.itemsContainer.removeViews(
-                1, Math.max(0, holder.itemsContainer.getChildCount() - 1));
+                2, Math.max(0, holder.itemsContainer.getChildCount() - 2));
+
+        holder.sourcePreparedToggle.setOnCheckedChangeListener(null);
+        if (item.isSourceTab()) {
+            holder.sourcePreparedToggle.setVisibility(View.VISIBLE);
+            holder.sourcePreparedToggle.setChecked(sourcePreparedEnabled);
+            holder.sourcePreparedToggle.setOnCheckedChangeListener(
+                    (buttonView, isChecked) -> {
+                        if (toggleChangedListener != null) {
+                            toggleChangedListener.onSourcePreparedToggleChanged(isChecked);
+                        }
+                    });
+        } else {
+            holder.sourcePreparedToggle.setVisibility(View.GONE);
+        }
 
         List<String> entries = item.getEntries();
         if (entries.isEmpty()) {
@@ -77,11 +106,13 @@ final class ExplainPagerAdapter extends RecyclerView.Adapter<ExplainPagerAdapter
 
     static final class PageViewHolder extends RecyclerView.ViewHolder {
         private final LinearLayout itemsContainer;
+        private final SwitchMaterial sourcePreparedToggle;
         private final TextView emptyText;
 
         PageViewHolder(@NonNull View itemView) {
             super(itemView);
             itemsContainer = itemView.findViewById(R.id.explainPageItemsContainer);
+            sourcePreparedToggle = itemView.findViewById(R.id.explainPageSourcePreparedToggle);
             emptyText = itemView.findViewById(R.id.explainPageEmptyText);
         }
     }

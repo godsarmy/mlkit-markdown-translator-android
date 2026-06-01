@@ -48,6 +48,9 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
     private ViewPager2 viewPager;
     private ExplainPagerAdapter pagerAdapter;
     @Nullable private TabLayoutMediator tabLayoutMediator;
+    @Nullable private ExplainMarkdownResult currentResult;
+    private String sourceMarkdown = "";
+    private boolean sourcePreparedEnabled;
 
     public static Intent createIntent(
             Context context, String markdown, MarkdownTranslationOptions options) {
@@ -125,6 +128,8 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
             return;
         }
 
+        sourceMarkdown = markdown;
+
         loadExplainResult(markdown);
     }
 
@@ -135,6 +140,11 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.explainViewPager);
         pagerAdapter = new ExplainPagerAdapter();
         viewPager.setAdapter(pagerAdapter);
+        pagerAdapter.setOnSourcePreparedToggleChangedListener(
+                enabled -> {
+                    sourcePreparedEnabled = enabled;
+                    bindPages();
+                });
     }
 
     private void loadExplainResult(String markdown) {
@@ -152,30 +162,55 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
 
     private void bindExplainResult(ExplainMarkdownResult result) {
         showLoading(false);
-        errorText.setVisibility(View.GONE);
+        if (result.getProcessingMode() != ProcessingMode.AST_TOKEN_STREAM) {
+            showError(getString(R.string.explain_error_ast_required));
+            return;
+        }
 
+        currentResult = result;
+        errorText.setVisibility(View.GONE);
+        tabLayout.setVisibility(View.VISIBLE);
+        viewPager.setVisibility(View.VISIBLE);
+        bindPages();
+    }
+
+    private void bindPages() {
+        if (currentResult == null) {
+            return;
+        }
+        ExplainMarkdownResult result = currentResult;
+        int selectedItem = viewPager.getCurrentItem();
+        pagerAdapter.setSourcePreparedEnabled(sourcePreparedEnabled);
         List<ExplainPageItem> pages =
                 List.of(
                         new ExplainPageItem(
-                                getPreparedTabTitle(result.getProcessingMode()),
+                                getString(R.string.explain_tab_source_markdown),
                                 getString(R.string.explain_none),
-                                List.of(result.getPreparedMarkdown())),
+                                List.of(
+                                        sourcePreparedEnabled
+                                                ? result.getPreparedMarkdown()
+                                                : sourceMarkdown),
+                                true),
                         new ExplainPageItem(
-                                getString(R.string.explain_tab_chunks, result.getTotalChunkCount()),
+                                getString(R.string.explain_chunks_label),
                                 getString(R.string.explain_chunks_empty),
-                                formatChunks(result.getChunks())),
+                                formatChunks(result.getChunks()),
+                                false),
                         new ExplainPageItem(
-                                getString(R.string.explain_tab_tokens, result.getTotalTokenCount()),
+                                getString(R.string.explain_tokens_label),
                                 getString(R.string.explain_tokens_empty),
-                                formatTokens(result.getTokens())),
+                                formatTokens(result.getTokens()),
+                                false),
                         new ExplainPageItem(
-                                getString(
-                                        R.string.explain_tab_protected,
-                                        result.getProtectedSegments().size()),
+                                getString(R.string.explain_protected_segments_label),
                                 getString(R.string.explain_protected_empty),
-                                formatProtectedSegments(result.getProtectedSegments())));
+                                formatProtectedSegments(result.getProtectedSegments()),
+                                false));
         pagerAdapter.submit(pages);
         bindTabs();
+        if (selectedItem >= 0 && selectedItem < pages.size()) {
+            viewPager.setCurrentItem(selectedItem, false);
+        }
     }
 
     private void bindTabs() {
@@ -190,15 +225,11 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
         tabLayoutMediator.attach();
     }
 
-    private String getPreparedTabTitle(ProcessingMode mode) {
-        if (mode == ProcessingMode.AST_TOKEN_STREAM) {
-            return getString(R.string.explain_tab_prepared_ast);
-        }
-        return getString(R.string.explain_tab_prepared_fallback);
-    }
-
     private void showError(String message) {
         showLoading(false);
+        currentResult = null;
+        tabLayout.setVisibility(View.GONE);
+        viewPager.setVisibility(View.GONE);
         String safeMessage = message == null || message.isBlank() ? "Unknown error" : message;
         errorText.setText(getString(R.string.explain_error_template, safeMessage));
         errorText.setVisibility(View.VISIBLE);
@@ -235,9 +266,13 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
         }
 
         List<String> items = new ArrayList<>();
+        int count = 1;
         for (ExplainMarkdownToken token : tokens) {
             String text =
-                    token.getType()
+                    "#"
+                            + count
+                            + " • "
+                            + token.getType()
                             + " • id="
                             + token.getTokenId()
                             + " • offsets="
@@ -247,6 +282,7 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
                             + "\n"
                             + token.getValue();
             items.add(text);
+            count++;
         }
         return items;
     }
