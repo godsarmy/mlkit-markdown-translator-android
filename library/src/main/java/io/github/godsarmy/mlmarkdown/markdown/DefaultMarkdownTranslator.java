@@ -4,13 +4,11 @@ import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownChunk;
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownResult;
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownToken;
-import io.github.godsarmy.mlmarkdown.api.ExplainProtectedSegment;
 import io.github.godsarmy.mlmarkdown.api.MarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.TranslationCallback;
 import io.github.godsarmy.mlmarkdown.api.TranslationMetricsListener;
 import io.github.godsarmy.mlmarkdown.api.TranslationMetricsReport;
 import io.github.godsarmy.mlmarkdown.engine.TranslationEngine;
-import io.github.godsarmy.mlmarkdown.model.ProtectedSegment;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +16,6 @@ import java.util.List;
 public class DefaultMarkdownTranslator implements MarkdownTranslator {
     private final HybridMarkdownPreparationService preparationService;
     private final MarkdownStructureTranslator structureTranslator;
-    private final MarkdownRestorer restorer;
     private final NanoTimeProvider nanoTimeProvider;
     private final TranslationMetricsListener translationMetricsListener;
 
@@ -49,7 +46,6 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             HybridMarkdownPreparationService preparationService) {
         this.preparationService = preparationService;
         this.structureTranslator = new MarkdownStructureTranslator(translationEngine, options);
-        this.restorer = new MarkdownRestorer();
         this.nanoTimeProvider = nanoTimeProvider;
         this.translationMetricsListener = options.translationMetricsListener();
     }
@@ -72,114 +68,57 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             TranslationCallback callback) {
         long totalStartNanos = nanoTimeProvider.nowNanos();
         long preparationStartNanos = nanoTimeProvider.nowNanos();
-        MarkdownPreparationResult preparationResult = preparationService.prepare(markdown);
+        MarkdownPreparationResult preparationResult;
+        try {
+            preparationResult = preparationService.prepare(markdown);
+        } catch (RuntimeException error) {
+            long preparationDurationMs =
+                    toMillis(nanoTimeProvider.nowNanos() - preparationStartNanos);
+            notifyTiming(
+                    ProcessingMode.AST_TOKEN_STREAM,
+                    preparationDurationMs,
+                    0,
+                    0,
+                    totalStartNanos,
+                    0,
+                    0,
+                    0,
+                    false,
+                    error);
+            callback.onFailure(error);
+            return;
+        }
         long preparationDurationMs = toMillis(nanoTimeProvider.nowNanos() - preparationStartNanos);
         int totalTokenCount = totalTokenCount(preparationResult);
         int totalChunkCount = totalChunkCount(preparationResult);
-        final boolean regexFallbackTriggered =
-                preparationResult.getMode() == ProcessingMode.REGEX_FALLBACK;
 
         long translationStartNanos = nanoTimeProvider.nowNanos();
-        if (preparationResult.getMode() == ProcessingMode.AST_TOKEN_STREAM
-                && preparationResult.getTokenizedDocument() != null) {
-            structureTranslator.translate(
-                    preparationResult.getTokenizedDocument(),
-                    sourceLanguage,
-                    targetLanguage,
-                    timeoutMs,
-                    new MarkdownStructureTranslator.TokenizedTranslationCallback() {
-                        @Override
-                        public void onSuccess(String translatedText, int chunkParseRecoveryCount) {
-                            long translationDurationMs =
-                                    toMillis(nanoTimeProvider.nowNanos() - translationStartNanos);
-                            notifyTiming(
-                                    preparationResult.getMode(),
-                                    preparationDurationMs,
-                                    translationDurationMs,
-                                    0,
-                                    totalStartNanos,
-                                    totalTokenCount,
-                                    totalChunkCount,
-                                    chunkParseRecoveryCount,
-                                    regexFallbackTriggered,
-                                    true,
-                                    null);
-                            callback.onSuccess(translatedText);
-                        }
-
-                        @Override
-                        public void onFailure(Exception error, int chunkParseRecoveryCount) {
-                            long translationDurationMs =
-                                    toMillis(nanoTimeProvider.nowNanos() - translationStartNanos);
-                            notifyTiming(
-                                    preparationResult.getMode(),
-                                    preparationDurationMs,
-                                    translationDurationMs,
-                                    0,
-                                    totalStartNanos,
-                                    totalTokenCount,
-                                    totalChunkCount,
-                                    chunkParseRecoveryCount,
-                                    regexFallbackTriggered,
-                                    false,
-                                    error);
-                            callback.onFailure(error);
-                        }
-                    });
-            return;
-        }
-
         structureTranslator.translate(
-                preparationResult.getMarkdownForTranslation(),
+                preparationResult.getTokenizedDocument(),
                 sourceLanguage,
                 targetLanguage,
                 timeoutMs,
-                new TranslationCallback() {
+                new MarkdownStructureTranslator.TokenizedTranslationCallback() {
                     @Override
-                    public void onSuccess(String translatedText) {
+                    public void onSuccess(String translatedText, int chunkParseRecoveryCount) {
                         long translationDurationMs =
                                 toMillis(nanoTimeProvider.nowNanos() - translationStartNanos);
-                        long restorationDurationMs = 0;
-                        if (preparationResult.getMode() == ProcessingMode.REGEX_FALLBACK) {
-                            long restorationStartNanos = nanoTimeProvider.nowNanos();
-                            String restored =
-                                    restorer.restore(
-                                            translatedText, preparationResult.getTokenStore());
-                            restorationDurationMs =
-                                    toMillis(nanoTimeProvider.nowNanos() - restorationStartNanos);
-                            notifyTiming(
-                                    preparationResult.getMode(),
-                                    preparationDurationMs,
-                                    translationDurationMs,
-                                    restorationDurationMs,
-                                    totalStartNanos,
-                                    totalTokenCount,
-                                    totalChunkCount,
-                                    0,
-                                    regexFallbackTriggered,
-                                    true,
-                                    null);
-                            callback.onSuccess(restored);
-                            return;
-                        }
-
                         notifyTiming(
                                 preparationResult.getMode(),
                                 preparationDurationMs,
                                 translationDurationMs,
-                                restorationDurationMs,
+                                0,
                                 totalStartNanos,
                                 totalTokenCount,
                                 totalChunkCount,
-                                0,
-                                regexFallbackTriggered,
+                                chunkParseRecoveryCount,
                                 true,
                                 null);
                         callback.onSuccess(translatedText);
                     }
 
                     @Override
-                    public void onFailure(Exception error) {
+                    public void onFailure(Exception error, int chunkParseRecoveryCount) {
                         long translationDurationMs =
                                 toMillis(nanoTimeProvider.nowNanos() - translationStartNanos);
                         notifyTiming(
@@ -190,8 +129,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                                 totalStartNanos,
                                 totalTokenCount,
                                 totalChunkCount,
-                                0,
-                                regexFallbackTriggered,
+                                chunkParseRecoveryCount,
                                 false,
                                 error);
                         callback.onFailure(error);
@@ -204,7 +142,6 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
         MarkdownPreparationResult preparationResult = preparationService.prepare(markdown);
         List<ExplainMarkdownChunk> chunks = new ArrayList<>();
         List<ExplainMarkdownToken> tokens = new ArrayList<>();
-        List<ExplainProtectedSegment> protectedSegments = new ArrayList<>();
 
         if (preparationResult.getTokenizedDocument() != null) {
             TokenizedMarkdownDocument tokenizedDocument = preparationResult.getTokenizedDocument();
@@ -212,20 +149,11 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             tokens = explainTokens(tokenizedDocument);
         }
 
-        if (preparationResult.getTokenStore() != null) {
-            for (ProtectedSegment protectedSegment : preparationResult.getTokenStore().getAll()) {
-                protectedSegments.add(
-                        new ExplainProtectedSegment(
-                                protectedSegment.getToken(), protectedSegment.getOriginalText()));
-            }
-        }
-
         return new ExplainMarkdownResult(
                 preparationResult.getMode(),
                 preparationResult.getMarkdownForTranslation(),
                 tokens,
-                chunks,
-                protectedSegments);
+                chunks);
     }
 
     private void notifyTiming(
@@ -237,7 +165,6 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
             int totalTokenCount,
             int totalChunkCount,
             int chunkParseRecoveryCount,
-            boolean regexFallbackTriggered,
             boolean successful,
             Exception error) {
         if (translationMetricsListener == null) {
@@ -254,8 +181,7 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                         totalChunkCount,
                         successful,
                         error,
-                        chunkParseRecoveryCount,
-                        regexFallbackTriggered));
+                        chunkParseRecoveryCount));
     }
 
     private int totalChunkCount(MarkdownPreparationResult preparationResult) {
@@ -266,19 +192,12 @@ public class DefaultMarkdownTranslator implements MarkdownTranslator {
                     .size();
         }
 
-        if (preparationResult.getMode() == ProcessingMode.REGEX_FALLBACK) {
-            return 1;
-        }
-
         return 0;
     }
 
     private static int totalTokenCount(MarkdownPreparationResult preparationResult) {
         if (preparationResult.getTokenizedDocument() != null) {
             return preparationResult.getTokenizedDocument().getTokens().size();
-        }
-        if (preparationResult.getTokenStore() != null) {
-            return preparationResult.getTokenStore().getAll().size();
         }
         return 0;
     }

@@ -8,19 +8,16 @@ public final class ExplainMarkdownResult {
     private final String preparedMarkdown;
     private final List<ExplainMarkdownToken> tokens;
     private final List<ExplainMarkdownChunk> chunks;
-    private final List<ExplainProtectedSegment> protectedSegments;
 
     public ExplainMarkdownResult(
             ProcessingMode processingMode,
             String preparedMarkdown,
             List<ExplainMarkdownToken> tokens,
-            List<ExplainMarkdownChunk> chunks,
-            List<ExplainProtectedSegment> protectedSegments) {
+            List<ExplainMarkdownChunk> chunks) {
         this.processingMode = processingMode;
         this.preparedMarkdown = preparedMarkdown;
         this.tokens = List.copyOf(tokens);
         this.chunks = List.copyOf(chunks);
-        this.protectedSegments = List.copyOf(protectedSegments);
     }
 
     public ProcessingMode getProcessingMode() {
@@ -37,10 +34,6 @@ public final class ExplainMarkdownResult {
 
     public List<ExplainMarkdownChunk> getChunks() {
         return chunks;
-    }
-
-    public List<ExplainProtectedSegment> getProtectedSegments() {
-        return protectedSegments;
     }
 
     public int getTotalTokenCount() {

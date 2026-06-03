@@ -60,7 +60,6 @@ public final class ExplainMarkdownResult {
   public String getPreparedMarkdown();
   public List<ExplainMarkdownToken> getTokens();
   public List<ExplainMarkdownChunk> getChunks();
-  public List<ExplainProtectedSegment> getProtectedSegments();
   public int getTotalTokenCount();
   public int getTotalChunkCount();
 }
@@ -90,15 +89,6 @@ public final class ExplainMarkdownChunk {
 }
 ```
 
-### `ExplainProtectedSegment`
-
-```java
-public final class ExplainProtectedSegment {
-  public String getToken();
-  public String getOriginalText();
-}
-```
-
 ## Configuration
 
 ### `MarkdownTranslationOptions`
@@ -114,7 +104,6 @@ public final class MarkdownTranslationOptions {
   public boolean preserveBlockquotes();
   public boolean normalizeCustomBlockTags();
   public boolean protectAutolinks();
-  public boolean enableRegexFallbackProtection();
   public boolean preserveWhitespaceAroundProtectedSegments();
   public String escapedMarkdownCharactersToProtect();
   public String tokenMarker();
@@ -127,7 +116,6 @@ public final class MarkdownTranslationOptions {
     public Builder setPreserveBlockquotes(boolean value);
     public Builder setNormalizeCustomBlockTags(boolean value);
     public Builder setProtectAutolinks(boolean value);
-    public Builder setEnableRegexFallbackProtection(boolean value);
     public Builder setPreserveWhitespaceAroundProtectedSegments(boolean value);
     public Builder setEscapedMarkdownCharactersToProtect(String characters);
     public Builder setTokenMarker(String marker);
@@ -145,9 +133,6 @@ public final class MarkdownTranslationOptions {
   - `false`: custom block tags are left unchanged.
 - `protectAutolinks`
   - controls whether autolinks are treated as protected spans in AST tokenization.
-- `enableRegexFallbackProtection`
-  - `true` (default): regex protection/restoration pipeline runs in fallback mode.
-  - `false`: fallback mode skips regex token protection and passes normalized text directly.
 - `escapedMarkdownCharactersToProtect`
   - controls which backslash-escaped Markdown punctuation pairs are protected from translation.
   - default: ``\\`*[]()#+-.!|>`` (does not include `_`, `{`, or `}`).
@@ -219,7 +204,6 @@ public final class TranslationMetricsReport {
   public int getTotalTokenCount();
   public int getTotalChunkCount();
   public int getChunkParseRecoveryCount();
-  public boolean isRegexFallbackTriggered();
   public boolean isSuccessful();
   public @Nullable Exception getError();
 }

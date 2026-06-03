@@ -77,16 +77,16 @@ These define markdown layout and delimiters and are never translated directly:
 ## Implementation constraints
 
 - Prefer AST-driven tokenization over regex-only logic.
-- Regex is allowed only for pre-normalization (for example `<block>...</block>` conversion) and targeted fallback edge cases.
+- Regex is allowed only for pre-normalization (for example `<block>...</block>` conversion) and narrow structure-protection helpers.
 - Reconstruction fidelity is prioritized over aggressive text transformations.
 
-## Hybrid fallback mode
+## AST token-stream mode
 
-v1 uses this hybrid path:
+v1.2 uses this path:
 
 1. Normalize line endings and custom `<block>...</block>` tags.
-2. Try AST/token-stream preparation first.
-3. If AST preparation fails, fallback to regex protection mode.
+2. Build the AST/token-stream representation.
+3. If AST preparation fails, propagate the preparation error to the caller.
 
 Operational behavior:
 
@@ -95,10 +95,5 @@ Operational behavior:
   - Reconstruction is driven by ordered tokens.
   - Translation runs in chunks with token markers; if markers are lost/mutated by the translation engine,
     the pipeline falls back to per-token translation for that chunk.
-- Fallback mode: `REGEX_FALLBACK`
-  - Triggered when AST/token model build throws at preparation stage.
-  - Legacy protection/restoration pipeline is used when regex fallback protection is enabled.
-  - If regex fallback protection is disabled, fallback uses normalized markdown text directly.
 
-For option-level behavior (`normalizeCustomBlockTags`, `protectAutolinks`,
-`enableRegexFallbackProtection`), see [`docs/api.md`](api.md).
+For option-level behavior (`normalizeCustomBlockTags`, `protectAutolinks`), see [`docs/api.md`](api.md).

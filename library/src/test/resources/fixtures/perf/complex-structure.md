@@ -22,7 +22,7 @@
 | Language | English | Source |
 | Language | Spanish | Target |
 | Mode | AST | Preferred |
-| Mode | Regex fallback | Backup |
+| Mode | Token stream | Backup |
 
 ### Code blocks
 

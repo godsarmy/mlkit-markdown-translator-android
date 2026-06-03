@@ -102,7 +102,7 @@ public class MlKitMarkdownTranslatorTest {
         public ExplainMarkdownResult explainMarkdown(String markdown) {
             this.explainedMarkdown = markdown;
             return new ExplainMarkdownResult(
-                    ProcessingMode.AST_TOKEN_STREAM, markdown, List.of(), List.of(), List.of());
+                    ProcessingMode.AST_TOKEN_STREAM, markdown, List.of(), List.of());
         }
     }
 

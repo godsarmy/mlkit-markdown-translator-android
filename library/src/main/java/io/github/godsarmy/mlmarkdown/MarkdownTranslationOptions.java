@@ -14,7 +14,6 @@ public final class MarkdownTranslationOptions {
     private final boolean preserveBlockquotes;
     private final boolean normalizeCustomBlockTags;
     private final boolean protectAutolinks;
-    private final boolean enableRegexFallbackProtection;
     private final boolean preserveWhitespaceAroundProtectedSegments;
     private final String escapedMarkdownCharactersToProtect;
     private final String tokenMarker;
@@ -27,7 +26,6 @@ public final class MarkdownTranslationOptions {
         this.preserveBlockquotes = builder.preserveBlockquotes;
         this.normalizeCustomBlockTags = builder.normalizeCustomBlockTags;
         this.protectAutolinks = builder.protectAutolinks;
-        this.enableRegexFallbackProtection = builder.enableRegexFallbackProtection;
         this.preserveWhitespaceAroundProtectedSegments =
                 builder.preserveWhitespaceAroundProtectedSegments;
         this.escapedMarkdownCharactersToProtect = builder.escapedMarkdownCharactersToProtect;
@@ -60,10 +58,6 @@ public final class MarkdownTranslationOptions {
         return protectAutolinks;
     }
 
-    public boolean enableRegexFallbackProtection() {
-        return enableRegexFallbackProtection;
-    }
-
     public boolean preserveWhitespaceAroundProtectedSegments() {
         return preserveWhitespaceAroundProtectedSegments;
     }
@@ -91,7 +85,6 @@ public final class MarkdownTranslationOptions {
         private boolean preserveBlockquotes = true;
         private boolean normalizeCustomBlockTags = true;
         private boolean protectAutolinks = true;
-        private boolean enableRegexFallbackProtection = true;
         private boolean preserveWhitespaceAroundProtectedSegments = true;
         private String escapedMarkdownCharactersToProtect = DEFAULT_ESCAPED_MARKDOWN_CHARACTERS;
         private String tokenMarker = DEFAULT_TOKEN_MARKER;
@@ -120,11 +113,6 @@ public final class MarkdownTranslationOptions {
 
         public Builder setProtectAutolinks(boolean protectAutolinks) {
             this.protectAutolinks = protectAutolinks;
-            return this;
-        }
-
-        public Builder setEnableRegexFallbackProtection(boolean enableRegexFallbackProtection) {
-            this.enableRegexFallbackProtection = enableRegexFallbackProtection;
             return this;
         }
 

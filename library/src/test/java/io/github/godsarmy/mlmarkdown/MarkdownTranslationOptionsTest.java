@@ -21,7 +21,6 @@ public class MarkdownTranslationOptionsTest {
         assertTrue(options.preserveBlockquotes());
         assertTrue(options.normalizeCustomBlockTags());
         assertTrue(options.protectAutolinks());
-        assertTrue(options.enableRegexFallbackProtection());
         assertTrue(options.preserveWhitespaceAroundProtectedSegments());
         assertEquals(
                 MarkdownTranslationOptions.DEFAULT_ESCAPED_MARKDOWN_CHARACTERS,
@@ -44,7 +43,6 @@ public class MarkdownTranslationOptionsTest {
                         .setPreserveBlockquotes(false)
                         .setNormalizeCustomBlockTags(false)
                         .setProtectAutolinks(false)
-                        .setEnableRegexFallbackProtection(false)
                         .setPreserveWhitespaceAroundProtectedSegments(false)
                         .setEscapedMarkdownCharactersToProtect("*#")
                         .setTokenMarker("##")
@@ -55,7 +53,6 @@ public class MarkdownTranslationOptionsTest {
         assertFalse(options.preserveBlockquotes());
         assertFalse(options.normalizeCustomBlockTags());
         assertFalse(options.protectAutolinks());
-        assertFalse(options.enableRegexFallbackProtection());
         assertFalse(options.preserveWhitespaceAroundProtectedSegments());
         assertEquals("*#", options.escapedMarkdownCharactersToProtect());
         assertEquals("##", options.tokenMarker());

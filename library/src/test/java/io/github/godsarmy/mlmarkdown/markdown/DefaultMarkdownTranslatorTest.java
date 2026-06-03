@@ -154,7 +154,6 @@ public class DefaultMarkdownTranslatorTest {
         assertTrue(timingListener.lastReport.getTotalTokenCount() > 0);
         assertEquals(1, timingListener.lastReport.getTotalChunkCount());
         assertEquals(1, timingListener.lastReport.getChunkParseRecoveryCount());
-        assertFalse(timingListener.lastReport.isRegexFallbackTriggered());
         assertNull(timingListener.lastReport.getError());
     }
 
@@ -187,29 +186,20 @@ public class DefaultMarkdownTranslatorTest {
         assertTrue(timingListener.lastReport.getTotalTokenCount() > 0);
         assertEquals(1, timingListener.lastReport.getTotalChunkCount());
         assertEquals(0, timingListener.lastReport.getChunkParseRecoveryCount());
-        assertFalse(timingListener.lastReport.isRegexFallbackTriggered());
         assertNotNull(timingListener.lastReport.getError());
         assertEquals("boom", timingListener.lastReport.getError().getMessage());
     }
 
     @Test
-    public void translateMarkdown_reportsRegexFallbackTriggeredInTimingReport() {
+    public void translateMarkdown_reportsPreparationFailure() {
         RecordingTimingListener timingListener = new RecordingTimingListener();
         FakeNanoTimeProvider nanoTimeProvider =
-                new FakeNanoTimeProvider(
-                        0L,
-                        1_000_000L,
-                        2_000_000L,
-                        3_000_000L,
-                        4_000_000L,
-                        5_000_000L,
-                        7_000_000L,
-                        10_000_000L);
+                new FakeNanoTimeProvider(0L, 1_000_000L, 4_000_000L, 7_000_000L);
         HybridMarkdownPreparationService preparationService =
                 new HybridMarkdownPreparationService() {
                     @Override
                     TokenizedMarkdownDocument buildTokenModel(String markdown) {
-                        throw new IllegalStateException("forced fallback");
+                        throw new IllegalStateException("forced preparation failure");
                     }
                 };
         DefaultMarkdownTranslator translator =
@@ -224,12 +214,16 @@ public class DefaultMarkdownTranslatorTest {
         TestTranslationCallback callback = new TestTranslationCallback();
         translator.translateMarkdown("Paragraph with `code`", "en", "es", callback);
 
-        assertNotNull(callback.translatedText);
-        assertNull(callback.error);
+        assertNull(callback.translatedText);
+        assertNotNull(callback.error);
         assertNotNull(timingListener.lastReport);
-        assertTrue(timingListener.lastReport.isRegexFallbackTriggered());
-        assertEquals(ProcessingMode.REGEX_FALLBACK, timingListener.lastReport.getProcessingMode());
-        assertTrue(timingListener.lastReport.getRestorationDurationMs() > 0);
+        assertFalse(timingListener.lastReport.isSuccessful());
+        assertEquals(
+                ProcessingMode.AST_TOKEN_STREAM, timingListener.lastReport.getProcessingMode());
+        assertEquals(3L, timingListener.lastReport.getPreparationDurationMs());
+        assertEquals(0L, timingListener.lastReport.getTranslationDurationMs());
+        assertEquals(0L, timingListener.lastReport.getRestorationDurationMs());
+        assertEquals("forced preparation failure", callback.error.getMessage());
     }
 
     @Test
@@ -257,7 +251,6 @@ public class DefaultMarkdownTranslatorTest {
 
         assertEquals(ProcessingMode.AST_TOKEN_STREAM, result.getProcessingMode());
         assertNotEquals(0, result.getTokens().size());
-        assertEquals(0, result.getProtectedSegments().size());
         assertEquals("# Hello", result.getPreparedMarkdown());
     }
 

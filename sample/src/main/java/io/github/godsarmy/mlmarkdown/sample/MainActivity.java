@@ -120,7 +120,6 @@ public final class MainActivity extends AppCompatActivity {
     private boolean preserveBlockquotes = true;
     private boolean normalizeCustomBlockTags = true;
     private boolean protectAutolinks = true;
-    private boolean enableRegexFallbackProtection = true;
     private boolean preserveWhitespaceAroundProtectedSegments = true;
     private String escapedMarkdownCharactersToProtect =
             MarkdownTranslationOptions.DEFAULT_ESCAPED_MARKDOWN_CHARACTERS;
@@ -951,7 +950,6 @@ public final class MainActivity extends AppCompatActivity {
                 .setPreserveBlockquotes(preserveBlockquotes)
                 .setNormalizeCustomBlockTags(normalizeCustomBlockTags)
                 .setProtectAutolinks(protectAutolinks)
-                .setEnableRegexFallbackProtection(enableRegexFallbackProtection)
                 .setPreserveWhitespaceAroundProtectedSegments(
                         preserveWhitespaceAroundProtectedSegments)
                 .setEscapedMarkdownCharactersToProtect(escapedMarkdownCharactersToProtect)
@@ -1177,7 +1175,6 @@ public final class MainActivity extends AppCompatActivity {
         preserveBlockquotes = options.preserveBlockquotes();
         normalizeCustomBlockTags = options.normalizeCustomBlockTags();
         protectAutolinks = options.protectAutolinks();
-        enableRegexFallbackProtection = options.enableRegexFallbackProtection();
         preserveWhitespaceAroundProtectedSegments =
                 options.preserveWhitespaceAroundProtectedSegments();
         escapedMarkdownCharactersToProtect = options.escapedMarkdownCharactersToProtect();
@@ -1333,8 +1330,6 @@ public final class MainActivity extends AppCompatActivity {
                                             report != null
                                                     ? report.getChunkParseRecoveryCount()
                                                     : 0;
-                                    boolean regexFallbackTriggered =
-                                            report != null && report.isRegexFallbackTriggered();
                                     translationResultText.setText(
                                             getString(
                                                     R.string.translation_result_success,
@@ -1342,8 +1337,7 @@ public final class MainActivity extends AppCompatActivity {
                                                     durationMs,
                                                     tokenCount,
                                                     chunkCount,
-                                                    chunkRecoveryCount,
-                                                    regexFallbackTriggered));
+                                                    chunkRecoveryCount));
                                     translationResultText.setTextColor(
                                             getColor(R.color.mlkit_on_surface_variant));
                                     translationResultText.setVisibility(View.VISIBLE);

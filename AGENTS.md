@@ -38,9 +38,8 @@ Use Gradle wrapper from repo root.
 
 1. Keep library API small and stable.
 2. Prefer AST/token-stream Markdown processing over regex-only logic.
-3. Use regex fallback only for robustness/edge cases.
-4. Preserve Markdown structure (headings, lists, quotes, code, links, spacing).
-5. Keep Android/ML Kit integration separated from pure Java markdown logic where possible.
+3. Preserve Markdown structure (headings, lists, quotes, code, links, spacing).
+4. Keep Android/ML Kit integration separated from pure Java markdown logic where possible.
 
 ## Language/SDK constraints
 

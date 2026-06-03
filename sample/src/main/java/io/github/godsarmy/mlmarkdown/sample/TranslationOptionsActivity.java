@@ -19,8 +19,6 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
     private static final String EXTRA_NORMALIZE_CUSTOM_BLOCK_TAGS =
             "extra_normalize_custom_block_tags";
     private static final String EXTRA_PROTECT_AUTOLINKS = "extra_protect_autolinks";
-    private static final String EXTRA_ENABLE_REGEX_FALLBACK_PROTECTION =
-            "extra_enable_regex_fallback_protection";
     private static final String EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS =
             "extra_preserve_whitespace_around_protected_segments";
     private static final String EXTRA_ESCAPED_MARKDOWN_CHARACTERS_TO_PROTECT =
@@ -35,7 +33,6 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
     private SwitchMaterial preserveBlockquotesSwitch;
     private SwitchMaterial normalizeCustomBlockTagsSwitch;
     private SwitchMaterial protectAutolinksSwitch;
-    private SwitchMaterial enableRegexFallbackProtectionSwitch;
     private SwitchMaterial preserveWhitespaceAroundProtectedSegmentsSwitch;
     private EditText escapedMarkdownCharactersInput;
     private EditText tokenMarkerInput;
@@ -73,8 +70,6 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                 .setNormalizeCustomBlockTags(
                         intent.getBooleanExtra(EXTRA_NORMALIZE_CUSTOM_BLOCK_TAGS, true))
                 .setProtectAutolinks(intent.getBooleanExtra(EXTRA_PROTECT_AUTOLINKS, true))
-                .setEnableRegexFallbackProtection(
-                        intent.getBooleanExtra(EXTRA_ENABLE_REGEX_FALLBACK_PROTECTION, true))
                 .setPreserveWhitespaceAroundProtectedSegments(
                         intent.getBooleanExtra(
                                 EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS, true))
@@ -108,8 +103,6 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_PRESERVE_BLOCKQUOTES, options.preserveBlockquotes());
         intent.putExtra(EXTRA_NORMALIZE_CUSTOM_BLOCK_TAGS, options.normalizeCustomBlockTags());
         intent.putExtra(EXTRA_PROTECT_AUTOLINKS, options.protectAutolinks());
-        intent.putExtra(
-                EXTRA_ENABLE_REGEX_FALLBACK_PROTECTION, options.enableRegexFallbackProtection());
         intent.putExtra(
                 EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS,
                 options.preserveWhitespaceAroundProtectedSegments());
@@ -145,8 +138,6 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
         preserveBlockquotesSwitch = findViewById(R.id.switchPreserveBlockquotes);
         normalizeCustomBlockTagsSwitch = findViewById(R.id.switchNormalizeCustomBlockTags);
         protectAutolinksSwitch = findViewById(R.id.switchProtectAutolinks);
-        enableRegexFallbackProtectionSwitch =
-                findViewById(R.id.switchEnableRegexFallbackProtection);
         preserveWhitespaceAroundProtectedSegmentsSwitch =
                 findViewById(R.id.switchPreserveWhitespaceAroundProtectedSegments);
         escapedMarkdownCharactersInput = findViewById(R.id.escapedMarkdownCharactersInput);
@@ -162,7 +153,6 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
         preserveBlockquotesSwitch.setChecked(options.preserveBlockquotes());
         normalizeCustomBlockTagsSwitch.setChecked(options.normalizeCustomBlockTags());
         protectAutolinksSwitch.setChecked(options.protectAutolinks());
-        enableRegexFallbackProtectionSwitch.setChecked(options.enableRegexFallbackProtection());
         preserveWhitespaceAroundProtectedSegmentsSwitch.setChecked(
                 options.preserveWhitespaceAroundProtectedSegments());
         escapedMarkdownCharactersInput.setText(options.escapedMarkdownCharactersToProtect());
@@ -246,8 +236,6 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
                                     .setNormalizeCustomBlockTags(
                                             normalizeCustomBlockTagsSwitch.isChecked())
                                     .setProtectAutolinks(protectAutolinksSwitch.isChecked())
-                                    .setEnableRegexFallbackProtection(
-                                            enableRegexFallbackProtectionSwitch.isChecked())
                                     .setPreserveWhitespaceAroundProtectedSegments(
                                             preserveWhitespaceAroundProtectedSegmentsSwitch
                                                     .isChecked())

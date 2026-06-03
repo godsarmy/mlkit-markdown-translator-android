@@ -3,14 +3,10 @@ package io.github.godsarmy.mlmarkdown.markdown;
 import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 
-/**
- * Step 6E hybrid mode: - Primary: AST/token-stream preparation via Flexmark. - Fallback: regex
- * protection pipeline when AST preparation fails.
- */
+/** Markdown preparation service backed by Flexmark AST tokenization. */
 public class HybridMarkdownPreparationService {
     private final MarkdownPreprocessor preprocessor;
     private final AstTokenModelBuilder tokenModelBuilder;
-    private final MarkdownProtectionPipeline protectionPipeline;
     private final MarkdownTranslationOptions options;
 
     public HybridMarkdownPreparationService() {
@@ -22,18 +18,15 @@ public class HybridMarkdownPreparationService {
                 new MarkdownPreprocessor(),
                 new AstTokenModelBuilder(
                         options.protectAutolinks(), options.escapedMarkdownCharactersToProtect()),
-                new MarkdownProtectionPipeline(options.escapedMarkdownCharactersToProtect()),
                 options);
     }
 
     public HybridMarkdownPreparationService(
             MarkdownPreprocessor preprocessor,
             AstTokenModelBuilder tokenModelBuilder,
-            MarkdownProtectionPipeline protectionPipeline,
             MarkdownTranslationOptions options) {
         this.preprocessor = preprocessor;
         this.tokenModelBuilder = tokenModelBuilder;
-        this.protectionPipeline = protectionPipeline;
         this.options = options;
     }
 
@@ -44,22 +37,11 @@ public class HybridMarkdownPreparationService {
                         ? preprocessor.normalizeCustomBlockTags(normalized)
                         : normalized;
 
-        try {
-            TokenizedMarkdownDocument tokenizedDocument = buildTokenModel(normalizedBlocks);
-            return new MarkdownPreparationResult(
-                    ProcessingMode.AST_TOKEN_STREAM,
-                    tokenizedDocument.reconstruct(),
-                    new MarkdownTokenStore(),
-                    tokenizedDocument);
-        } catch (RuntimeException parseError) {
-            MarkdownTokenStore tokenStore = new MarkdownTokenStore();
-            String protectedMarkdown =
-                    options.enableRegexFallbackProtection()
-                            ? protectionPipeline.protect(normalizedBlocks, tokenStore)
-                            : normalizedBlocks;
-            return new MarkdownPreparationResult(
-                    ProcessingMode.REGEX_FALLBACK, protectedMarkdown, tokenStore, null);
-        }
+        TokenizedMarkdownDocument tokenizedDocument = buildTokenModel(normalizedBlocks);
+        return new MarkdownPreparationResult(
+                ProcessingMode.AST_TOKEN_STREAM,
+                tokenizedDocument.reconstruct(),
+                tokenizedDocument);
     }
 
     TokenizedMarkdownDocument buildTokenModel(String markdown) {

@@ -85,8 +85,9 @@
 		Markdown,
 		translate human-readable chunks, and rebuild the document.
 		Use explainMarkdown() to inspect
-		tokens and protected segments without
-		calling translation. Close the translator when the owner
+		tokens and chunks without
+		calling
+		translation. Close the translator when the owner
 		is destroyed.</string>
 	<string name="help_project_title">Project page</string>
 	<string name="project_page_url">https://github.com/godsarmy/mlkit-markdown-translator-android</string>
@@ -127,32 +128,28 @@
 	<string name="translation_error_icon_content_description">Show translation error details</string>
 	<string name="translation_error_dialog_title">Translation failed</string>
 	<string name="translation_result_success">%1$d chars in %2$d ms • tokens: %3$d • chunks: %4$d
-		• chunk recoveries: %5$d • Regex fallback: %6$b</string>
+		• chunk recoveries: %5$d</string>
 	<string name="translation_result_failure">Translation failed: %1$s</string>
 	<string name="explain_markdown">Explain</string>
 	<string name="explain_screen_title">Explain translation plan</string>
 	<string name="explain_loading">Preparing explain result...</string>
 	<string name="explain_mode_label">Processing mode</string>
 	<string name="explain_counts_label">Counts</string>
-	<string name="explain_counts_value">tokens: %1$d • chunks: %2$d • protected: %3$d</string>
+	<string name="explain_counts_value">tokens: %1$d • chunks: %2$d</string>
 	<string name="explain_tab_source_markdown">Source markdown</string>
 	<string name="explain_prepared_markdown_label">Prepared markdown</string>
 	<string name="explain_source_toggle_prepared">Show prepared markdown</string>
 	<string name="explain_chunks_label">Chunks</string>
 	<string name="explain_tokens_label">Tokens</string>
-	<string name="explain_protected_segments_label">Protected segments</string>
 	<string name="explain_tab_prepared_ast">Prepared (AST)</string>
-	<string name="explain_tab_prepared_fallback">Prepared (Fallback)</string>
 	<string name="explain_tab_chunks">Chunks (%1$d)</string>
 	<string name="explain_tab_tokens">Tokens (%1$d)</string>
-	<string name="explain_tab_protected">Protected (%1$d)</string>
 	<string name="explain_chunks_empty">No chunks generated</string>
 	<string name="explain_tokens_empty">No tokens generated</string>
-	<string name="explain_protected_empty">No protected segments</string>
 	<string name="explain_none">(none)</string>
 	<string name="explain_error_missing_markdown">No markdown provided.</string>
 	<string name="explain_error_ast_required">Explain view is unavailable because AST parsing
-		failed and fallback was used.</string>
+		failed.</string>
 	<string name="explain_error_template">Explain failed: %1$s</string>
 	<string name="original_markdown_label">Original text</string>
 	<string name="translated_markdown_label">Translated text</string>
@@ -209,7 +206,6 @@
 	<string name="label_preserve_blockquotes">Preserve blockquotes</string>
 	<string name="label_normalize_custom_block_tags">Normalize custom block tags</string>
 	<string name="label_protect_autolinks">Protect autolinks</string>
-	<string name="label_enable_regex_fallback_protection">Enable regex fallback protection</string>
 	<string
 		name="label_preserve_whitespace_around_protected_segments">Preserve whitespace around protected segments</string>
 	<string name="token_marker_label">Token marker</string>

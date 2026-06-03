@@ -1,10 +1,8 @@
 package io.github.godsarmy.mlmarkdown.markdown;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import io.github.godsarmy.mlmarkdown.MarkdownTranslationOptions;
 import io.github.godsarmy.mlmarkdown.model.TokenizedMarkdownDocument;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,50 +55,6 @@ public class MarkdownGoldenFixtureTest {
         String reconstructed = document.reconstructWithTranslations(translatedByToken);
         assertEquals(expected, reconstructed);
         assertTrue(reconstructed.contains("| :--- | ---: |"));
-    }
-
-    @Test
-    public void fixture_fallbackProtection_roundTripsProtectedSegmentsAfterMockTranslation() {
-        String input = readFixture("fixtures/fallback-protection/input.md");
-        String expected =
-                readFixture(
-                        "fixtures/fallback-protection/expected-restored-after-mock-translation.md");
-
-        HybridMarkdownPreparationService service =
-                new HybridMarkdownPreparationService() {
-                    @Override
-                    TokenizedMarkdownDocument buildTokenModel(String markdown) {
-                        throw new IllegalStateException("forced AST failure for fixture");
-                    }
-                };
-
-        MarkdownPreparationResult result = service.prepare(input);
-        assertEquals(ProcessingMode.REGEX_FALLBACK, result.getMode());
-        assertFalse(result.getTokenStore().getAll().isEmpty());
-
-        String translated = "[[TRANSLATED:" + result.getMarkdownForTranslation() + "]]";
-        String restored = new MarkdownRestorer().restore(translated, result.getTokenStore());
-        assertEquals(expected.stripTrailing(), restored.stripTrailing());
-    }
-
-    @Test
-    public void fixture_fallbackDisabled_skipsProtectionAndLeavesNoTokens() {
-        String input = readFixture("fixtures/fallback-protection/input.md");
-        HybridMarkdownPreparationService service =
-                new HybridMarkdownPreparationService(
-                        new MarkdownTranslationOptions.Builder()
-                                .setEnableRegexFallbackProtection(false)
-                                .build()) {
-                    @Override
-                    TokenizedMarkdownDocument buildTokenModel(String markdown) {
-                        throw new IllegalStateException("forced AST failure for fixture");
-                    }
-                };
-
-        MarkdownPreparationResult result = service.prepare(input);
-        assertEquals(ProcessingMode.REGEX_FALLBACK, result.getMode());
-        assertEquals(input, result.getMarkdownForTranslation());
-        assertTrue(result.getTokenStore().getAll().isEmpty());
     }
 
     private static String readFixture(String path) {

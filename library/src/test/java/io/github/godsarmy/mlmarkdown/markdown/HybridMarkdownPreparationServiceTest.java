@@ -19,7 +19,7 @@ public class HybridMarkdownPreparationServiceTest {
     }
 
     @Test
-    public void prepare_usesRegexFallbackMode_whenAstBuilderThrows() {
+    public void prepare_throws_whenAstBuilderThrows() {
         HybridMarkdownPreparationService service =
                 new HybridMarkdownPreparationService() {
                     @Override
@@ -28,32 +28,13 @@ public class HybridMarkdownPreparationServiceTest {
                     }
                 };
 
-        MarkdownPreparationResult result = service.prepare("# title with `code`");
-
-        assertEquals(ProcessingMode.REGEX_FALLBACK, result.getMode());
-        assertNotNull(result.getTokenStore());
-        assertEquals(1, result.getTokenStore().getAll().size());
-    }
-
-    @Test
-    public void prepare_skipsRegexProtection_whenFallbackProtectionDisabled() {
-        HybridMarkdownPreparationService service =
-                new HybridMarkdownPreparationService(
-                        new MarkdownTranslationOptions.Builder()
-                                .setEnableRegexFallbackProtection(false)
-                                .build()) {
-                    @Override
-                    TokenizedMarkdownDocument buildTokenModel(String markdown) {
-                        throw new IllegalStateException("forced failure");
-                    }
-                };
-
-        String source = "# title with `code`";
-        MarkdownPreparationResult result = service.prepare(source);
-
-        assertEquals(ProcessingMode.REGEX_FALLBACK, result.getMode());
-        assertEquals(source, result.getMarkdownForTranslation());
-        assertEquals(0, result.getTokenStore().getAll().size());
+        try {
+            service.prepare("# title with `code`");
+        } catch (IllegalStateException expected) {
+            assertEquals("forced failure", expected.getMessage());
+            return;
+        }
+        throw new AssertionError("Expected forced AST failure");
     }
 
     @Test

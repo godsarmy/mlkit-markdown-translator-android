@@ -15,7 +15,6 @@ import io.github.godsarmy.mlmarkdown.MlKitMarkdownTranslator;
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownChunk;
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownResult;
 import io.github.godsarmy.mlmarkdown.api.ExplainMarkdownToken;
-import io.github.godsarmy.mlmarkdown.api.ExplainProtectedSegment;
 import io.github.godsarmy.mlmarkdown.markdown.ProcessingMode;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +29,6 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
     private static final String EXTRA_NORMALIZE_CUSTOM_BLOCK_TAGS =
             "extra_normalize_custom_block_tags";
     private static final String EXTRA_PROTECT_AUTOLINKS = "extra_protect_autolinks";
-    private static final String EXTRA_ENABLE_REGEX_FALLBACK_PROTECTION =
-            "extra_enable_regex_fallback_protection";
     private static final String EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS =
             "extra_preserve_whitespace_around_protected_segments";
     private static final String EXTRA_ESCAPED_MARKDOWN_CHARACTERS_TO_PROTECT =
@@ -62,8 +59,6 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_NORMALIZE_CUSTOM_BLOCK_TAGS, options.normalizeCustomBlockTags());
         intent.putExtra(EXTRA_PROTECT_AUTOLINKS, options.protectAutolinks());
         intent.putExtra(
-                EXTRA_ENABLE_REGEX_FALLBACK_PROTECTION, options.enableRegexFallbackProtection());
-        intent.putExtra(
                 EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS,
                 options.preserveWhitespaceAroundProtectedSegments());
         intent.putExtra(
@@ -88,8 +83,6 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
         boolean normalizeCustomBlockTags =
                 intent.getBooleanExtra(EXTRA_NORMALIZE_CUSTOM_BLOCK_TAGS, true);
         boolean protectAutolinks = intent.getBooleanExtra(EXTRA_PROTECT_AUTOLINKS, true);
-        boolean enableRegexFallbackProtection =
-                intent.getBooleanExtra(EXTRA_ENABLE_REGEX_FALLBACK_PROTECTION, true);
         boolean preserveWhitespaceAroundProtectedSegments =
                 intent.getBooleanExtra(EXTRA_PRESERVE_WHITESPACE_AROUND_PROTECTED_SEGMENTS, true);
         String tokenMarker = intent.getStringExtra(EXTRA_TOKEN_MARKER);
@@ -114,7 +107,6 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
                                 .setPreserveBlockquotes(preserveBlockquotes)
                                 .setNormalizeCustomBlockTags(normalizeCustomBlockTags)
                                 .setProtectAutolinks(protectAutolinks)
-                                .setEnableRegexFallbackProtection(enableRegexFallbackProtection)
                                 .setPreserveWhitespaceAroundProtectedSegments(
                                         preserveWhitespaceAroundProtectedSegments)
                                 .setEscapedMarkdownCharactersToProtect(
@@ -200,11 +192,6 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
                                 getString(R.string.explain_tokens_label),
                                 getString(R.string.explain_tokens_empty),
                                 formatTokens(result.getTokens()),
-                                false),
-                        new ExplainPageItem(
-                                getString(R.string.explain_protected_segments_label),
-                                getString(R.string.explain_protected_empty),
-                                formatProtectedSegments(result.getProtectedSegments()),
                                 false));
         pagerAdapter.submit(pages);
         bindTabs();
@@ -283,18 +270,6 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
                             + token.getValue();
             items.add(text);
             count++;
-        }
-        return items;
-    }
-
-    private List<String> formatProtectedSegments(List<ExplainProtectedSegment> protectedSegments) {
-        if (protectedSegments.isEmpty()) {
-            return List.of();
-        }
-
-        List<String> items = new ArrayList<>();
-        for (ExplainProtectedSegment segment : protectedSegments) {
-            items.add(segment.getToken() + "\n" + segment.getOriginalText());
         }
         return items;
     }
