@@ -255,5 +255,18 @@
 		<item>ja</item>
 		<item>ko</item>
 		<item>ru</item>
+		<item>hi</item>
+		<item>id</item>
+		<item>tr</item>
+		<item>vi</item>
+		<item>th</item>
+		<item>nl</item>
+		<item>pl</item>
+		<item>uk</item>
+		<item>sv</item>
+		<item>bn</item>
+		<item>ta</item>
+		<item>te</item>
+		<item>ms</item>
 	</string-array>
 </resources>
