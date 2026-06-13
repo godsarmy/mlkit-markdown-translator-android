@@ -285,6 +285,7 @@ public final class ModelManagementActivity extends AppCompatActivity {
             return;
         }
         String language = selectedAvailableLanguage;
+        String displayLanguage = formatLanguageLabel(language);
         String normalizedLanguageCode = normalizeLanguageCode(language);
         if (normalizedLanguageCode == null) {
             return;
@@ -306,7 +307,7 @@ public final class ModelManagementActivity extends AppCompatActivity {
                                                             getString(
                                                                     R.string
                                                                             .model_download_success_message,
-                                                                    language),
+                                                                    displayLanguage),
                                                             Toast.LENGTH_SHORT)
                                                     .show();
                                         }))
@@ -320,7 +321,7 @@ public final class ModelManagementActivity extends AppCompatActivity {
                                                             getString(
                                                                     R.string
                                                                             .model_download_failed_message,
-                                                                    language),
+                                                                    displayLanguage),
                                                             Toast.LENGTH_SHORT)
                                                     .show();
                                         }));
