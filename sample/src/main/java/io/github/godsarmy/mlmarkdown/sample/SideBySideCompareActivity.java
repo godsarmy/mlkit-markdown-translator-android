@@ -3,11 +3,16 @@ package io.github.godsarmy.mlmarkdown.sample;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Layout;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.method.ScrollingMovementMethod;
+import android.text.style.LineHeightSpan;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -38,6 +43,7 @@ import org.commonmark.renderer.html.HtmlRenderer;
 public final class SideBySideCompareActivity extends AppCompatActivity {
     private static final long TOGGLE_AUTO_HIDE_DELAY_MS = 2400L;
     private static final long TOGGLE_FADE_DURATION_MS = 180L;
+    private static final float RAW_COMPARE_LINE_HEIGHT_SP = 20f;
     private TextView sourceText;
     private TextView translatedText;
     private WebView sourceRenderedHtml;
@@ -174,10 +180,62 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private static void setupRawCompareText(TextView textView) {
+        textView.setIncludeFontPadding(false);
+        textView.setLineSpacing(0f, 1f);
         textView.setMovementMethod(new ScrollingMovementMethod());
         textView.setHorizontallyScrolling(true);
         textView.setHorizontalScrollBarEnabled(true);
         textView.setVerticalScrollBarEnabled(true);
+    }
+
+    private static void setRawCompareText(TextView textView, String text) {
+        if (text.isEmpty()) {
+            textView.setText(text);
+            return;
+        }
+        SpannableString spannableText = new SpannableString(text);
+        spannableText.setSpan(
+                new ExactLineHeightSpan(rawCompareLineHeightPx(textView)),
+                0,
+                spannableText.length(),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        textView.setText(spannableText);
+    }
+
+    private static int rawCompareLineHeightPx(TextView textView) {
+        return Math.round(
+                TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_SP,
+                        RAW_COMPARE_LINE_HEIGHT_SP,
+                        textView.getResources().getDisplayMetrics()));
+    }
+
+    private static final class ExactLineHeightSpan implements LineHeightSpan {
+        private final int lineHeightPx;
+
+        ExactLineHeightSpan(int lineHeightPx) {
+            this.lineHeightPx = lineHeightPx;
+        }
+
+        @Override
+        public void chooseHeight(
+                CharSequence text,
+                int start,
+                int end,
+                int spanstartv,
+                int lineHeight,
+                Paint.FontMetricsInt fontMetrics) {
+            int originalHeight = fontMetrics.descent - fontMetrics.ascent;
+            if (originalHeight <= 0) {
+                return;
+            }
+            float descentRatio = fontMetrics.descent / (float) originalHeight;
+            int descent = Math.round(lineHeightPx * descentRatio);
+            fontMetrics.descent = descent;
+            fontMetrics.ascent = descent - lineHeightPx;
+            fontMetrics.bottom = fontMetrics.descent;
+            fontMetrics.top = fontMetrics.ascent;
+        }
     }
 
     private static void matchLineNumberStyle(
@@ -196,8 +254,8 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         if (isDestroyed) {
             return;
         }
-        sourceText.setText(sourceMarkdownText);
-        translatedText.setText(translatedMarkdownText);
+        setRawCompareText(sourceText, sourceMarkdownText);
+        setRawCompareText(translatedText, translatedMarkdownText);
         sourceLineNumbers.bindTo(sourceText);
         translatedLineNumbers.bindTo(translatedText);
         sourceText.post(this::invalidateLineNumberGutters);
