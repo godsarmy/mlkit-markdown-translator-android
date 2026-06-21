@@ -30,8 +30,10 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.commonmark.Extension;
@@ -44,6 +46,8 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private static final long TOGGLE_AUTO_HIDE_DELAY_MS = 2400L;
     private static final long TOGGLE_FADE_DURATION_MS = 180L;
     private static final float RAW_COMPARE_LINE_HEIGHT_SP = 20f;
+    private static final Set<String> RTL_LANGUAGE_CODES =
+            new HashSet<>(List.of("ar", "dv", "fa", "he", "iw", "ps", "sd", "ug", "ur", "yi"));
     private TextView sourceText;
     private TextView translatedText;
     private WebView sourceRenderedHtml;
@@ -71,6 +75,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private Runnable retryAction;
     private String sourceMarkdownText = "";
     private String translatedMarkdownText = "";
+    private String targetLanguage = "";
     private final Runnable hideRenderToggleRunnable = this::hideRenderToggle;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService renderExecutor = Executors.newSingleThreadExecutor();
@@ -133,6 +138,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                 SideBySideTransferStore.resolveFromIntent(this, intent);
         sourceMarkdownText = valueOrEmpty(payload.sourceMarkdown);
         translatedMarkdownText = valueOrEmpty(payload.translatedMarkdown);
+        targetLanguage = valueOrEmpty(payload.targetLanguage);
 
         if (compareLoadingRetryButton != null) {
             compareLoadingRetryButton.setOnClickListener(
@@ -348,7 +354,8 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                     try {
                         final String sourceHtml = renderMarkdownToHtmlDocument(sourceMarkdown);
                         final String translatedHtml =
-                                renderMarkdownToHtmlDocument(translatedMarkdown);
+                                renderMarkdownToHtmlDocument(
+                                        translatedMarkdown, isRtlLanguage(targetLanguage));
                         mainHandler.post(
                                 () -> {
                                     if (isDestroyed
@@ -568,31 +575,41 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private String renderMarkdownToHtmlDocument(String markdown) {
+        return renderMarkdownToHtmlDocument(markdown, false);
+    }
+
+    private String renderMarkdownToHtmlDocument(String markdown, boolean rtl) {
         Node node = markdownParser.parse(markdown == null ? "" : markdown);
         String html = htmlRenderer.render(node);
-        return wrapHtmlDocument(html);
+        return wrapHtmlDocument(html, rtl);
     }
 
     private static void loadHtmlDocument(WebView webView, String htmlDocument) {
         webView.loadDataWithBaseURL(null, htmlDocument, "text/html", "utf-8", null);
     }
 
-    private String wrapHtmlDocument(String body) {
+    private String wrapHtmlDocument(String body, boolean rtl) {
         String textColor = toCssColor(getColor(R.color.mlkit_on_background));
         String linkColor = toCssColor(getColor(R.color.mlkit_primary));
         String codeBackground = toCssColor(getColor(R.color.mlkit_code_block_bg));
         String codeText = toCssColor(getColor(R.color.mlkit_on_surface_variant));
         String tableBorder = toCssColor(getColor(R.color.mlkit_outline));
         String tableHeaderBackground = toCssColor(getColor(R.color.mlkit_surface));
+        String direction = rtl ? "rtl" : "ltr";
+        String textAlign = rtl ? "right" : "left";
         return "<html><head><meta charset='utf-8' /><meta name='color-scheme' content='light dark' /><style>"
                 + "body{color:"
                 + textColor
-                + ";font-family:sans-serif;padding:0;margin:0;background:transparent;overflow-x:auto;}"
+                + ";font-family:sans-serif;padding:0;margin:0;background:transparent;overflow-x:auto;direction:"
+                + direction
+                + ";text-align:"
+                + textAlign
+                + ";}"
                 + "p,li,blockquote,td,th,h1,h2,h3,h4,h5,h6,a,span,strong,em{white-space:nowrap;}"
                 + "a{color:"
                 + linkColor
                 + ";}"
-                + "pre,code{white-space:pre;background:"
+                + "pre,code{white-space:pre;direction:ltr;text-align:left;background:"
                 + codeBackground
                 + ";color:"
                 + codeText
@@ -602,13 +619,39 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                 + "table{border-collapse:collapse;width:100%;margin:8px 0;display:block;overflow-x:auto;}"
                 + "th,td{border:1px solid "
                 + tableBorder
-                + ";padding:6px 8px;text-align:left;}"
+                + ";padding:6px 8px;text-align:"
+                + textAlign
+                + ";}"
                 + "th{background:"
                 + tableHeaderBackground
                 + ";}"
-                + "</style></head><body>"
+                + "</style></head><body dir='"
+                + direction
+                + "'>"
                 + body
                 + "</body></html>";
+    }
+
+    private static boolean isRtlLanguage(String languageCode) {
+        String normalizedLanguage = normalizePrimaryLanguage(languageCode);
+        return normalizedLanguage != null && RTL_LANGUAGE_CODES.contains(normalizedLanguage);
+    }
+
+    @Nullable
+    private static String normalizePrimaryLanguage(String languageCode) {
+        String normalized = languageCode.trim();
+        if (normalized.isEmpty()) {
+            return null;
+        }
+
+        int separatorIndex = normalized.indexOf('-');
+        if (separatorIndex < 0) {
+            separatorIndex = normalized.indexOf('_');
+        }
+        if (separatorIndex > 0) {
+            normalized = normalized.substring(0, separatorIndex);
+        }
+        return normalized.toLowerCase(Locale.ROOT);
     }
 
     private static String toCssColor(int colorInt) {

@@ -20,12 +20,14 @@ public final class SideBySideTransferStore {
 
     private static final String EXTRA_SOURCE_MARKDOWN = "extra_source_markdown";
     private static final String EXTRA_TRANSLATED_MARKDOWN = "extra_translated_markdown";
+    private static final String EXTRA_TARGET_LANGUAGE = "extra_target_language";
     private static final String EXTRA_TRANSFER_MODE = "extra_transfer_mode";
     private static final String EXTRA_PAYLOAD_FILE_PATH = "extra_payload_file_path";
     private static final String TRANSFER_MODE_INLINE = "inline";
     private static final String TRANSFER_MODE_FILE = "file";
     private static final String JSON_SOURCE_KEY = "source";
     private static final String JSON_TRANSLATED_KEY = "translated";
+    private static final String JSON_TARGET_LANGUAGE_KEY = "targetLanguage";
     private static final String PAYLOAD_FILE_PREFIX = "side_by_side_";
     private static final String PAYLOAD_FILE_SUFFIX = ".json";
 
@@ -33,12 +35,21 @@ public final class SideBySideTransferStore {
 
     public static Intent createIntent(
             Context context, String sourceMarkdown, String translatedMarkdown) {
+        return createIntent(context, sourceMarkdown, translatedMarkdown, "");
+    }
+
+    public static Intent createIntent(
+            Context context,
+            String sourceMarkdown,
+            String translatedMarkdown,
+            String targetLanguage) {
         Intent intent = new Intent(context, SideBySideCompareActivity.class);
         String source = valueOrEmpty(sourceMarkdown);
         String translated = valueOrEmpty(translatedMarkdown);
+        String target = valueOrEmpty(targetLanguage);
 
-        if (utf8Size(source, translated) <= INLINE_THRESHOLD_BYTES) {
-            putInline(intent, source, translated);
+        if (utf8Size(source, translated, target) <= INLINE_THRESHOLD_BYTES) {
+            putInline(intent, source, translated, target);
             return intent;
         }
 
@@ -46,13 +57,13 @@ public final class SideBySideTransferStore {
             File payloadFile =
                     File.createTempFile(
                             PAYLOAD_FILE_PREFIX, PAYLOAD_FILE_SUFFIX, context.getCacheDir());
-            writePayload(payloadFile, source, translated);
+            writePayload(payloadFile, source, translated, target);
             intent.putExtra(EXTRA_TRANSFER_MODE, TRANSFER_MODE_FILE);
             intent.putExtra(EXTRA_PAYLOAD_FILE_PATH, payloadFile.getAbsolutePath());
             return intent;
         } catch (IOException | JSONException ignored) {
             // Fallback to inline payload if file handoff cannot be created.
-            putInline(intent, source, translated);
+            putInline(intent, source, translated, target);
             return intent;
         }
     }
@@ -81,7 +92,8 @@ public final class SideBySideTransferStore {
 
         return new TransferPayload(
                 valueOrEmpty(intent.getStringExtra(EXTRA_SOURCE_MARKDOWN)),
-                valueOrEmpty(intent.getStringExtra(EXTRA_TRANSLATED_MARKDOWN)));
+                valueOrEmpty(intent.getStringExtra(EXTRA_TRANSLATED_MARKDOWN)),
+                valueOrEmpty(intent.getStringExtra(EXTRA_TARGET_LANGUAGE)));
     }
 
     public static void cleanupIfBackedByFile(Context context, Intent intent) {
@@ -101,18 +113,21 @@ public final class SideBySideTransferStore {
         }
     }
 
-    private static void putInline(Intent intent, String source, String translated) {
+    private static void putInline(Intent intent, String source, String translated, String target) {
         intent.putExtra(EXTRA_TRANSFER_MODE, TRANSFER_MODE_INLINE);
         intent.putExtra(EXTRA_SOURCE_MARKDOWN, source);
         intent.putExtra(EXTRA_TRANSLATED_MARKDOWN, translated);
+        intent.putExtra(EXTRA_TARGET_LANGUAGE, target);
         intent.removeExtra(EXTRA_PAYLOAD_FILE_PATH);
     }
 
-    private static void writePayload(File payloadFile, String source, String translated)
+    private static void writePayload(
+            File payloadFile, String source, String translated, String target)
             throws IOException, JSONException {
         JSONObject payload = new JSONObject();
         payload.put(JSON_SOURCE_KEY, source);
         payload.put(JSON_TRANSLATED_KEY, translated);
+        payload.put(JSON_TARGET_LANGUAGE_KEY, target);
         try (BufferedWriter writer =
                 new BufferedWriter(
                         new OutputStreamWriter(
@@ -135,17 +150,20 @@ public final class SideBySideTransferStore {
         }
         JSONObject payload = new JSONObject(content.toString());
         return new TransferPayload(
-                payload.optString(JSON_SOURCE_KEY, ""), payload.optString(JSON_TRANSLATED_KEY, ""));
+                payload.optString(JSON_SOURCE_KEY, ""),
+                payload.optString(JSON_TRANSLATED_KEY, ""),
+                payload.optString(JSON_TARGET_LANGUAGE_KEY, ""));
     }
 
     private static String valueOrEmpty(String value) {
         return value == null ? "" : value;
     }
 
-    private static int utf8Size(String source, String translated) {
+    private static int utf8Size(String source, String translated, String target) {
         byte[] sourceBytes = source.getBytes(StandardCharsets.UTF_8);
         byte[] translatedBytes = translated.getBytes(StandardCharsets.UTF_8);
-        return sourceBytes.length + translatedBytes.length;
+        byte[] targetBytes = target.getBytes(StandardCharsets.UTF_8);
+        return sourceBytes.length + translatedBytes.length + targetBytes.length;
     }
 
     private static boolean isInCacheDir(Context context, File file) {
@@ -162,14 +180,19 @@ public final class SideBySideTransferStore {
     public static final class TransferPayload {
         @NonNull public final String sourceMarkdown;
         @NonNull public final String translatedMarkdown;
+        @NonNull public final String targetLanguage;
 
-        public TransferPayload(@NonNull String sourceMarkdown, @NonNull String translatedMarkdown) {
+        public TransferPayload(
+                @NonNull String sourceMarkdown,
+                @NonNull String translatedMarkdown,
+                @NonNull String targetLanguage) {
             this.sourceMarkdown = sourceMarkdown;
             this.translatedMarkdown = translatedMarkdown;
+            this.targetLanguage = targetLanguage;
         }
 
         public static TransferPayload empty() {
-            return new TransferPayload("", "");
+            return new TransferPayload("", "", "");
         }
     }
 }

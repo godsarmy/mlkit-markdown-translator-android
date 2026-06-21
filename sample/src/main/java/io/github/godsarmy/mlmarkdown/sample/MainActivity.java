@@ -80,6 +80,8 @@ public final class MainActivity extends AppCompatActivity {
     private static final String STATE_TARGET_LANGUAGE = "state_target_language";
     private static final String STATE_SELECTED_FILE_URI = "state_selected_file_uri";
     private static final String STATE_SELECTED_FILE_NAME = "state_selected_file_name";
+    private static final Set<String> RTL_LANGUAGE_CODES =
+            Set.of("ar", "dv", "fa", "he", "iw", "ps", "sd", "ug", "ur", "yi");
 
     private enum SourceEntryType {
         SAMPLE,
@@ -249,26 +251,36 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void renderMarkdownToWebView(WebView webView, String markdown) {
-        Node node = markdownParser.parse(markdown == null ? "" : markdown);
-        String html = htmlRenderer.render(node);
-        webView.loadDataWithBaseURL(null, wrapHtmlDocument(html), "text/html", "utf-8", null);
+        renderMarkdownToWebView(webView, markdown, false);
     }
 
-    private String wrapHtmlDocument(String body) {
+    private void renderMarkdownToWebView(WebView webView, String markdown, boolean rtl) {
+        Node node = markdownParser.parse(markdown == null ? "" : markdown);
+        String html = htmlRenderer.render(node);
+        webView.loadDataWithBaseURL(null, wrapHtmlDocument(html, rtl), "text/html", "utf-8", null);
+    }
+
+    private String wrapHtmlDocument(String body, boolean rtl) {
         String textColor = toCssColor(getColor(R.color.mlkit_on_background));
         String linkColor = toCssColor(getColor(R.color.mlkit_primary));
         String codeBackground = toCssColor(getColor(R.color.mlkit_code_block_bg));
         String codeText = toCssColor(getColor(R.color.mlkit_on_surface_variant));
         String tableBorder = toCssColor(getColor(R.color.mlkit_outline));
         String tableHeaderBackground = toCssColor(getColor(R.color.mlkit_surface));
+        String direction = rtl ? "rtl" : "ltr";
+        String textAlign = rtl ? "right" : "left";
         return "<html><head><meta charset='utf-8' /><meta name='color-scheme' content='light dark' /><style>"
                 + "body{color:"
                 + textColor
-                + ";font-family:sans-serif;padding:0;margin:0;background:transparent;}"
+                + ";font-family:sans-serif;padding:0;margin:0;background:transparent;direction:"
+                + direction
+                + ";text-align:"
+                + textAlign
+                + ";}"
                 + "a{color:"
                 + linkColor
                 + ";}"
-                + "pre,code{white-space:pre-wrap;background:"
+                + "pre,code{white-space:pre-wrap;direction:ltr;text-align:left;background:"
                 + codeBackground
                 + ";color:"
                 + codeText
@@ -278,11 +290,15 @@ public final class MainActivity extends AppCompatActivity {
                 + "table{border-collapse:collapse;width:100%;margin:8px 0;display:block;overflow-x:auto;}"
                 + "th,td{border:1px solid "
                 + tableBorder
-                + ";padding:6px 8px;text-align:left;}"
+                + ";padding:6px 8px;text-align:"
+                + textAlign
+                + ";}"
                 + "th{background:"
                 + tableHeaderBackground
                 + ";}"
-                + "</style></head><body>"
+                + "</style></head><body dir='"
+                + direction
+                + "'>"
                 + body
                 + "</body></html>";
     }
@@ -526,7 +542,7 @@ public final class MainActivity extends AppCompatActivity {
         translatedMarkdownRaw.setText("");
         if (isRenderMode) {
             renderMarkdownToWebView(inputRenderedHtml, markdown);
-            renderMarkdownToWebView(outputRenderedHtml, "");
+            renderMarkdownToWebView(outputRenderedHtml, "", isRtlLanguage(targetLanguage()));
         }
     }
 
@@ -561,7 +577,8 @@ public final class MainActivity extends AppCompatActivity {
             outputRenderedHtml.setVisibility(View.VISIBLE);
 
             renderMarkdownToWebView(inputRenderedHtml, original);
-            renderMarkdownToWebView(outputRenderedHtml, translated);
+            renderMarkdownToWebView(
+                    outputRenderedHtml, translated, isRtlLanguage(targetLanguage()));
             return;
         }
 
@@ -765,7 +782,8 @@ public final class MainActivity extends AppCompatActivity {
                 SideBySideTransferStore.createIntent(
                         this,
                         originalMarkdownInput.getText().toString(),
-                        translatedMarkdownRaw.getText().toString()));
+                        translatedMarkdownRaw.getText().toString(),
+                        targetLanguage()));
     }
 
     private void shareTranslatedMarkdown() {
@@ -1117,7 +1135,7 @@ public final class MainActivity extends AppCompatActivity {
         translatedMarkdownRaw.setText("");
         if (isRenderMode) {
             renderMarkdownToWebView(inputRenderedHtml, markdown);
-            renderMarkdownToWebView(outputRenderedHtml, "");
+            renderMarkdownToWebView(outputRenderedHtml, "", isRtlLanguage(targetLanguage()));
         }
         clearTranslationError();
         clearTranslationResult();
@@ -1273,6 +1291,11 @@ public final class MainActivity extends AppCompatActivity {
                 && downloadedTargetModels.contains(normalizedTargetLanguage);
     }
 
+    private static boolean isRtlLanguage(String languageCode) {
+        String normalizedLanguage = normalizeLanguageCode(languageCode);
+        return normalizedLanguage != null && RTL_LANGUAGE_CODES.contains(normalizedLanguage);
+    }
+
     @Nullable
     private static String normalizeLanguageCode(String languageCode) {
         if (languageCode == null || languageCode.trim().isEmpty()) {
@@ -1318,7 +1341,10 @@ public final class MainActivity extends AppCompatActivity {
                                 () -> {
                                     translatedMarkdownRaw.setText(translatedText);
                                     if (isRenderMode) {
-                                        renderMarkdownToWebView(outputRenderedHtml, translatedText);
+                                        renderMarkdownToWebView(
+                                                outputRenderedHtml,
+                                                translatedText,
+                                                isRtlLanguage(targetLanguage()));
                                     }
 
                                     TranslationMetricsReport report = latestMetricsReport;
