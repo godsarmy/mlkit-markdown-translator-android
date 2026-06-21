@@ -9,6 +9,13 @@ public final class MarkdownTranslationOptions {
     public static final int DEFAULT_MAX_CHARS_PER_CHUNK = 400;
     public static final String DEFAULT_ESCAPED_MARKDOWN_CHARACTERS = "\\`*[]()#+-.!|>";
 
+    public enum OutputDirectionMode {
+        PRESERVE,
+        AUTO_FROM_TARGET_LANGUAGE,
+        FORCE_LTR,
+        FORCE_RTL
+    }
+
     private final boolean preserveNewlines;
     private final boolean preserveListPrefixes;
     private final boolean preserveBlockquotes;
@@ -18,6 +25,7 @@ public final class MarkdownTranslationOptions {
     private final String escapedMarkdownCharactersToProtect;
     private final String tokenMarker;
     private final int maxCharsPerChunk;
+    private final OutputDirectionMode outputDirectionMode;
     @Nullable private final TranslationMetricsListener translationMetricsListener;
 
     private MarkdownTranslationOptions(Builder builder) {
@@ -31,6 +39,7 @@ public final class MarkdownTranslationOptions {
         this.escapedMarkdownCharactersToProtect = builder.escapedMarkdownCharactersToProtect;
         this.tokenMarker = builder.tokenMarker;
         this.maxCharsPerChunk = builder.maxCharsPerChunk;
+        this.outputDirectionMode = builder.outputDirectionMode;
         this.translationMetricsListener = builder.translationMetricsListener;
     }
 
@@ -74,6 +83,10 @@ public final class MarkdownTranslationOptions {
         return maxCharsPerChunk;
     }
 
+    public OutputDirectionMode outputDirectionMode() {
+        return outputDirectionMode;
+    }
+
     @Nullable
     public TranslationMetricsListener translationMetricsListener() {
         return translationMetricsListener;
@@ -89,6 +102,7 @@ public final class MarkdownTranslationOptions {
         private String escapedMarkdownCharactersToProtect = DEFAULT_ESCAPED_MARKDOWN_CHARACTERS;
         private String tokenMarker = DEFAULT_TOKEN_MARKER;
         private int maxCharsPerChunk = DEFAULT_MAX_CHARS_PER_CHUNK;
+        private OutputDirectionMode outputDirectionMode = OutputDirectionMode.PRESERVE;
         @Nullable private TranslationMetricsListener translationMetricsListener;
 
         public Builder setPreserveNewlines(boolean preserveNewlines) {
@@ -146,6 +160,12 @@ public final class MarkdownTranslationOptions {
                 throw new IllegalArgumentException("maxCharsPerChunk must be positive");
             }
             this.maxCharsPerChunk = maxCharsPerChunk;
+            return this;
+        }
+
+        public Builder setOutputDirectionMode(OutputDirectionMode outputDirectionMode) {
+            this.outputDirectionMode =
+                    Objects.requireNonNull(outputDirectionMode, "outputDirectionMode == null");
             return this;
         }
 

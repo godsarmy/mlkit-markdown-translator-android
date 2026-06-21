@@ -125,6 +125,79 @@ public class DefaultMarkdownTranslatorTest {
     }
 
     @Test
+    public void translateMarkdown_autoDirection_wrapsArabicTextTokensWithRtlIsolates() {
+        DefaultMarkdownTranslator translator =
+                new DefaultMarkdownTranslator(
+                        new RecordingTranslationEngine(),
+                        new MarkdownTranslationOptions.Builder()
+                                .setOutputDirectionMode(
+                                        MarkdownTranslationOptions.OutputDirectionMode
+                                                .AUTO_FROM_TARGET_LANGUAGE)
+                                .build());
+
+        TestTranslationCallback callback = new TestTranslationCallback();
+        translator.translateMarkdown("# Title\n\n- item with `code`\n", "en", "ar-SA", callback);
+
+        assertEquals(
+                "# \u2067TR(Title)\u2069\n\n- \u2067TR(item with )\u2069 `code`\n",
+                callback.translatedText);
+        assertEquals(null, callback.error);
+    }
+
+    @Test
+    public void translateMarkdown_autoDirection_wrapsUrduTextTokensWithRtlIsolates() {
+        DefaultMarkdownTranslator translator =
+                new DefaultMarkdownTranslator(
+                        new RecordingTranslationEngine(),
+                        new MarkdownTranslationOptions.Builder()
+                                .setOutputDirectionMode(
+                                        MarkdownTranslationOptions.OutputDirectionMode
+                                                .AUTO_FROM_TARGET_LANGUAGE)
+                                .build());
+
+        TestTranslationCallback callback = new TestTranslationCallback();
+        translator.translateMarkdown("Paragraph", "en", "ur_PK", callback);
+
+        assertEquals("\u2067TR(Paragraph)\u2069", callback.translatedText);
+        assertEquals(null, callback.error);
+    }
+
+    @Test
+    public void translateMarkdown_autoDirection_wrapsEnglishTextTokensWithLtrIsolates() {
+        DefaultMarkdownTranslator translator =
+                new DefaultMarkdownTranslator(
+                        new RecordingTranslationEngine(),
+                        new MarkdownTranslationOptions.Builder()
+                                .setOutputDirectionMode(
+                                        MarkdownTranslationOptions.OutputDirectionMode
+                                                .AUTO_FROM_TARGET_LANGUAGE)
+                                .build());
+
+        TestTranslationCallback callback = new TestTranslationCallback();
+        translator.translateMarkdown("Hola", "es", "en", callback);
+
+        assertEquals("\u2066TR(Hola)\u2069", callback.translatedText);
+        assertEquals(null, callback.error);
+    }
+
+    @Test
+    public void translateMarkdown_forceRtl_wrapsLtrTargetWithRtlIsolates() {
+        DefaultMarkdownTranslator translator =
+                new DefaultMarkdownTranslator(
+                        new RecordingTranslationEngine(),
+                        new MarkdownTranslationOptions.Builder()
+                                .setOutputDirectionMode(
+                                        MarkdownTranslationOptions.OutputDirectionMode.FORCE_RTL)
+                                .build());
+
+        TestTranslationCallback callback = new TestTranslationCallback();
+        translator.translateMarkdown("Hello", "es", "en-US", callback);
+
+        assertEquals("\u2067TR(Hello)\u2069", callback.translatedText);
+        assertEquals(null, callback.error);
+    }
+
+    @Test
     public void translateMarkdown_reportsStageTimingsOnSuccess() {
         RecordingTimingListener timingListener = new RecordingTimingListener();
         FakeNanoTimeProvider nanoTimeProvider =

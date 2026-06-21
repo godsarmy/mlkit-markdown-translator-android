@@ -31,6 +31,9 @@ public class MarkdownTranslationOptionsTest {
         assertTrue(options.escapedMarkdownCharactersToProtect().contains("-"));
         assertTrue(options.escapedMarkdownCharactersToProtect().contains("+"));
         assertEquals(MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER, options.tokenMarker());
+        assertEquals(
+                MarkdownTranslationOptions.OutputDirectionMode.PRESERVE,
+                options.outputDirectionMode());
         assertNull(options.translationMetricsListener());
     }
 
@@ -46,6 +49,8 @@ public class MarkdownTranslationOptionsTest {
                         .setPreserveWhitespaceAroundProtectedSegments(false)
                         .setEscapedMarkdownCharactersToProtect("*#")
                         .setTokenMarker("##")
+                        .setOutputDirectionMode(
+                                MarkdownTranslationOptions.OutputDirectionMode.FORCE_RTL)
                         .build();
 
         assertFalse(options.preserveNewlines());
@@ -56,6 +61,9 @@ public class MarkdownTranslationOptionsTest {
         assertFalse(options.preserveWhitespaceAroundProtectedSegments());
         assertEquals("*#", options.escapedMarkdownCharactersToProtect());
         assertEquals("##", options.tokenMarker());
+        assertEquals(
+                MarkdownTranslationOptions.OutputDirectionMode.FORCE_RTL,
+                options.outputDirectionMode());
         assertNull(options.translationMetricsListener());
     }
 

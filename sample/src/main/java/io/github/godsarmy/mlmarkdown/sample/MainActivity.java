@@ -954,6 +954,8 @@ public final class MainActivity extends AppCompatActivity {
                         preserveWhitespaceAroundProtectedSegments)
                 .setEscapedMarkdownCharactersToProtect(escapedMarkdownCharactersToProtect)
                 .setMaxCharsPerChunk(maxCharsPerChunk)
+                .setOutputDirectionMode(
+                        MarkdownTranslationOptions.OutputDirectionMode.AUTO_FROM_TARGET_LANGUAGE)
                 .setTokenMarker(tokenMarker);
     }
 

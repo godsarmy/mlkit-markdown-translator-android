@@ -18,13 +18,16 @@ public class MarkdownStructureTranslator {
     private final int maxChunkLength;
     private final boolean preserveWhitespaceAroundProtectedSegments;
     private final String tokenMarker;
+    private final MarkdownTranslationOptions.OutputDirectionMode outputDirectionMode;
+    private final MarkdownDirectionApplier directionApplier = new MarkdownDirectionApplier();
 
     public MarkdownStructureTranslator(TranslationEngine translationEngine) {
         this(
                 translationEngine,
                 DEFAULT_MAX_CHUNK_LENGTH,
                 true,
-                MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER);
+                MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER,
+                MarkdownTranslationOptions.OutputDirectionMode.PRESERVE);
     }
 
     public MarkdownStructureTranslator(
@@ -33,7 +36,8 @@ public class MarkdownStructureTranslator {
                 translationEngine,
                 options.maxCharsPerChunk(),
                 options.preserveWhitespaceAroundProtectedSegments(),
-                options.tokenMarker());
+                options.tokenMarker(),
+                options.outputDirectionMode());
     }
 
     MarkdownStructureTranslator(
@@ -53,7 +57,8 @@ public class MarkdownStructureTranslator {
                 translationEngine,
                 DEFAULT_MAX_CHUNK_LENGTH,
                 preserveWhitespaceAroundProtectedSegments,
-                tokenMarker);
+                tokenMarker,
+                MarkdownTranslationOptions.OutputDirectionMode.PRESERVE);
     }
 
     MarkdownStructureTranslator(TranslationEngine translationEngine, int maxChunkLength) {
@@ -61,7 +66,8 @@ public class MarkdownStructureTranslator {
                 translationEngine,
                 maxChunkLength,
                 true,
-                MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER);
+                MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER,
+                MarkdownTranslationOptions.OutputDirectionMode.PRESERVE);
     }
 
     MarkdownStructureTranslator(
@@ -72,7 +78,8 @@ public class MarkdownStructureTranslator {
                 translationEngine,
                 maxChunkLength,
                 preserveWhitespaceAroundProtectedSegments,
-                MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER);
+                MarkdownTranslationOptions.DEFAULT_TOKEN_MARKER,
+                MarkdownTranslationOptions.OutputDirectionMode.PRESERVE);
     }
 
     MarkdownStructureTranslator(
@@ -80,10 +87,25 @@ public class MarkdownStructureTranslator {
             int maxChunkLength,
             boolean preserveWhitespaceAroundProtectedSegments,
             String tokenMarker) {
+        this(
+                translationEngine,
+                maxChunkLength,
+                preserveWhitespaceAroundProtectedSegments,
+                tokenMarker,
+                MarkdownTranslationOptions.OutputDirectionMode.PRESERVE);
+    }
+
+    MarkdownStructureTranslator(
+            TranslationEngine translationEngine,
+            int maxChunkLength,
+            boolean preserveWhitespaceAroundProtectedSegments,
+            String tokenMarker,
+            MarkdownTranslationOptions.OutputDirectionMode outputDirectionMode) {
         this.translationEngine = translationEngine;
         this.maxChunkLength = maxChunkLength;
         this.preserveWhitespaceAroundProtectedSegments = preserveWhitespaceAroundProtectedSegments;
         this.tokenMarker = tokenMarker;
+        this.outputDirectionMode = outputDirectionMode;
     }
 
     public void translate(
@@ -232,6 +254,7 @@ public class MarkdownStructureTranslator {
         private boolean driveRequested;
         private boolean inFlight;
         private boolean completed;
+        private final MarkdownDirectionApplier.Direction outputDirection;
 
         private TranslationFlow(
                 TokenizedMarkdownDocument tokenizedDocument,
@@ -250,6 +273,8 @@ public class MarkdownStructureTranslator {
             this.timeoutMs = timeoutMs;
             this.callback = callback;
             this.chunkParseRecoveryCount = chunkParseRecoveryCount;
+            this.outputDirection =
+                    directionApplier.resolveDirection(targetLanguage, outputDirectionMode);
         }
 
         private void start() {
@@ -315,7 +340,9 @@ public class MarkdownStructureTranslator {
                         public void onSuccess(String translatedText) {
                             inFlight = false;
                             try {
-                                translations.putAll(parseChunkTranslations(chunk, translatedText));
+                                translations.putAll(
+                                        parseChunkTranslations(
+                                                chunk, translatedText, outputDirection));
                                 chunkIndex++;
                             } catch (IllegalStateException parseError) {
                                 translatingTokens = true;
@@ -349,7 +376,9 @@ public class MarkdownStructureTranslator {
                             inFlight = false;
                             translations.put(
                                     tokenId,
-                                    maybePreserveEdgeWhitespace(tokenValue, translatedText));
+                                    applyOutputDirection(
+                                            maybePreserveEdgeWhitespace(tokenValue, translatedText),
+                                            outputDirection));
                             tokenIndex++;
                             drive();
                         }
@@ -375,7 +404,9 @@ public class MarkdownStructureTranslator {
     }
 
     private Map<String, String> parseChunkTranslations(
-            TranslationChunk chunk, String translatedText) {
+            TranslationChunk chunk,
+            String translatedText,
+            MarkdownDirectionApplier.Direction outputDirection) {
         Map<String, String> translations = new LinkedHashMap<>();
         int searchFrom = 0;
 
@@ -402,7 +433,10 @@ public class MarkdownStructureTranslator {
 
             String translatedValue = translatedText.substring(valueStart, valueEnd);
             translations.put(
-                    tokenId, maybePreserveEdgeWhitespace(sourceTokenValue, translatedValue));
+                    tokenId,
+                    applyOutputDirection(
+                            maybePreserveEdgeWhitespace(sourceTokenValue, translatedValue),
+                            outputDirection));
             searchFrom = valueEnd;
         }
 
@@ -418,6 +452,11 @@ public class MarkdownStructureTranslator {
             return translatedValue;
         }
         return preserveEdgeWhitespace(sourceValue, translatedValue);
+    }
+
+    private String applyOutputDirection(
+            String translatedValue, MarkdownDirectionApplier.Direction outputDirection) {
+        return directionApplier.applyToText(translatedValue, outputDirection);
     }
 
     private static String preserveEdgeWhitespace(String sourceValue, String translatedValue) {

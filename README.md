@@ -16,6 +16,7 @@ This library prepares Markdown for translation, sends only the translatable text
 - **Built on Google ML Kit Translate** — uses on-device translation models managed by your app.
 - **Small Java API** — simple callback-based integration for Android projects.
 - **AST/token-based pipeline** — avoids relying on regex-only Markdown handling.
+- **RTL language support** — opt-in direction handling for targets such as Arabic and Urdu.
 - **Diagnostics included** — inspect chunking and tokenization with `explainMarkdown(...)`.
 - **Sample app included** — see a practical integration with model management and rendered preview.
 
@@ -120,6 +121,24 @@ translator.translateMarkdown(markdown, "en", "es", new TranslationCallback() {
 ```
 
 Create one translator per screen/controller scope and call `close()` when that scope is destroyed.
+
+### RTL output
+
+Direction handling is opt-in. For Arabic, Urdu, and other RTL targets, enable automatic direction
+controls:
+
+```java
+MarkdownTranslationOptions options = new MarkdownTranslationOptions.Builder()
+        .setOutputDirectionMode(
+                MarkdownTranslationOptions.OutputDirectionMode.AUTO_FROM_TARGET_LANGUAGE)
+        .build();
+
+MlKitMarkdownTranslator translator = new MlKitMarkdownTranslator(options);
+```
+
+The Markdown API preserves Markdown structure by adding Unicode directional isolates around
+translated text tokens instead of wrapping the whole document in HTML. Use `FORCE_RTL` or `FORCE_LTR`
+when your app needs an explicit override.
 
 ## Handling ML Kit models
 

@@ -18,6 +18,7 @@ This document defines the markdown translation architecture using `flexmark-java
    - `structural` (layout/syntax delimiters)
 4. Send only `translatable` tokens to translation engine.
 5. Rebuild final markdown from original token order with translated text substituted.
+6. Optionally apply output direction controls to translated text tokens.
 
 ## Node classification
 
@@ -97,3 +98,15 @@ Operational behavior:
     the pipeline falls back to per-token translation for that chunk.
 
 For option-level behavior (`normalizeCustomBlockTags`, `protectAutolinks`), see [`docs/api.md`](api.md).
+
+## Output direction
+
+RTL support is opt-in through `MarkdownTranslationOptions.OutputDirectionMode`. The default
+`PRESERVE` mode leaves output unchanged. `AUTO_FROM_TARGET_LANGUAGE` marks translated text tokens
+with Unicode directional isolates for RTL targets such as Arabic and Urdu, while `FORCE_RTL` and
+`FORCE_LTR` override detection.
+
+The Markdown pipeline intentionally applies direction controls to text tokens instead of wrapping the
+whole document in `<div dir="...">`. A raw HTML wrapper can stop CommonMark-compatible renderers from
+parsing Markdown blocks inside the wrapper, while token-level isolates preserve headings, lists,
+links, code spans, and other Markdown structure.

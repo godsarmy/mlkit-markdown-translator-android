@@ -108,7 +108,15 @@ public final class MarkdownTranslationOptions {
   public String escapedMarkdownCharactersToProtect();
   public String tokenMarker();
   public int maxCharsPerChunk();
+  public OutputDirectionMode outputDirectionMode();
   public @Nullable TranslationMetricsListener translationMetricsListener();
+
+  public enum OutputDirectionMode {
+    PRESERVE,
+    AUTO_FROM_TARGET_LANGUAGE,
+    FORCE_LTR,
+    FORCE_RTL
+  }
 
   public static final class Builder {
     public Builder setPreserveNewlines(boolean value);
@@ -120,6 +128,7 @@ public final class MarkdownTranslationOptions {
     public Builder setEscapedMarkdownCharactersToProtect(String characters);
     public Builder setTokenMarker(String marker);
     public Builder setMaxCharsPerChunk(int value);
+    public Builder setOutputDirectionMode(OutputDirectionMode mode);
     public Builder setTranslationMetricsListener(@Nullable TranslationMetricsListener listener);
     public MarkdownTranslationOptions build();
   }
@@ -146,6 +155,13 @@ public final class MarkdownTranslationOptions {
   - maximum number of plaintext characters included in each chunk sent to the translation engine.
   - default: `400`; the number matches the chunking behavior prior to exposing this option.
   - builder rejects values that are not greater than zero.
+- `outputDirectionMode`
+  - default: `PRESERVE`; no direction controls are added.
+  - `AUTO_FROM_TARGET_LANGUAGE` adds Unicode directional isolates around translated text tokens based
+    on the target language, including RTL for Arabic (`ar`) and Urdu (`ur`).
+  - `FORCE_LTR` and `FORCE_RTL` add LTR or RTL isolates regardless of target language.
+  - Markdown output does not use an HTML wrapper for direction because wrapping a full document in
+    raw HTML can prevent CommonMark renderers from parsing headings, lists, and links inside it.
 
 ## Callback contracts
 
