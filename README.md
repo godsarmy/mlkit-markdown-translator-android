@@ -231,7 +231,7 @@ Known practical limits:
 
 - very complex nested Markdown may need app-specific verification
 - raw HTML blocks are preserved only for supported patterns
-- GFM pipe tables are translated through the AST path; fallback mode may preserve full table blocks without translating every cell
+- GFM pipe tables are translated through the AST path while preserving table structure
 - unusual reference-style links may need fixture coverage
 
 Golden-test fixtures live under `library/src/test/resources/fixtures`.
