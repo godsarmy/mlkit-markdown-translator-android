@@ -200,14 +200,14 @@ When integrating through JitPack, you can pin a newer ML Kit version in your app
 ```gradle
 dependencies {
     implementation "com.github.godsarmy:mlkit-markdown-translator-android:1.2.4"
-    implementation "com.google.mlkit:translate:17.0.4"
+    implementation "com.google.mlkit:translate:17.0.3"
 }
 ```
 
 For local-module development, override versions in root `gradle.properties`:
 
 ```properties
-mlkitTranslateVersion=17.0.4
+mlkitTranslateVersion=17.0.3
 flexmarkVersion=0.64.8
 ```
 
