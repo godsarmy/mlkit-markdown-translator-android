@@ -152,7 +152,9 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SampleEdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        SampleEdgeToEdge.applyInsets(findViewById(R.id.mainContent));
 
         if (savedInstanceState != null) {
             pendingPreferredSourceLanguage = savedInstanceState.getString(STATE_SOURCE_LANGUAGE);

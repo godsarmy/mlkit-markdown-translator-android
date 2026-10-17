@@ -8,6 +8,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatTextView;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import java.util.ArrayList;
@@ -46,6 +48,23 @@ final class ExplainPagerAdapter extends RecyclerView.Adapter<ExplainPagerAdapter
         View view =
                 LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.item_explain_page, parent, false);
+        int bottomPadding = view.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(
+                view,
+                (page, insets) -> {
+                    int bottomInset =
+                            insets.getInsets(
+                                            WindowInsetsCompat.Type.navigationBars()
+                                                    | WindowInsetsCompat.Type.displayCutout()
+                                                    | WindowInsetsCompat.Type.ime())
+                                    .bottom;
+                    page.setPadding(
+                            page.getPaddingLeft(),
+                            page.getPaddingTop(),
+                            page.getPaddingRight(),
+                            bottomPadding + bottomInset);
+                    return insets;
+                });
         return new PageViewHolder(view);
     }
 
@@ -97,6 +116,12 @@ final class ExplainPagerAdapter extends RecyclerView.Adapter<ExplainPagerAdapter
             textView.setText(entries.get(i));
             holder.itemsContainer.addView(textView);
         }
+    }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull PageViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        ViewCompat.requestApplyInsets(holder.itemView);
     }
 
     @Override

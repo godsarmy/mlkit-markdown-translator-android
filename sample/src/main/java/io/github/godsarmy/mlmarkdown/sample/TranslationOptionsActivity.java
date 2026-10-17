@@ -120,7 +120,9 @@ public final class TranslationOptionsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SampleEdgeToEdge.enable(this);
         setContentView(R.layout.activity_translation_options);
+        SampleEdgeToEdge.applyContentInsets(this);
         setupToolbar();
         bindViews();
         populateInitialValues();

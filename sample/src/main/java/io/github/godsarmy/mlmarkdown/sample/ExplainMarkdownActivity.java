@@ -72,9 +72,11 @@ public final class ExplainMarkdownActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SampleEdgeToEdge.enable(this);
         setContentView(R.layout.activity_explain_markdown);
 
         bindViews();
+        SampleEdgeToEdge.applyScrollingContentInsets(this);
         Intent intent = getIntent();
         String markdown = intent.getStringExtra(EXTRA_MARKDOWN);
         boolean preserveNewlines = intent.getBooleanExtra(EXTRA_PRESERVE_NEWLINES, true);
